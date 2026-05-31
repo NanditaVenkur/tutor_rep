@@ -1,0 +1,69 @@
+This is what I had in mind how to do it? 
+
+```markdown
+Agents
+1. Knowledge Assessment Agent
+2. Learning Path Agent
+3. Adaptive Quiz Agent
+4. Mastery Tracking Agent
+for now at least
+
+Setup
+1. Embed chunks and store raw learning materials into the vector db
+
+1. datag eneration, (fields in learner profile model)
+Start
+1. Quick Study Agent (user query: components of a balance sheet)
+    Tools:
+        1. Access DB for Learner Profile tool?
+        2. Access Vector DB to retrieve questions regarding topic the user wants to study tool
+        3. Main Points planning tool (using retrieved context and user profile)
+        4. Quiz Planning Tool (using retrieved context and user profile)
+        5. Export results like main points and quiz to text document tool
+
+2. Full Scale Study Planning Agent (langgraph)
+    1. "Create user profile" tool if needed
+    2. Hand off to Knowledge Assessment Agent to administer one diagnostic quiz, the quz should be based on the user profile and context related to the chapter(s) the student wants to learn? --> it should use a quiz creation tool? -- aftwerwards it will store the quiz performance at that time in a db using a tool?
+
+
+    3. After this we will use a Learning Path Agent -- it will fetch the results for the user's quiz performance latest and then it will find the knowledge gaps? somehow (for now it is okay, if it is not not too advanced), for instance if the user wants to learn about MCP servers, they need to know about agentic ai, mcp client, what a protocol is, how where why what ncp is and such details , liekt ry fish for relevant details nad then create a learning path for hte user's profile (how good they are), to get the user details, it must also retrieve the user profile from the db using the tool  (network x) 
+
+    (once we have a profile and identify the gaps and then we retrieve study guide, 
+     and then 
+    3. Main Points planning tool (using retrieved context and user profile)
+        4. Quiz Planning Tool (using retrieved context and user profile)
+        5. Export results like main points and quiz to text document tool)
+
+
+    4. after a learning plan is generated and stored like a a db or json file or something (using a tool), create an, Adaptive quiz agent, it should provide prose type questions mixed with single answer, fill in the blank, true or false all but as mcqs /9using the quiz genration tool from before) or using an modre advanced quiz generation tool and then we record the results in a db yet again usinga nother tool and then we once hte user takes the quiz we store those reslts in a  db once again suing a tool, the quiz generation and user assessment for that quiz iterates until the user score 80 % or more on the quiz, and the quiz questions need to change each time according to the user's perforamnce. The main goal is to improve the userss understanding fi they get a question wrong immediatgely provide the correct answer. Make sure somehow that the user's knowledge of those concepts improve over time.
+
+    [explanation]
+
+
+    5. no need for the socratic agent for now, we'll skip it for now. 
+
+
+
+    6. Mastery tracking agent, after the adaptive quiz agent and we get 80% or more, we will udpat ehet user's profile for this topic int eh db usinga tool, and then we can use another tool to provide a main points, summary and improtant questions to focus on for that user for that topic and export it as pdf. This is very important. (what other refer)
+
+   #outside the box workflow (just quiz, just pdf)
+
+    8. For now the raw infrmation in the vector db for hte study resources will be injest and ready for use already, int he future I want the user to be able to submit their own text or word document and teh study plan should be based off of that. We can create a text document, pdf, image, flow chart, table or something based ont eh user's preference  (from the user's preference)
+
+    1. user's preference
+    2. token limit
+
+```
+
+3. Create study materials (agent)?
+
+
+
+Suggestions
+1. Use tool: User Context suhca s their age, academic standing..(age, language) (Task 1)
+2. (Task 2) Upload more pdfs to the vector db
+2. Summarize their resources.
+3. Based on diagnostic MCS we xtract features like their strengths and weaknesses
+4. learning Plan needs to be grounded on the pdf as well.
+5. Agent fetches information from the internet that is related tot he user's context and bundles it witht he information from the dataset.
+7. Check datasets
