@@ -22,4 +22,41 @@ leac203.pdf stored successfully.
 All PDFs processed successfully.
 
 
-2. Run the adaptive_tutor_langchain.ipynb file to see how the agents would work
+2. Activate the venv terminal again an
+
+## Activate it
+venv\Scripts\activate
+
+# Install everything pinned
+
+Try this one command
+
+`pip install langchain==0.3.25; pip install langchain-core==0.3.58; pip install langchain-community==0.3.24; pip install langchain-groq==0.3.4; pip install langchain-text-splitters==0.3.8; pip install pydantic==2.11.4; pip install sentence-transformers==2.7.0; pip install chromadb==0.5.23; pip install groq==0.13.0; pip install reportlab==4.2.5; pip install pypdf==4.3.1; pip install python-dotenv; pip install langchainhub`
+
+(or)
+
+Try them one by one
+
+pip install langchain==0.3.25
+pip install langchain-core==0.3.58
+pip install langchain-community==0.3.24
+pip install langchain-groq==0.3.4
+pip install langchain-text-splitters==0.3.8
+pip install pydantic==2.11.4
+pip install sentence-transformers==2.7.0
+pip install chromadb==0.5.23
+pip install groq==0.13.0
+pip install reportlab==4.2.5
+pip install pypdf==4.3.1
+pip install python-dotenv
+pip install langchainhub
+
+# Register it as a Jupyter kernel
+pip install ipykernel
+python -m ipykernel install --user --name tutor_env --display-name "Tutor (clean)"
+
+In `Select Kernel` select Python Environments and Select `venv`
+
+Run the adaptive_tutor_langchain.ipynb file to see how the agents would work
+
+
