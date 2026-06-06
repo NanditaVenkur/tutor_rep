@@ -4,7 +4,7 @@ Description: injest.py will create the chroma vector db, and populate the db wit
 2. Ensure you have python installed in your system, using "py --version" or "python3 --version" or other methods.
 3. Run "py -m venv venv" to create a virtual environment
 4. If you OS is Windows, try "venv\Scripts\activate" to activate the virtual environment or try other commands for your respective OS.
-5. Run "pip install -r requirements" to recursively install the dependencies for your ingest.py file.
+5. Run "pip install -r requirements_ingest.txt" to recursively install the dependencies for your ingest.py file.
 6. Run "py .\ingest.py" and you should see an output like:
 
 
@@ -22,7 +22,7 @@ leac203.pdf stored successfully.
 All PDFs processed successfully.
 
 
-2. Activate the venv terminal again an
+2. Activate the venv terminal again\
 
 ## Activate it
 venv\Scripts\activate
@@ -31,17 +31,39 @@ venv\Scripts\activate
 
 Try this one command
 
-`pip install langchain==0.3.25; pip install langchain-core==0.3.58; pip install langchain-community==0.3.24; pip install langchain-groq==0.3.4; pip install langchain-text-splitters==0.3.8; pip install pydantic==2.11.4; pip install sentence-transformers==2.7.0; pip install chromadb==0.5.23; pip install groq==0.13.0; pip install reportlab==4.2.5; pip install pypdf==4.3.1; pip install python-dotenv; pip install langchainhub`
+'pip install -r requirements_notebook_compressed.txt'
+
 
 (or)
 
 Try them one by one
 
-pip install langchain==0.3.25
-pip install langchain-core==0.3.58
-pip install langchain-community==0.3.24
-pip install langchain-groq==0.3.4
-pip install langchain-text-splitters==0.3.8
+
+langchain==1.3.4
+langchain-community==0.3.24
+langchain-core==1.4.1
+langchain-groq==1.1.2
+
+langgraph==1.2.4
+langgraph-checkpoint==4.1.1
+langgraph-prebuilt==1.1.0
+
+chromadb==1.5.9
+
+sentence-transformers==5.5.1
+transformers==5.10.2
+torch==2.12.0
+
+pypdf==4.3.1
+python-dotenv==1.2.2
+
+pandas==3.0.3
+numpy==2.4.6
+
+datasets==5.0.0
+scikit-learn==1.9.0
+
+
 pip install pydantic==2.11.4
 pip install sentence-transformers==2.7.0
 pip install chromadb==0.5.23
@@ -49,7 +71,7 @@ pip install groq==0.13.0
 pip install reportlab==4.2.5
 pip install pypdf==4.3.1
 pip install python-dotenv
-pip install langchainhub
+<!-- pip install langchainhub -->
 
 # Register it as a Jupyter kernel
 pip install ipykernel

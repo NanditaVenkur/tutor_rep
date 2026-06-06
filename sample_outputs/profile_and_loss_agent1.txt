@@ -1,0 +1,78 @@
+============================================================
+  FULL SCALE — Stage 1: Knowledge Assessment
+============================================================
+  Profile created: {'id': '598e2fad', 'name': 'Nandita', 'topic': 'Profit and loss', 'level': 'intermediate'}
+
+  [EASY] [conceptual] Q1:
+  What is the primary purpose of a Statement of Profit and Loss?
+
+    A) To provide a snapshot of a company's financial position
+    B) To determine the operational results of an undertaking
+    C) To classify items in the balance sheet
+    D) To prepare a cash flow statement
+
+  Topic Profit and loss, Score: 3/5 (60%) — not yet passed
+Retrieved 15 chunks for topic 'Profit and loss'.
+Context preview:
+ax (VII-VIII)
+Reprint 2026-27
+162 Accountancy : Company Accounts and Analysis of Financial Statements
+     X Tax expense:
+(1) Current tax
+(2) Deferred tax
+    XI Profit/(Loss) for the period from continuing
+operations (IX-X)
+   XII Profit/(Loss) from discontinuing operations  XIII Tax expense of discontinuing operations  XIV Profit/(Loss) from Discontinuing operations
+(after tax) (XII-XIII)
+   XV Profit/(Loss) for the period (XI + XIV)  XVI Earnings per equity share:
+(1) Basic(2) Diluted
+Exhibit...
+  ✗ Incorrect.
+  Correct answer: B) To determine the operational results of an undertaking
+  Why: The primary purpose of a Statement of Profit and Loss is to determine the operational results of an undertaking.
+
+  [MEDIUM] [scenario-based] Q2:
+  A company has a debit balance of Rs. 3,00,000 in its Statement of Profit and Loss. How will this be disclosed in the balance sheet?
+
+    A) As a positive figure under the head 'Surplus'
+    B) As a negative figure under the head 'Surplus'
+    C) As a part of the 'Reserve and Surplus'
+    D) As a separate head under 'Equity and Liabilities'
+  ✓ Correct!
+
+  [MEDIUM] [definition] Q3:
+  What is the meaning of 'Reserve and Surplus' in the context of a company's balance sheet?
+
+    A) The amount of money received from shareholders
+    B) The amount of money allocated for a specific purpose
+    C) The excess of assets over liabilities
+    D) The accumulated profits and losses of a company
+  ✓ Correct!
+
+  [HARD] [compare/contrast] Q4:
+  How do 'Trade Receivables' and 'Trade Payables' differ from 'Sundry Debtors' and 'Sundry Creditors'?
+
+    A) They are the same, with just a change in terminology
+    B) They are different, with 'Trade Receivables' and 'Trade Payables' including only amounts due from/to customers/suppliers
+    C) They are different, with 'Sundry Debtors' and 'Sundry Creditors' including only amounts due from/to customers/suppliers
+    D) They are not related to each other
+  ✗ Incorrect.
+  Correct answer: A) They are the same, with just a change in terminology
+  Why: 'Trade Receivables' and 'Trade Payables' are the new terms used in place of 'Sundry Debtors' and 'Sundry Creditors', with no change in their meaning or content.
+
+  [HARD] [true-or-false-as-MCQ] Q5:
+  Is it mandatory for companies to prepare their financial statements in accordance with the revised Schedule III to the Companies Act, 2013?
+
+    A) Yes, for all companies
+    B) No, only for companies with a turnover of over Rs. 100 crore
+    C) Yes, but only for companies listed on a stock exchange
+    D) No, companies can choose to follow any accounting standard
+  Please enter A, B, C, or D.
+  ✗ Incorrect.
+  Correct answer: A) Yes, for all companies
+  Why: Every company registered under the Companies Act, 2013, is required to prepare its financial statements in accordance with the revised Schedule III to the Companies Act, 2013.
+
+  Topic Profit and loss, Score: 2/5 (40%) — not yet passed
+
+  Assessment complete.
+  Diagnostic score: 40% — not passed

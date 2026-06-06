@@ -1,0 +1,46 @@
+{
+  "profile": {
+    "id": "31f9cf57",
+    "name": "Nandita",
+    "topic": "Proposed Dividend",
+    "level": "advanced"
+  },
+  "gap_data": {
+    "gaps": [
+      "Which of the following is NOT required to be disclosed for e",
+      "Based on the Dinkar Ltd. scenario, what should be the amount",
+      "Subscribing but not fully paid-up capital refers to:",
+      "Which statement best contrasts the presentation of 'Share ca",
+      "Which statement is true regarding the disclosure of shares h"
+    ],
+    "learning_path": [
+      {
+        "order": 1,
+        "subtopic": "Which of the following is NOT required to be disclosed for e",
+        "why": "Answered incorrectly"
+      },
+      {
+        "order": 2,
+        "subtopic": "Based on the Dinkar Ltd. scenario, what should be the amount",
+        "why": "Answered incorrectly"
+      },
+      {
+        "order": 3,
+        "subtopic": "Subscribing but not fully paid-up capital refers to:",
+        "why": "Answered incorrectly"
+      },
+      {
+        "order": 4,
+        "subtopic": "Which statement best contrasts the presentation of 'Share ca",
+        "why": "Answered incorrectly"
+      },
+      {
+        "order": 5,
+        "subtopic": "Which statement is true regarding the disclosure of shares h",
+        "why": "Answered incorrectly"
+      }
+    ],
+    "summary": "5 concepts need review."
+  },
+  "generated_at": "2026-06-06T23:08:39.971959"
+}

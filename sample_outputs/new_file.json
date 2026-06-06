@@ -1,0 +1,53 @@
+{
+  "gaps": [
+    "Receivable classification",
+    "Cash and cash equivalents definition (AS-3)",
+    "Investment classification",
+    "Provision classification"
+  ],
+  "learning_path": [
+    {
+      "order": 1,
+      "subtopic": "Current vs Non\u2011Current classification of assets and liabilities",
+      "addresses_gap": [
+        "Receivable classification",
+        "Investment classification",
+        "Provision classification"
+      ],
+      "why": "It establishes the fundamental rule for determining liquidity and time horizon for all asset and liability categories."
+    },
+    {
+      "order": 2,
+      "subtopic": "Receivable classification based on maturity period",
+      "addresses_gap": [
+        "Receivable classification"
+      ],
+      "why": "It clarifies when a receivable should be treated as current or non\u2011current, directly affecting balance sheet presentation."
+    },
+    {
+      "order": 3,
+      "subtopic": "Investment classification based on expected realization period",
+      "addresses_gap": [
+        "Investment classification"
+      ],
+      "why": "It ensures investments are correctly reported as current or non\u2011current, impacting financial statement analysis."
+    },
+    {
+      "order": 4,
+      "subtopic": "Provision classification based on settlement timing",
+      "addresses_gap": [
+        "Provision classification"
+      ],
+      "why": "It determines whether a provision is short\u2011term or long\u2011term, affecting both the balance sheet and cash flow statements."
+    },
+    {
+      "order": 5,
+      "subtopic": "AS\u20113 definition of cash and cash equivalents",
+      "addresses_gap": [
+        "Cash and cash equivalents definition (AS-3)"
+      ],
+      "why": "It specifies which short\u2011term securities qualify as cash equivalents, crucial for accurate liquidity measurement."
+    }
+  ],
+  "summary": "The student must first grasp the general current/non\u2011current framework before mastering specific classification rules and AS\u20113 definitions."
+}

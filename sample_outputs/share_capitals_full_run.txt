@@ -1,0 +1,746 @@
+============================================================
+  FULL SCALE — Stage 1: Knowledge Assessment
+============================================================
+  Profile created: {'id': '31f9cf57', 'name': 'Nandita', 'topic': 'Proposed Dividend', 'level': 'advanced'}
+Retrieved 15 chunks for topic 'Share Capital'.
+Context preview:
+Share Capital
+Disclosures relating to share capital are to be given in notes to accounts. The
+following additions/modifications are significant:
+a) For each class of shares, recognition of the number of shares outstanding
+at the beginning and at the end of the reporting period is required.
+b) The rights, preferences and restrictions attached to each class of shares
+including restrictions on the distribution of dividends and repayment of
+capital.
+c) In order to bring clarity regarding the identit...
+***********************************************************************
+Share Capital advanced 5 []
+Share Capital
+Disclosures relating to share capital are to be given in notes to accounts. The
+following additions/modifications are significant:
+a) For each class of shares, recognition of the number of shares outstanding
+at the beginning and at the end of the reporting period is required.
+b) The rights, preferences and restrictions attached to each class of shares
+including restrictions on the distribution of dividends and repayment of
+capital.
+c) In order to bring clarity regarding the identity of ultimate owners of the
+company:
+Reprint 2026-27
+150 Accountancy : Company Accounts and Analysis of Financial Statements
+i) Disclosure of shares in respect of each class in the company held
+by its holding company or its ultimate holding company including
+shares held by subsidiaries or associates of holding company orthe ultimate holding company in aggregate.
+ii) Disclosure of shares in the company held by each shareholder
+holding more than 5% shares specifying the number of shares held.
+iii)
+
+l of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received except for 500 shares on which the final call of Rs. 20 was not
+received. The company forfeited 200 shares on which final call was not received.
+Show how share capital will appear in the balance sheet of the company. Also
+prepare ‘Notes to Accounts’ for the same.
+Solution:
+Books of Dinkar Limited
+Balance Sheet as at .......... (Date)
+Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ funds
+a) Share capital 135,90,000
+Notes to Accounts
+Particulars Amount Amount
+(Rs.) (Rs.)
+1. Share capital
+Authorised share capital
+50,000 equity shares of Rs. 100 each 50,00,000
+Issued capital
+40,000 equity shares of Rs. 100 each 40,00,000
+Subscirbed and fully paid up capital
+35,500 equity shares of Rs. 100 each
+fully paid 35,50,000
+Subscirbed but not fully paid-up capital
+300 equity 
+
+:
+i) The number and amount of share authorised.
+ii) The number of shares issued, subscibed, fully paid and subscribed
+but not fully paid.
+iii)Par value per share.
+iv) Reconciliation of the number of shares outstanding at the beginning
+and end of the accounting period.
+v) Rights, preferences and restrictions attaching each class of shares
+including restrictions on the distribution of dividends and
+repayment of capital.
+vi) Aggregate number of shares with respect to each class in the
+company held by its holding company, its ultimate holding
+company including shares held by or by subsidiaries or associates
+of the holding company or the ultimate holding company.
+vii)  Shares reserved for issue under options and contracts/
+commitments for the sale of shares/disinvestment, including terms
+and amount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought 
+
+Act, 2013 to harmonise the disclosure requirement with theaccounting standards and to converge with new reforms.
+Balance Sheet as at 31st March, 20.....
+Particulars Note No. Figure as Figure as
+at the end at the end
+of Current of Previous
+reporting reporting
+period period
+I. EQUITY AND LIABILITIES
+1) Shareholder’s Funds
+(a) Share Capital(b) Reserves and Surplus(c) Money received against share warrants
+2) Share Application money pending allotment
+Reprint 2026-27
+148 Accountancy : Company Accounts and Analysis of Financial Statements
+3) Non-current Liabilities
+(a) Long term borrowings
+(b) Deferred tax liabilities (net)(c) Other long term liabilities(d) Long term provisions
+4) Current Liabilities
+(a) Short-term borrowings(b) Trade payables(c) Other current liabilities(d) Short-term provisions
+Total
+II.ASSETS
+1) Non-Current Assets
+(a) Fixed assets
+(i) Tangible assets
+(ii)Intangible assets
+(iii)Capital work-in-progress
+(iv)Intangible assets under development
+(b) Non-current investments(c) D
+
+ of holding company orthe ultimate holding company in aggregate.
+ii) Disclosure of shares in the company held by each shareholder
+holding more than 5% shares specifying the number of shares held.
+iii)Disclosure of the following for the period of 5 years immediatelypreceding the date of the balance sheet:
+Aggregate number and class of shares allotted as fully paid up
+pursuant to contracts without payment being received in cash.
+Aggregate number and class of shares allotted as fully paid up
+by way of bonus shares.
+Aggregate number and class of shares bought back.
+This may be noted that the information of shareholders funds are presented
+on the face of financial statements limited only to broad and significant items. Detailsare given in Notes to Accounts.
+d) For each class of share capital:
+i) The number and amount of share authorised.
+ii) The number of shares issued, subscibed, fully paid and subscribed
+but not fully paid.
+iii)Par value per share.
+iv) Reconciliation of the number of s
+
+ecognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be disclosed in balance sheet under
+separate heading’ between share capital and reserves and surplus as a
+part of shareholders fund.
+Money Received against share warrantsIt is the amount received by the company which are converted into shares at a
+specified date on a specified rate. The instrument issued against the amount
+so received as share warrants.
+Money received against share warrants’ to be disclosed as a separate line item
+under ‘shareholder’s fund’.
+Reprint 2026-27
+152 Accountancy : Company Accounts and Analysis of Financial Statements
+Illustration 1
+Dinkar Ltd. has an authorised capital of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received e
+
+ofturnover:
+1. Turnover < Rs.100 crore: Nearest hundreds, thousands, lakhs or millions or
+decimal thereof;
+2. Turnover > Rs.100 crore: Nearest lakhs or millions or decimal thereof;
+8. Rounding off requirements is mandatory (refer box 1).
+9. Vertical format for presentation of financial statement is prescribed (refer
+Exhibit 3.1).
+10. Debit balance in the statement of profit and loss to be disclosed as negative
+figure under the head “Surplus”.
+11. Mandatory disclosure for share application money pending allotment.
+12. ‘Sundry Debtors’ and ‘Sundry Creditors’ replaced by terms ‘Trade
+Receivables’ and ‘Trade Payables’.
+Shareholders Fund
+The shareholders’ funds are sub-classified on the face of the balance sheet.
+a) Share Capital
+b) Reserves and Surplus
+c) Money received against Share Warrants
+Share Capital
+Disclosures relating to share capital are to be given in notes to accounts. The
+following additions/modifications are significant:
+a) For each class of shares, recognition of the number 
+
+ity Share Capital Rs. 16,00,000; Plant
+and Machinery Rs. 8,00,000; 8% Preference Share Capital Rs.6,00,000; General Reserves Rs. 6,00,000; Bills payable Rs. 1,50,000;Provision for taxation Rs. 2,50,000; Land and Building Rs.16,00,000; Non-current Investments Rs. 10,00,000; Cash at BankRs. 5,00,000; Creditors Rs. 2,00,000; 12% Debentures Rs.12,00,000.
+5. Prepare the balance sheet of Jyoti Ltd., as at March 31, 2017 from
+the following information.
+Building Rs. 10,00,000; Investments in the shares of Metro Tyers
+Ltd. Rs. 3,00,000; Stores & Spares Rs. 1,00,000; Statement ofProfit and Loss (Dr.) Rs. 90,000; 5,00,000 Equity Shares of Rs.20 each fully paid-up; Capital Redemption Reserve Rs. 1,00,000; 10%
+Debentures Rs. 3,00,000; Unpaid dividends Rs. 90,000; Share optionsoutstanding account Rs. 10,000.
+6. Brinda Ltd., has furnished the following information:
+(a) 25,000, 10% debentures of Rs.100 each;
+(b) Bank Loan of Rs.10,00,000 repayable after 5 years;(c) Interest on debentures is yet to be 
+
+mountrelating to intangible assets.
+(g) Other expenses All other expenses which do not fall in the above
+categories are shown under other expenses. Otherexpenses may further be categorised into directexpenses, indirect expenses and non-operatingexpenses.
+Illustration 8
+From the following particulars, prepare Statement of profit and loss for the year
+ending March 2017, showing profit before tax as per schedule III of the
+companies Act – 2013.
+Balances (Rs.) (Rs.)
+Plant and Machinery 1,60,000
+Land 6,74,000
+Depreciation on Plant and Machinery 16,000
+Purchases (Adjusted) 4,00,000
+Closing stock 1,50,000
+Wages 1,20,000
+Sales (Net) 10,00,000
+Salaries 80,000
+Bank overdraft 2,00,000
+10% debentures (issued on 1st April, 2016) 1,00,000
+Equity share capital – shares of Rs. 100 each (fully paid) 2,00,000
+Preference share capital – 1,000; 6% shares of Rs. 100 1,00,000
+each (fully paid)
+16,00,000 16,00,000
+Reprint 2026-27
+164 Accountancy : Company Accounts and Analysis of Financial Statements
+Solutio
+
+e
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Appropriation such as dividend, bonus shares, transfer to/from
+reserve, etc.
+Significant additions/modifications regarding disclosure of reserve and surplusare as follows:
+a) A reserve specifically represented by earmarked investments shall be
+termed as “Fund”.
+b) ‘Debit’ balance of statement of profit and loss shall be shown as a negative
+figure under ‘Surplus’ head.
+c) The balance of “Reserve and Surplus” after adjusting negative balance of
+Surplus, if any, shall be shown under “Reserve and Surplus” read evenif the resulting figure is ‘negative’.
+d) Share options outstanding account has been recognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be
+
+ount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought back.
+(c)    Number and class of shares allotted for consideration other
+      than cash and bonus shares.
+Reprint 2026-27
+151 Financial Statements of a Company
+ix) Terms of any securities convertible into equity/preference shares
+issued along with earliest date of conversion in descending order,
+starting from the farthest such date.
+x) Calls unpaid (aggregate).
+xi) Forfeited shares (amout originally paid up).
+Reserve and SurplusReserves and Surplus are required to be classified as:
+i) Capital Reserve
+ii) Capital Redemption Reserve
+iii)Securities Premium Reserve
+iv) Debenture Redemption Reserve
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Ap
+
+0,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptances4. Preliminary expenses5. Capital reserve6. Loans from banks7. Investment in shares and
+debentures
+8. Interest accrued and due on
+debentures
+9. Interest accrued but not due on
+Secured Loans
+10. Interest accrued but not due on
+Unsecured Loans
+11. Interest accrued on Investments
+Reprint 2026-27
+159 Financial Statements of a Company
+12. Surplus
+13. Securities Premium Reserve
+14. Loose Tools15. Provision for Taxation16. Under writing Commission17. Bills of Exchange18. Unclaimed dividend19. Short term loans & advances
+20. Live stock
+21. Calls unpaid/calls in arrears22. Uncalled liability on shares partly
+paid
+23. Pre-paid Insurance24. Stores and spare parts25. Advances from customers26. Debentures redemption reserve27. Premium on redemption of
+debentures
+28. Loss on issue of debentures29. De
+
+r prime considerations in their investment
+decisions are security and liquidity of their investment with reasonable
+profitability. Financial statements help the investors to assess long-
+term and short-term solvency as well as the profitability of the
+concern.
+5.Guide to the value of the investment already made: Shareholders of
+companies are interested in knowing the status, safety and return on
+their investment. They may also need information to take decision
+about continuation or discontinuation of their investment in the
+business. Financial statements provide information to the shareholders
+in taking such important decisions.
+6.Aids trade associations in helping their members:  Trade associations
+may analyse the financial statements for the purpose of providing
+service and protection to their members. They may develop standard
+ratios and design uniform system of accounts.
+7.Helps stock exchanges: Financial statements help the stock exchanges
+to understand the extent of transparency 
+
+venue from interest, dividend and income from other financial services.
+It may be noted that under each of the above heads shall be disclosed
+separately by way of notes to accounts to the extent applicable.
+2. Other income
+(i) Interest income (in case of a company other than a finance company),
+(ii)Dividend income,
+(iii) Net gain/loss on sale of investments,
+(iv) Other non-operating income (net of expenses directly attributable to
+such income).
+3. Expense
+Expenses incurred to earn the income shown under various heads as discussed below:
+(a) Cost of Materials It applies to manufacturing companies. It consists of
+raw materials and other materials consumed in
+manufacturing of goods.
+(b)Purchase of Stock-in-trade It means purchases of goods for the purpose of
+trading.
+Reprint 2026-27
+163 Financial Statements of a Company
+(c) Changes in inventories of It is the difference between opening inventory (stock)
+finished goods, WIP and of finished goods, WIP and stock-in-trade and closing
+stock-in
+
+pital
+40,000 equity shares of Rs. 100 each 40,00,000
+Subscirbed and fully paid up capital
+35,500 equity shares of Rs. 100 each
+fully paid 35,50,000
+Subscirbed but not fully paid-up capital
+300 equity shares of Rs. 100 each fullycalled up 30,000
+Less: Calls-in-arr ears (300×20) 6,000
+24,000
+Add: Share forfeiture A/c (200 shares × Rs. 80) 16,000 40,000
+35,90,000
+Current and Non-current Classification
+The classified balance sheet in terms of current and non-current assets
+and current and non-current liabilities have been introduced. The
+Reprint 2026-27
+153 Financial Statements of a Company
+criteria for defining current assets and liabilities has been clearly spelled out
+with non-current assets and liabilities being the residual items.
+Current/Non-current distinction
+An item is classified as current:
+if it is involved in entity’s operating cycle or,
+is expected to be realised/settled within twelve months or,
+if it is held primarily for trading or,
+is cash and cash equivalent or,
+if en
+***********************************************************************
+***********************************************************************
+Share Capital advanced 5 []
+Share Capital
+Disclosures relating to share capital are to be given in notes to accounts. The
+following additions/modifications are significant:
+a) For each class of shares, recognition of the number of shares outstanding
+at the beginning and at the end of the reporting period is required.
+b) The rights, preferences and restrictions attached to each class of shares
+including restrictions on the distribution of dividends and repayment of
+capital.
+c) In order to bring clarity regarding the identity of ultimate owners of the
+company:
+Reprint 2026-27
+150 Accountancy : Company Accounts and Analysis of Financial Statements
+i) Disclosure of shares in respect of each class in the company held
+by its holding company or its ultimate holding company including
+shares held by subsidiaries or associates of holding company orthe ultimate holding company in aggregate.
+ii) Disclosure of shares in the company held by each shareholder
+holding more than 5% shares specifying the number of shares held.
+iii)
+
+l of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received except for 500 shares on which the final call of Rs. 20 was not
+received. The company forfeited 200 shares on which final call was not received.
+Show how share capital will appear in the balance sheet of the company. Also
+prepare ‘Notes to Accounts’ for the same.
+Solution:
+Books of Dinkar Limited
+Balance Sheet as at .......... (Date)
+Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ funds
+a) Share capital 135,90,000
+Notes to Accounts
+Particulars Amount Amount
+(Rs.) (Rs.)
+1. Share capital
+Authorised share capital
+50,000 equity shares of Rs. 100 each 50,00,000
+Issued capital
+40,000 equity shares of Rs. 100 each 40,00,000
+Subscirbed and fully paid up capital
+35,500 equity shares of Rs. 100 each
+fully paid 35,50,000
+Subscirbed but not fully paid-up capital
+300 equity 
+
+:
+i) The number and amount of share authorised.
+ii) The number of shares issued, subscibed, fully paid and subscribed
+but not fully paid.
+iii)Par value per share.
+iv) Reconciliation of the number of shares outstanding at the beginning
+and end of the accounting period.
+v) Rights, preferences and restrictions attaching each class of shares
+including restrictions on the distribution of dividends and
+repayment of capital.
+vi) Aggregate number of shares with respect to each class in the
+company held by its holding company, its ultimate holding
+company including shares held by or by subsidiaries or associates
+of the holding company or the ultimate holding company.
+vii)  Shares reserved for issue under options and contracts/
+commitments for the sale of shares/disinvestment, including terms
+and amount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought 
+
+Act, 2013 to harmonise the disclosure requirement with theaccounting standards and to converge with new reforms.
+Balance Sheet as at 31st March, 20.....
+Particulars Note No. Figure as Figure as
+at the end at the end
+of Current of Previous
+reporting reporting
+period period
+I. EQUITY AND LIABILITIES
+1) Shareholder’s Funds
+(a) Share Capital(b) Reserves and Surplus(c) Money received against share warrants
+2) Share Application money pending allotment
+Reprint 2026-27
+148 Accountancy : Company Accounts and Analysis of Financial Statements
+3) Non-current Liabilities
+(a) Long term borrowings
+(b) Deferred tax liabilities (net)(c) Other long term liabilities(d) Long term provisions
+4) Current Liabilities
+(a) Short-term borrowings(b) Trade payables(c) Other current liabilities(d) Short-term provisions
+Total
+II.ASSETS
+1) Non-Current Assets
+(a) Fixed assets
+(i) Tangible assets
+(ii)Intangible assets
+(iii)Capital work-in-progress
+(iv)Intangible assets under development
+(b) Non-current investments(c) D
+
+ of holding company orthe ultimate holding company in aggregate.
+ii) Disclosure of shares in the company held by each shareholder
+holding more than 5% shares specifying the number of shares held.
+iii)Disclosure of the following for the period of 5 years immediatelypreceding the date of the balance sheet:
+Aggregate number and class of shares allotted as fully paid up
+pursuant to contracts without payment being received in cash.
+Aggregate number and class of shares allotted as fully paid up
+by way of bonus shares.
+Aggregate number and class of shares bought back.
+This may be noted that the information of shareholders funds are presented
+on the face of financial statements limited only to broad and significant items. Detailsare given in Notes to Accounts.
+d) For each class of share capital:
+i) The number and amount of share authorised.
+ii) The number of shares issued, subscibed, fully paid and subscribed
+but not fully paid.
+iii)Par value per share.
+iv) Reconciliation of the number of s
+
+ecognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be disclosed in balance sheet under
+separate heading’ between share capital and reserves and surplus as a
+part of shareholders fund.
+Money Received against share warrantsIt is the amount received by the company which are converted into shares at a
+specified date on a specified rate. The instrument issued against the amount
+so received as share warrants.
+Money received against share warrants’ to be disclosed as a separate line item
+under ‘shareholder’s fund’.
+Reprint 2026-27
+152 Accountancy : Company Accounts and Analysis of Financial Statements
+Illustration 1
+Dinkar Ltd. has an authorised capital of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received e
+
+ofturnover:
+1. Turnover < Rs.100 crore: Nearest hundreds, thousands, lakhs or millions or
+decimal thereof;
+2. Turnover > Rs.100 crore: Nearest lakhs or millions or decimal thereof;
+8. Rounding off requirements is mandatory (refer box 1).
+9. Vertical format for presentation of financial statement is prescribed (refer
+Exhibit 3.1).
+10. Debit balance in the statement of profit and loss to be disclosed as negative
+figure under the head “Surplus”.
+11. Mandatory disclosure for share application money pending allotment.
+12. ‘Sundry Debtors’ and ‘Sundry Creditors’ replaced by terms ‘Trade
+Receivables’ and ‘Trade Payables’.
+Shareholders Fund
+The shareholders’ funds are sub-classified on the face of the balance sheet.
+a) Share Capital
+b) Reserves and Surplus
+c) Money received against Share Warrants
+Share Capital
+Disclosures relating to share capital are to be given in notes to accounts. The
+following additions/modifications are significant:
+a) For each class of shares, recognition of the number 
+
+ity Share Capital Rs. 16,00,000; Plant
+and Machinery Rs. 8,00,000; 8% Preference Share Capital Rs.6,00,000; General Reserves Rs. 6,00,000; Bills payable Rs. 1,50,000;Provision for taxation Rs. 2,50,000; Land and Building Rs.16,00,000; Non-current Investments Rs. 10,00,000; Cash at BankRs. 5,00,000; Creditors Rs. 2,00,000; 12% Debentures Rs.12,00,000.
+5. Prepare the balance sheet of Jyoti Ltd., as at March 31, 2017 from
+the following information.
+Building Rs. 10,00,000; Investments in the shares of Metro Tyers
+Ltd. Rs. 3,00,000; Stores & Spares Rs. 1,00,000; Statement ofProfit and Loss (Dr.) Rs. 90,000; 5,00,000 Equity Shares of Rs.20 each fully paid-up; Capital Redemption Reserve Rs. 1,00,000; 10%
+Debentures Rs. 3,00,000; Unpaid dividends Rs. 90,000; Share optionsoutstanding account Rs. 10,000.
+6. Brinda Ltd., has furnished the following information:
+(a) 25,000, 10% debentures of Rs.100 each;
+(b) Bank Loan of Rs.10,00,000 repayable after 5 years;(c) Interest on debentures is yet to be 
+
+mountrelating to intangible assets.
+(g) Other expenses All other expenses which do not fall in the above
+categories are shown under other expenses. Otherexpenses may further be categorised into directexpenses, indirect expenses and non-operatingexpenses.
+Illustration 8
+From the following particulars, prepare Statement of profit and loss for the year
+ending March 2017, showing profit before tax as per schedule III of the
+companies Act – 2013.
+Balances (Rs.) (Rs.)
+Plant and Machinery 1,60,000
+Land 6,74,000
+Depreciation on Plant and Machinery 16,000
+Purchases (Adjusted) 4,00,000
+Closing stock 1,50,000
+Wages 1,20,000
+Sales (Net) 10,00,000
+Salaries 80,000
+Bank overdraft 2,00,000
+10% debentures (issued on 1st April, 2016) 1,00,000
+Equity share capital – shares of Rs. 100 each (fully paid) 2,00,000
+Preference share capital – 1,000; 6% shares of Rs. 100 1,00,000
+each (fully paid)
+16,00,000 16,00,000
+Reprint 2026-27
+164 Accountancy : Company Accounts and Analysis of Financial Statements
+Solutio
+
+e
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Appropriation such as dividend, bonus shares, transfer to/from
+reserve, etc.
+Significant additions/modifications regarding disclosure of reserve and surplusare as follows:
+a) A reserve specifically represented by earmarked investments shall be
+termed as “Fund”.
+b) ‘Debit’ balance of statement of profit and loss shall be shown as a negative
+figure under ‘Surplus’ head.
+c) The balance of “Reserve and Surplus” after adjusting negative balance of
+Surplus, if any, shall be shown under “Reserve and Surplus” read evenif the resulting figure is ‘negative’.
+d) Share options outstanding account has been recognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be
+
+ount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought back.
+(c)    Number and class of shares allotted for consideration other
+      than cash and bonus shares.
+Reprint 2026-27
+151 Financial Statements of a Company
+ix) Terms of any securities convertible into equity/preference shares
+issued along with earliest date of conversion in descending order,
+starting from the farthest such date.
+x) Calls unpaid (aggregate).
+xi) Forfeited shares (amout originally paid up).
+Reserve and SurplusReserves and Surplus are required to be classified as:
+i) Capital Reserve
+ii) Capital Redemption Reserve
+iii)Securities Premium Reserve
+iv) Debenture Redemption Reserve
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Ap
+
+0,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptances4. Preliminary expenses5. Capital reserve6. Loans from banks7. Investment in shares and
+debentures
+8. Interest accrued and due on
+debentures
+9. Interest accrued but not due on
+Secured Loans
+10. Interest accrued but not due on
+Unsecured Loans
+11. Interest accrued on Investments
+Reprint 2026-27
+159 Financial Statements of a Company
+12. Surplus
+13. Securities Premium Reserve
+14. Loose Tools15. Provision for Taxation16. Under writing Commission17. Bills of Exchange18. Unclaimed dividend19. Short term loans & advances
+20. Live stock
+21. Calls unpaid/calls in arrears22. Uncalled liability on shares partly
+paid
+23. Pre-paid Insurance24. Stores and spare parts25. Advances from customers26. Debentures redemption reserve27. Premium on redemption of
+debentures
+28. Loss on issue of debentures29. De
+
+r prime considerations in their investment
+decisions are security and liquidity of their investment with reasonable
+profitability. Financial statements help the investors to assess long-
+term and short-term solvency as well as the profitability of the
+concern.
+5.Guide to the value of the investment already made: Shareholders of
+companies are interested in knowing the status, safety and return on
+their investment. They may also need information to take decision
+about continuation or discontinuation of their investment in the
+business. Financial statements provide information to the shareholders
+in taking such important decisions.
+6.Aids trade associations in helping their members:  Trade associations
+may analyse the financial statements for the purpose of providing
+service and protection to their members. They may develop standard
+ratios and design uniform system of accounts.
+7.Helps stock exchanges: Financial statements help the stock exchanges
+to understand the extent of transparency 
+
+venue from interest, dividend and income from other financial services.
+It may be noted that under each of the above heads shall be disclosed
+separately by way of notes to accounts to the extent applicable.
+2. Other income
+(i) Interest income (in case of a company other than a finance company),
+(ii)Dividend income,
+(iii) Net gain/loss on sale of investments,
+(iv) Other non-operating income (net of expenses directly attributable to
+such income).
+3. Expense
+Expenses incurred to earn the income shown under various heads as discussed below:
+(a) Cost of Materials It applies to manufacturing companies. It consists of
+raw materials and other materials consumed in
+manufacturing of goods.
+(b)Purchase of Stock-in-trade It means purchases of goods for the purpose of
+trading.
+Reprint 2026-27
+163 Financial Statements of a Company
+(c) Changes in inventories of It is the difference between opening inventory (stock)
+finished goods, WIP and of finished goods, WIP and stock-in-trade and closing
+stock-in
+
+pital
+40,000 equity shares of Rs. 100 each 40,00,000
+Subscirbed and fully paid up capital
+35,500 equity shares of Rs. 100 each
+fully paid 35,50,000
+Subscirbed but not fully paid-up capital
+300 equity shares of Rs. 100 each fullycalled up 30,000
+Less: Calls-in-arr ears (300×20) 6,000
+24,000
+Add: Share forfeiture A/c (200 shares × Rs. 80) 16,000 40,000
+35,90,000
+Current and Non-current Classification
+The classified balance sheet in terms of current and non-current assets
+and current and non-current liabilities have been introduced. The
+Reprint 2026-27
+153 Financial Statements of a Company
+criteria for defining current assets and liabilities has been clearly spelled out
+with non-current assets and liabilities being the residual items.
+Current/Non-current distinction
+An item is classified as current:
+if it is involved in entity’s operating cycle or,
+is expected to be realised/settled within twelve months or,
+if it is held primarily for trading or,
+is cash and cash equivalent or,
+if en
+***********************************************************************
+
+  [HARD] [conceptual] Q1:
+  Which of the following is NOT required to be disclosed for each class of shares in the notes to accounts under the new disclosure requirements?
+
+    A) The number of shares outstanding at the beginning and at the end of the reporting period.
+    B) The rights, preferences and restrictions attached to the class, including restrictions on dividend distribution and repayment of capital.
+    C) The aggregate number of shares held by the company's ultimate holding company and its subsidiaries.
+    D) The number of shares issued, subscribed, fully paid and subscribed but not fully paid.
+  ✗ Incorrect.
+  Correct answer: C) The aggregate number of shares held by the company's ultimate holding company and its subsidiaries.
+  Why: The aggregate holdings of the ultimate holding company are disclosed separately, not per class of shares.
+
+  [HARD] [scenario-based] Q2:
+  Based on the Dinkar Ltd. scenario, what should be the amount of share capital shown in the equity section of the balance sheet?
+
+    A) 135,90,000
+    B) 136,00,000
+    C) 135,70,000
+    D) 135,50,000
+  ✗ Incorrect.
+  Correct answer: A) 135,90,000
+  Why: After accounting for calls received, forfeited shares, and unpaid calls, the share capital totals 135,90,000.
+
+  [MEDIUM] [definition] Q3:
+  Subscribing but not fully paid-up capital refers to:
+
+    A) Shares that have been fully paid by the shareholders.
+    B) Shares that have been subscribed but the final call has not been fully received.
+    C) Shares that have been forfeited due to non-payment.
+    D) Shares that have been issued but not yet subscribed.
+  ✗ Incorrect.
+  Correct answer: B) Shares that have been subscribed but the final call has not been fully received.
+  Why: It denotes shares that have been subscribed but the final payment has not been received.
+
+  [HARD] [compare/contrast] Q4:
+  Which statement best contrasts the presentation of 'Share capital' and 'Reserves and Surplus' in the balance sheet?
+
+    A) Share capital is shown under liabilities, reserves and surplus under assets.
+    B) Share capital is a component of shareholders' funds, reserves and surplus is a separate component of shareholders' funds.
+    C) Share capital can be increased by issuing shares, reserves cannot.
+    D) Reserves and surplus are shown in equity, share capital is shown in liabilities.
+  ✗ Incorrect.
+  Correct answer: B) Share capital is a component of shareholders' funds, reserves and surplus is a separate component of shareholders' funds.
+  Why: Both are components of shareholders' funds, but reserves and surplus form a distinct subsection.
+
+  [HARD] [true-or-false-as-MCQ] Q5:
+  Which statement is true regarding the disclosure of shares held by a holding company?
+
+    A) Only shares held by the holding company itself need to be disclosed.
+    B) Shares held by subsidiaries of the holding company must be disclosed.
+    C) Aggregate shares held by the holding company and its subsidiaries must be disclosed.
+    D) Shares held by associates of the holding company are not required to be disclosed.
+  Please enter A, B, C, or D.
+  ✗ Incorrect.
+  Correct answer: C) Aggregate shares held by the holding company and its subsidiaries must be disclosed.
+  Why: The disclosure requires aggregate shares held by the holding company and its subsidiaries.
+
+  Topic Proposed Dividend, Score: 0/5 (0%) — not yet passed
+
+  Assessment complete.
+  Diagnostic score: 0% — not passed
+
+------------------------------------------------------------
+  FULL SCALE — Stage 3: Learning Path
+------------------------------------------------------------
+  Learning path saved: outputs\learning_path_31f9cf57_Proposed Dividend.json
+  Gap analysis: 5 concepts need review.
+  Gaps identified: ['Which of the following is NOT required to be disclosed for e', 'Based on the Dinkar Ltd. scenario, what should be the amount', 'Subscribing but not fully paid-up capital refers to:', "Which statement best contrasts the presentation of 'Share ca", 'Which statement is true regarding the disclosure of shares h']
+  Learning path generated.
