@@ -1,0 +1,75 @@
+============================================================
+  FULL SCALE — Stage 1: Knowledge Assessment
+============================================================
+  Profile created: {'id': '426bba88', 'name': 'Nandita', 'topic': 'Profit and loss', 'level': 'intermediate'}
+
+  [EASY] [conceptual] Q1:
+  What is the primary purpose of a balance sheet?
+
+    A) To provide information about economic resources and obligations of a business
+    B) To provide information about the earning capacity of the business
+    C) To provide information about cash flows
+    D) To provide information about labour relations and employee satisfaction
+
+  Topic Profit and loss, Score: 1/3 (33%) — not yet passed
+Retrieved 15 chunks for topic 'Profit and loss'.
+Context preview:
+ax (VII-VIII)
+Reprint 2026-27
+162 Accountancy : Company Accounts and Analysis of Financial Statements
+     X Tax expense:
+(1) Current tax
+(2) Deferred tax
+    XI Profit/(Loss) for the period from continuing
+operations (IX-X)
+   XII Profit/(Loss) from discontinuing operations  XIII Tax expense of discontinuing operations  XIV Profit/(Loss) from Discontinuing operations
+(after tax) (XII-XIII)
+   XV Profit/(Loss) for the period (XI + XIV)  XVI Earnings per equity share:
+(1) Basic(2) Diluted
+Exhibit...
+  ✓ Correct!
+
+  [MEDIUM] [scenario-based] Q2:
+  A company has a contingent liability that is not reflected in its balance sheet. Where would this information be disclosed?
+
+    A) In the notes to accounts
+    B) In the statement of profit and loss
+    C) In the balance sheet under current liabilities
+    D) In the management discussion and analysis
+  ✗ Incorrect.
+  Correct answer: A) In the notes to accounts
+  Why: Contingent liabilities are disclosed in the notes to accounts, as they are not reflected in the balance sheet.
+
+  [MEDIUM] [definition] Q3:
+  What is the term for the process of segregating the flow of income and expenses using best judgement apart from accepted concepts?
+
+    A) Accounting standards
+    B) Financial reporting
+    C) Best judgement apart from accepted concepts
+    D) Historical cost accounting
+  ✓ Correct!
+
+  [HARD] [compare/contrast] Q4:
+  How do financial statements differ from other reports, such as the management discussion and analysis?
+
+    A) Financial statements provide qualitative information, while other reports provide quantitative information
+    B) Financial statements provide historical information, while other reports provide current information
+    C) Financial statements provide information about economic resources and obligations, while other reports provide information about management performance
+    D) Financial statements are prepared using accounting principles, while other reports are not
+  ✗ Incorrect.
+  Correct answer: C) Financial statements provide information about economic resources and obligations, while other reports provide information about management performance
+  Why: Financial statements provide information about economic resources and obligations, while other reports, such as the management discussion and analysis, provide information about management performance and other qualitative aspects.
+
+  [HARD] [true-or-false-as-MCQ] Q5:
+  Are financial statements complete and accurate?
+
+    A) Yes, financial statements are complete and accurate
+    B) No, financial statements are not complete and accurate
+    C) Financial statements are complete but not accurate
+    D) Financial statements are accurate but not complete
+  ✓ Correct!
+
+  Topic Profit and loss, Score: 3/5 (60%) — not yet passed
+
+  Assessment complete.
+  Diagnostic score: 60% — not passed

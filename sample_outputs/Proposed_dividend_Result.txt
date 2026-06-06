@@ -1,0 +1,404 @@
+============================================================
+  FULL SCALE — Stage 1: Knowledge Assessment
+============================================================
+  Profile created: {'id': '31f9cf57', 'name': 'Nandita', 'topic': 'Proposed Dividend', 'level': 'advanced'}
+Retrieved 15 chunks for topic 'Proposed Dividend'.
+Context preview:
+hs from the date of balance sheet or beyond the operating cycle are classified
+under “other long-term liabilities” with Note to Account. For example, purchase
+of goods and services in normal course of business. The balance of trade payables
+are classified as current liabilities on the face of balance sheet.
+Proposed Dividend
+Proposed dividend is proposed by the Board of Directors and declared
+(approved) by the shareholders in their Annual General Meeting. Board of
+Directors propose the dividend ...
+***********************************************************************
+Proposed Dividend advanced 5 []
+hs from the date of balance sheet or beyond the operating cycle are classified
+under “other long-term liabilities” with Note to Account. For example, purchase
+of goods and services in normal course of business. The balance of trade payables
+are classified as current liabilities on the face of balance sheet.
+Proposed Dividend
+Proposed dividend is proposed by the Board of Directors and declared
+(approved) by the shareholders in their Annual General Meeting. Board of
+Directors propose the dividend after the annual accounts for the year have
+been prepared. Annual General Meeting of the shareholders is held thereafter
+meaning it is held in the next financial year.
+Shareholders may reduce the amount of proposed dividend but cannot increase
+it. Since declaration of proposed (final) dividend is contingent upon
+shareholders approval, Proposed dividend is shown as contingent liability.
+AS-4, Contingencies and Events Occurring after the Balance Sheet Date
+prescribes that proposed dividend will be
+
+ntingent upon
+shareholders approval, Proposed dividend is shown as contingent liability.
+AS-4, Contingencies and Events Occurring after the Balance Sheet Date
+prescribes that proposed dividend will be shown in the Notes to Accounts.
+After the Proposed dividend is declared by the shareholders, it becomes a
+liability for the company and is accounted in the books. As a consequence,
+proposed dividend of previous year will be declared (approved) by the
+shareholders in the current year and this declared (approved) proposed dividend
+will be accounted during the year. Proposed dividend for the current year will
+be relevant for the next financial year.
+Briefly, proposed dividend of previous year will be accounted in the current
+year after it is declared (approved) by the shareholders in their annual general
+meeting.
+Provisions
+The amount of provision settled within 12 months from balance sheet date or
+within operating cycle period from date of its recognition is classified as short
+term provisi
+
+venue from interest, dividend and income from other financial services.
+It may be noted that under each of the above heads shall be disclosed
+separately by way of notes to accounts to the extent applicable.
+2. Other income
+(i) Interest income (in case of a company other than a finance company),
+(ii)Dividend income,
+(iii) Net gain/loss on sale of investments,
+(iv) Other non-operating income (net of expenses directly attributable to
+such income).
+3. Expense
+Expenses incurred to earn the income shown under various heads as discussed below:
+(a) Cost of Materials It applies to manufacturing companies. It consists of
+raw materials and other materials consumed in
+manufacturing of goods.
+(b)Purchase of Stock-in-trade It means purchases of goods for the purpose of
+trading.
+Reprint 2026-27
+163 Financial Statements of a Company
+(c) Changes in inventories of It is the difference between opening inventory (stock)
+finished goods, WIP and of finished goods, WIP and stock-in-trade and closing
+stock-in
+
+ed Assets, Intangible Assets
+Reprint 2026-27
+168 Accountancy : Company Accounts and Analysis of Financial Statements
+(v) Proposed Dividend for the current year
+(vi) Non Current Liabilities
+(vii) Arrears of Dividend on Commulative Preference Shares.
+Long Answer Questions
+1. Explain the nature of the financial statements.
+2. Explain in detail about the significance of the financial statements.
+3. Explain the limitations of financial statements.
+4. Prepare the format of statement of profit and loss and explain its items
+upto the as certainment of profit before tax.
+5. Prepare the format of balance sheet and explain the various elements of
+balance sheet.
+6. Explain how financial statements are useful to the various parties who are
+interested in the affairs of an undertaking?
+7. ‘Financial statements reflect a combination of recorded facts, accounting
+conventions and personal judgements’. Discuss.
+8. Explain the process of preparing income statement and balance sheet.
+Numerical Questions
+1.
+
+erstood with the help of financial statements.
+2.Basis for fiscal policies: The fiscal policies, particularly taxation policies
+of the government, are related with the financial performance of
+corporate undertakings. The financial statements provide basic input
+for industrial, taxation and other economic policies of the government.
+Reprint 2026-27
+165 Financial Statements of a Company
+3.Basis for granting of credit:  Corporate undertakings have to borrow
+funds from banks and other financial institutions for different purposes.
+Credit granting institutions take decisions based on the financial
+performance of the undertakings. Thus, financial statements form
+the basis for granting of credit.
+4.Basis for prospective investors: The investors include both short-termand long-term investors. Their prime considerations in their investment
+decisions are security and liquidity of their investment with reasonable
+profitability. Financial statements help the investors to assess long-
+term and shor
+
+Act, 2013 to harmonise the disclosure requirement with theaccounting standards and to converge with new reforms.
+Balance Sheet as at 31st March, 20.....
+Particulars Note No. Figure as Figure as
+at the end at the end
+of Current of Previous
+reporting reporting
+period period
+I. EQUITY AND LIABILITIES
+1) Shareholder’s Funds
+(a) Share Capital(b) Reserves and Surplus(c) Money received against share warrants
+2) Share Application money pending allotment
+Reprint 2026-27
+148 Accountancy : Company Accounts and Analysis of Financial Statements
+3) Non-current Liabilities
+(a) Long term borrowings
+(b) Deferred tax liabilities (net)(c) Other long term liabilities(d) Long term provisions
+4) Current Liabilities
+(a) Short-term borrowings(b) Trade payables(c) Other current liabilities(d) Short-term provisions
+Total
+II.ASSETS
+1) Non-Current Assets
+(a) Fixed assets
+(i) Tangible assets
+(ii)Intangible assets
+(iii)Capital work-in-progress
+(iv)Intangible assets under development
+(b) Non-current investments(c) D
+
+e
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Appropriation such as dividend, bonus shares, transfer to/from
+reserve, etc.
+Significant additions/modifications regarding disclosure of reserve and surplusare as follows:
+a) A reserve specifically represented by earmarked investments shall be
+termed as “Fund”.
+b) ‘Debit’ balance of statement of profit and loss shall be shown as a negative
+figure under ‘Surplus’ head.
+c) The balance of “Reserve and Surplus” after adjusting negative balance of
+Surplus, if any, shall be shown under “Reserve and Surplus” read evenif the resulting figure is ‘negative’.
+d) Share options outstanding account has been recognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be
+
+l of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received except for 500 shares on which the final call of Rs. 20 was not
+received. The company forfeited 200 shares on which final call was not received.
+Show how share capital will appear in the balance sheet of the company. Also
+prepare ‘Notes to Accounts’ for the same.
+Solution:
+Books of Dinkar Limited
+Balance Sheet as at .......... (Date)
+Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ funds
+a) Share capital 135,90,000
+Notes to Accounts
+Particulars Amount Amount
+(Rs.) (Rs.)
+1. Share capital
+Authorised share capital
+50,000 equity shares of Rs. 100 each 50,00,000
+Issued capital
+40,000 equity shares of Rs. 100 each 40,00,000
+Subscirbed and fully paid up capital
+35,500 equity shares of Rs. 100 each
+fully paid 35,50,000
+Subscirbed but not fully paid-up capital
+300 equity 
+
+ofturnover:
+1. Turnover < Rs.100 crore: Nearest hundreds, thousands, lakhs or millions or
+decimal thereof;
+2. Turnover > Rs.100 crore: Nearest lakhs or millions or decimal thereof;
+8. Rounding off requirements is mandatory (refer box 1).
+9. Vertical format for presentation of financial statement is prescribed (refer
+Exhibit 3.1).
+10. Debit balance in the statement of profit and loss to be disclosed as negative
+figure under the head “Surplus”.
+11. Mandatory disclosure for share application money pending allotment.
+12. ‘Sundry Debtors’ and ‘Sundry Creditors’ replaced by terms ‘Trade
+Receivables’ and ‘Trade Payables’.
+Shareholders Fund
+The shareholders’ funds are sub-classified on the face of the balance sheet.
+a) Share Capital
+b) Reserves and Surplus
+c) Money received against Share Warrants
+Share Capital
+Disclosures relating to share capital are to be given in notes to accounts. The
+following additions/modifications are significant:
+a) For each class of shares, recognition of the number 
+
+ecognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be disclosed in balance sheet under
+separate heading’ between share capital and reserves and surplus as a
+part of shareholders fund.
+Money Received against share warrantsIt is the amount received by the company which are converted into shares at a
+specified date on a specified rate. The instrument issued against the amount
+so received as share warrants.
+Money received against share warrants’ to be disclosed as a separate line item
+under ‘shareholder’s fund’.
+Reprint 2026-27
+152 Accountancy : Company Accounts and Analysis of Financial Statements
+Illustration 1
+Dinkar Ltd. has an authorised capital of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received e
+
+pital
+40,000 equity shares of Rs. 100 each 40,00,000
+Subscirbed and fully paid up capital
+35,500 equity shares of Rs. 100 each
+fully paid 35,50,000
+Subscirbed but not fully paid-up capital
+300 equity shares of Rs. 100 each fullycalled up 30,000
+Less: Calls-in-arr ears (300×20) 6,000
+24,000
+Add: Share forfeiture A/c (200 shares × Rs. 80) 16,000 40,000
+35,90,000
+Current and Non-current Classification
+The classified balance sheet in terms of current and non-current assets
+and current and non-current liabilities have been introduced. The
+Reprint 2026-27
+153 Financial Statements of a Company
+criteria for defining current assets and liabilities has been clearly spelled out
+with non-current assets and liabilities being the residual items.
+Current/Non-current distinction
+An item is classified as current:
+if it is involved in entity’s operating cycle or,
+is expected to be realised/settled within twelve months or,
+if it is held primarily for trading or,
+is cash and cash equivalent or,
+if en
+
+ount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought back.
+(c)    Number and class of shares allotted for consideration other
+      than cash and bonus shares.
+Reprint 2026-27
+151 Financial Statements of a Company
+ix) Terms of any securities convertible into equity/preference shares
+issued along with earliest date of conversion in descending order,
+starting from the farthest such date.
+x) Calls unpaid (aggregate).
+xi) Forfeited shares (amout originally paid up).
+Reserve and SurplusReserves and Surplus are required to be classified as:
+i) Capital Reserve
+ii) Capital Redemption Reserve
+iii)Securities Premium Reserve
+iv) Debenture Redemption Reserve
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Ap
+
+nts as per AS-3 is shown here. The supremacy is accorded to AS over
+Schedule III, cash and cash equivalents are to the disclosed in accordance to
+the prescribed standard.
+Illustration 3
+Show the following items in the balance sheet of Sunfill Ltd. as at March 31,
+2017:
+Particulars Amount (Rs.)
+General Reserve (since 31 March 2012) 5,00,000
+Statement of profit & loss (debit balance) for 2016–17 (3,00,000)
+Solution:
+Books of Sunfill Ltd.
+Balance Sheet as at March 31, 2017
+Particulars Note 31st March 31st March
+No. 2017 (Rs.) 2016 (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+Reserve and surplus 1 2,00,000 5,00,000
+Reprint 2026-27
+157 Financial Statements of a Company
+Notes to Accounts
+Particulars Amount
+(Rs.)
+1. Reserve and surplus
+General Reserve (1 April, 2016) 5,00,000
+Less: Statement of profit and loss 3,00,000
+(Dr. balance)
+2,00,000
+Illustration 4
+Show the following items in the balance sheet of Avalon Ltd., as at March 31,
+2017:
+(Rs.) in
+Lakh
+General Reserve (since 31 Marc
+
+ity Share Capital Rs. 16,00,000; Plant
+and Machinery Rs. 8,00,000; 8% Preference Share Capital Rs.6,00,000; General Reserves Rs. 6,00,000; Bills payable Rs. 1,50,000;Provision for taxation Rs. 2,50,000; Land and Building Rs.16,00,000; Non-current Investments Rs. 10,00,000; Cash at BankRs. 5,00,000; Creditors Rs. 2,00,000; 12% Debentures Rs.12,00,000.
+5. Prepare the balance sheet of Jyoti Ltd., as at March 31, 2017 from
+the following information.
+Building Rs. 10,00,000; Investments in the shares of Metro Tyers
+Ltd. Rs. 3,00,000; Stores & Spares Rs. 1,00,000; Statement ofProfit and Loss (Dr.) Rs. 90,000; 5,00,000 Equity Shares of Rs.20 each fully paid-up; Capital Redemption Reserve Rs. 1,00,000; 10%
+Debentures Rs. 3,00,000; Unpaid dividends Rs. 90,000; Share optionsoutstanding account Rs. 10,000.
+6. Brinda Ltd., has furnished the following information:
+(a) 25,000, 10% debentures of Rs.100 each;
+(b) Bank Loan of Rs.10,00,000 repayable after 5 years;(c) Interest on debentures is yet to be 
+
+:
+i) The number and amount of share authorised.
+ii) The number of shares issued, subscibed, fully paid and subscribed
+but not fully paid.
+iii)Par value per share.
+iv) Reconciliation of the number of shares outstanding at the beginning
+and end of the accounting period.
+v) Rights, preferences and restrictions attaching each class of shares
+including restrictions on the distribution of dividends and
+repayment of capital.
+vi) Aggregate number of shares with respect to each class in the
+company held by its holding company, its ultimate holding
+company including shares held by or by subsidiaries or associates
+of the holding company or the ultimate holding company.
+vii)  Shares reserved for issue under options and contracts/
+commitments for the sale of shares/disinvestment, including terms
+and amount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought 
+***********************************************************************
+
+  [HARD] [definition] Q1:
+  Before shareholders approve a dividend, how is the proposed dividend classified in the financial statements according to the context provided?
+
+    A) Liability
+    B) Asset
+    C) Equity
+    D) Contingent liability
+  ✗ Incorrect.
+  Correct answer: D) Contingent liability
+  Why: Proposed dividend is a contingent liability until shareholders approve it.
+
+  [HARD] [scenario-based] Q2:
+  A board proposes a dividend of Rs.10 per share, but shareholders approve only Rs.8 per share at the AGM. How should the company account for the proposed dividend immediately after the board’s proposal but before the AGM?
+
+    A) Recognise Rs.10 per share as a liability immediately
+    B) Recognise Rs.8 per share as a liability after the AGM
+    C) Recognise Rs.10 per share as a contingent liability until the AGM
+    D) Recognise Rs.8 per share as a contingent liability until the AGM
+  ✗ Incorrect.
+  Correct answer: C) Recognise Rs.10 per share as a contingent liability until the AGM
+  Why: Proposed dividend is shown as a contingent liability until shareholders approve it.
+
+  [HARD] [compare/contrast] Q3:
+  Which statement correctly compares the accounting treatment of a proposed dividend and a declared dividend?
+
+    A) Both are recorded as liabilities immediately
+    B) Proposed dividend is a contingent liability; declared dividend is a liability
+    C) Proposed dividend is an equity item; declared dividend is a liability
+    D) Proposed dividend is an asset; declared dividend is a liability
+  ✗ Incorrect.
+  Correct answer: B) Proposed dividend is a contingent liability; declared dividend is a liability
+  Why: Proposed dividend is a contingent liability; once declared it becomes a liability.
+
+  [MEDIUM] [true-or-false-as-MCQ] Q4:
+  Shareholders may increase the amount of a proposed dividend during the Annual General Meeting.
+
+    A) True
+    B) False
+    C) Only if the board approves
+    D) Only if the company has surplus
+  ✗ Incorrect.
+  Correct answer: B) False
+  Why: Shareholders may reduce but cannot increase the proposed dividend.
+
+  [HARD] [conceptual] Q5:
+  Which accounting standard prescribes that a proposed dividend be shown in the Notes to Accounts?
+
+    A) AS-1
+    B) AS-3
+    C) AS-4
+    D) AS-7
+  ✗ Incorrect.
+  Correct answer: C) AS-4
+  Why: AS-4, Contingencies and Events Occurring after the Balance Sheet Date, requires this disclosure.
+
+  Topic Proposed Dividend, Score: 0/5 (0%) — not yet passed
+
+  Assessment complete.
+  Diagnostic score: 0% — not passed

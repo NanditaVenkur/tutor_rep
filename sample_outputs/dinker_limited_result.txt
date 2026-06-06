@@ -1,0 +1,462 @@
+============================================================
+  FULL SCALE — Stage 1: Knowledge Assessment
+============================================================
+  Profile created: {'id': '2d53098c', 'name': 'Nandita', 'topic': 'Dinkar  Ltd.', 'level': 'advanced'}
+
+  [MEDIUM] [conceptual] Q1:
+  What is the total amount of share capital that Dinkar Ltd. has invited applications for?
+
+    A) Rs. 40,00,000
+    B) Rs. 36,00,000
+    C) Rs. 50,00,000
+    D) Rs. 35,50,000
+
+  Topic Dinkar  Ltd., Score: 1/5 (20%) — not yet passed
+Retrieved 15 chunks for topic 'Dinkar  Ltd.'.Retrieved 15 chunks for topic 'Dinkar  Ltd.'.
+Context preview:
+l of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received except for 500 shares on which the final call of Rs. 20 was not
+received. The company forfeited 200 shares on which final call was not received.
+Show how share capital will appear in the balance sheet of the company. Also
+prepare ‘Notes to Accounts’ for the same.
+Solution:
+Books of Dinkar Limited
+Bal...
+***********************************************************************
+Dinkar  Ltd. advanced 5 []
+l of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received except for 500 shares on which the final call of Rs. 20 was not
+received. The company forfeited 200 shares on which final call was not received.
+Show how share capital will appear in the balance sheet of the company. Also
+prepare ‘Notes to Accounts’ for the same.
+Solution:
+Books of Dinkar Limited
+Balance Sheet as at .......... (Date)
+Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ funds
+a) Share capital 135,90,000
+Notes to Accounts
+Particulars Amount Amount
+(Rs.) (Rs.)
+1. Share capital
+Authorised share capital
+50,000 equity shares of Rs. 100 each 50,00,000
+Issued capital
+40,000 equity shares of Rs. 100 each 40,00,000
+Subscirbed and fully paid up capital
+35,500 equity shares of Rs. 100 each
+fully paid 35,50,000
+Subscirbed but not fully paid-up capital
+300 equity 
+
+ecognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be disclosed in balance sheet under
+separate heading’ between share capital and reserves and surplus as a
+part of shareholders fund.
+Money Received against share warrantsIt is the amount received by the company which are converted into shares at a
+specified date on a specified rate. The instrument issued against the amount
+so received as share warrants.
+Money received against share warrants’ to be disclosed as a separate line item
+under ‘shareholder’s fund’.
+Reprint 2026-27
+152 Accountancy : Company Accounts and Analysis of Financial Statements
+Illustration 1
+Dinkar Ltd. has an authorised capital of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received e
+
+, 2018.
+Show the items in the balance sheet of the company immediately after
+the issue of these debentures.
+Reprint 2026-27
+169 Financial Statements of a Company
+3. From the following information prepare the balance sheet of Gitanjali
+Ltd.
+Inventories Rs. 14,00,000; Equity Share Capital Rs. 20,00,000;
+Plant and Machinery Rs. 10,00,000; Preference Share Capital Rs.12,00,000; Debenture Redemption Reserve Rs. 6,00,000;Outstanding Expenses Rs. 3,00,000; Proposed Dividend Rs.
+5,00,000; Land and Building Rs. 20,00,000; Current InvestmentsRs. 8,00,000; Cash Equivalent Rs. 10,00,000; Short term loan fromZaveri Ltd. (A Subsidiary Company of Twilight Ltd.) Rs. 4,00,000;Public Deposits Rs. 12,00,000.
+4. From the following information prepare the balance sheet of Jam
+Ltd.
+Inventories Rs. 7,00,000; Equity Share Capital Rs. 16,00,000; Plant
+and Machinery Rs. 8,00,000; 8% Preference Share Capital Rs.6,00,000; General Reserves Rs. 6,00,000; Bills payable Rs. 1,50,000;Provision for taxation Rs. 2,50,00
+
+ity Share Capital Rs. 16,00,000; Plant
+and Machinery Rs. 8,00,000; 8% Preference Share Capital Rs.6,00,000; General Reserves Rs. 6,00,000; Bills payable Rs. 1,50,000;Provision for taxation Rs. 2,50,000; Land and Building Rs.16,00,000; Non-current Investments Rs. 10,00,000; Cash at BankRs. 5,00,000; Creditors Rs. 2,00,000; 12% Debentures Rs.12,00,000.
+5. Prepare the balance sheet of Jyoti Ltd., as at March 31, 2017 from
+the following information.
+Building Rs. 10,00,000; Investments in the shares of Metro Tyers
+Ltd. Rs. 3,00,000; Stores & Spares Rs. 1,00,000; Statement ofProfit and Loss (Dr.) Rs. 90,000; 5,00,000 Equity Shares of Rs.20 each fully paid-up; Capital Redemption Reserve Rs. 1,00,000; 10%
+Debentures Rs. 3,00,000; Unpaid dividends Rs. 90,000; Share optionsoutstanding account Rs. 10,000.
+6. Brinda Ltd., has furnished the following information:
+(a) 25,000, 10% debentures of Rs.100 each;
+(b) Bank Loan of Rs.10,00,000 repayable after 5 years;(c) Interest on debentures is yet to be 
+
+,000.
+6. Brinda Ltd., has furnished the following information:
+(a) 25,000, 10% debentures of Rs.100 each;
+(b) Bank Loan of Rs.10,00,000 repayable after 5 years;(c) Interest on debentures is yet to be paid.
+Show the above items in the balance sheet of the company as at
+March 31, 2017.
+Reprint 2026-27
+170 Accountancy : Company Accounts and Analysis of Financial Statements
+7. Prepare a balance sheet of Black Swan Ltd., as at March 31, 2017 from the
+following information:
+       Rs.
+General Reserve : 3,000
+10% Debentures : 3,000
+Balance in Statement of : 1,200
+Profit and Loss
+Depreciation on fixed assets : 700Gross Block : 9,000Current Liabilities : 2,500
+Preliminary Expenses : 3006% Preference Share Capital : 5,000
+Cash & Cash Equivalents : 6,100
+Reprint 2026-27
+
+
+mountrelating to intangible assets.
+(g) Other expenses All other expenses which do not fall in the above
+categories are shown under other expenses. Otherexpenses may further be categorised into directexpenses, indirect expenses and non-operatingexpenses.
+Illustration 8
+From the following particulars, prepare Statement of profit and loss for the year
+ending March 2017, showing profit before tax as per schedule III of the
+companies Act – 2013.
+Balances (Rs.) (Rs.)
+Plant and Machinery 1,60,000
+Land 6,74,000
+Depreciation on Plant and Machinery 16,000
+Purchases (Adjusted) 4,00,000
+Closing stock 1,50,000
+Wages 1,20,000
+Sales (Net) 10,00,000
+Salaries 80,000
+Bank overdraft 2,00,000
+10% debentures (issued on 1st April, 2016) 1,00,000
+Equity share capital – shares of Rs. 100 each (fully paid) 2,00,000
+Preference share capital – 1,000; 6% shares of Rs. 100 1,00,000
+each (fully paid)
+16,00,000 16,00,000
+Reprint 2026-27
+164 Accountancy : Company Accounts and Analysis of Financial Statements
+Solutio
+
+nts as per AS-3 is shown here. The supremacy is accorded to AS over
+Schedule III, cash and cash equivalents are to the disclosed in accordance to
+the prescribed standard.
+Illustration 3
+Show the following items in the balance sheet of Sunfill Ltd. as at March 31,
+2017:
+Particulars Amount (Rs.)
+General Reserve (since 31 March 2012) 5,00,000
+Statement of profit & loss (debit balance) for 2016–17 (3,00,000)
+Solution:
+Books of Sunfill Ltd.
+Balance Sheet as at March 31, 2017
+Particulars Note 31st March 31st March
+No. 2017 (Rs.) 2016 (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+Reserve and surplus 1 2,00,000 5,00,000
+Reprint 2026-27
+157 Financial Statements of a Company
+Notes to Accounts
+Particulars Amount
+(Rs.)
+1. Reserve and surplus
+General Reserve (1 April, 2016) 5,00,000
+Less: Statement of profit and loss 3,00,000
+(Dr. balance)
+2,00,000
+Illustration 4
+Show the following items in the balance sheet of Avalon Ltd., as at March 31,
+2017:
+(Rs.) in
+Lakh
+General Reserve (since 31 Marc
+
+0,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptances4. Preliminary expenses5. Capital reserve6. Loans from banks7. Investment in shares and
+debentures
+8. Interest accrued and due on
+debentures
+9. Interest accrued but not due on
+Secured Loans
+10. Interest accrued but not due on
+Unsecured Loans
+11. Interest accrued on Investments
+Reprint 2026-27
+159 Financial Statements of a Company
+12. Surplus
+13. Securities Premium Reserve
+14. Loose Tools15. Provision for Taxation16. Under writing Commission17. Bills of Exchange18. Unclaimed dividend19. Short term loans & advances
+20. Live stock
+21. Calls unpaid/calls in arrears22. Uncalled liability on shares partly
+paid
+23. Pre-paid Insurance24. Stores and spare parts25. Advances from customers26. Debentures redemption reserve27. Premium on redemption of
+debentures
+28. Loss on issue of debentures29. De
+
+Act, 2013 to harmonise the disclosure requirement with theaccounting standards and to converge with new reforms.
+Balance Sheet as at 31st March, 20.....
+Particulars Note No. Figure as Figure as
+at the end at the end
+of Current of Previous
+reporting reporting
+period period
+I. EQUITY AND LIABILITIES
+1) Shareholder’s Funds
+(a) Share Capital(b) Reserves and Surplus(c) Money received against share warrants
+2) Share Application money pending allotment
+Reprint 2026-27
+148 Accountancy : Company Accounts and Analysis of Financial Statements
+3) Non-current Liabilities
+(a) Long term borrowings
+(b) Deferred tax liabilities (net)(c) Other long term liabilities(d) Long term provisions
+4) Current Liabilities
+(a) Short-term borrowings(b) Trade payables(c) Other current liabilities(d) Short-term provisions
+Total
+II.ASSETS
+1) Non-Current Assets
+(a) Fixed assets
+(i) Tangible assets
+(ii)Intangible assets
+(iii)Capital work-in-progress
+(iv)Intangible assets under development
+(b) Non-current investments(c) D
+
+in the balance sheet of the
+company.
+Reprint 2026-27
+158 Accountancy : Company Accounts and Analysis of Financial Statements
+Solution:
+        Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+Reserve and Surplus                                   (25,000)
+a) Long term borrowings 2 5,00,000
+b) Other long-term liabilities 3 25,000
+Total 5,00,000
+II. Asset
+1. Current Assets
+a) Cash and Cash Equivalents 5,00,000
+Total 5,00,000
+Notes to Accounts
+                                  Particulars Amount
+(Rs.)
+1. Reserves and Surplus i.e. Balance in Statement of Profit & Loss (25,000)
+2. Long Terms Borrowings
+5000, 10% debenture Rs. 100 each 5,00,000
+3. Other long term liabilities 25,000
+Premium on Redemption of Debentures
+4. Cash and Cash Equivalents
+Cash at bank.
+5,00,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptan
+
+pital
+40,000 equity shares of Rs. 100 each 40,00,000
+Subscirbed and fully paid up capital
+35,500 equity shares of Rs. 100 each
+fully paid 35,50,000
+Subscirbed but not fully paid-up capital
+300 equity shares of Rs. 100 each fullycalled up 30,000
+Less: Calls-in-arr ears (300×20) 6,000
+24,000
+Add: Share forfeiture A/c (200 shares × Rs. 80) 16,000 40,000
+35,90,000
+Current and Non-current Classification
+The classified balance sheet in terms of current and non-current assets
+and current and non-current liabilities have been introduced. The
+Reprint 2026-27
+153 Financial Statements of a Company
+criteria for defining current assets and liabilities has been clearly spelled out
+with non-current assets and liabilities being the residual items.
+Current/Non-current distinction
+An item is classified as current:
+if it is involved in entity’s operating cycle or,
+is expected to be realised/settled within twelve months or,
+if it is held primarily for trading or,
+is cash and cash equivalent or,
+if en
+
+ofturnover:
+1. Turnover < Rs.100 crore: Nearest hundreds, thousands, lakhs or millions or
+decimal thereof;
+2. Turnover > Rs.100 crore: Nearest lakhs or millions or decimal thereof;
+8. Rounding off requirements is mandatory (refer box 1).
+9. Vertical format for presentation of financial statement is prescribed (refer
+Exhibit 3.1).
+10. Debit balance in the statement of profit and loss to be disclosed as negative
+figure under the head “Surplus”.
+11. Mandatory disclosure for share application money pending allotment.
+12. ‘Sundry Debtors’ and ‘Sundry Creditors’ replaced by terms ‘Trade
+Receivables’ and ‘Trade Payables’.
+Shareholders Fund
+The shareholders’ funds are sub-classified on the face of the balance sheet.
+a) Share Capital
+b) Reserves and Surplus
+c) Money received against Share Warrants
+Share Capital
+Disclosures relating to share capital are to be given in notes to accounts. The
+following additions/modifications are significant:
+a) For each class of shares, recognition of the number 
+
+uthorised Capital
+Illustration 6
+From the given particulars of Shine and Bright Co. Ltd., as at March 31,
+2017, prepare balance sheet in accordance to the Schedule III:
+Reprint 2026-27
+160 Accountancy : Company Accounts and Analysis of Financial Statements
+Particulars Amount Particulars Amount
+(Rs.) (Rs.)
+Preliminary expenses 2,40,000 Goodwill 30,000
+10% Debentures 2,00,000 Loose Tools 12,000
+Stock in trade 1,40,000 Motor vehicles 4,75,000
+Cash at bank 1,35,000 Provision for tax 16,000
+Bills receivables 1,20,000
+Solution:
+Book of Shine and Bright Ltd.
+Balance Sheet as at March 31, 2017
+Particulars Note Figure as Figure as
+No. at the end at the end
+of current of previous
+reporting reporting
+period period
+I. Equity and Liabilities
+1. Non-current Liabilities
+a) Long-term borrowings 1 2,00,000
+2. Current liabilities
+a) Short-term provisions 2 16,000
+II. Assets
+1. Non-current assets
+a) Fixed assets
+Tangible assets 3 4,75,000
+Intangible assets 4 30,000
+2. Other non-current assets* 5 2,60,000
+
+es partly
+paid
+23. Pre-paid Insurance24. Stores and spare parts25. Advances from customers26. Debentures redemption reserve27. Premium on redemption of
+debentures
+28. Loss on issue of debentures29. Debentures redemption fund
+30. Debentures redemption fund
+investment
+31. Vehicles32. Advances to suppliers33. Patents, trademarks, design34. Calls in advance35. Deposits with custom authorities36. Arrears of fixed cumulative
+dividend
+37. Furniture and fittings38. Brokerage on issues of shares39. Statement of profit & loss (Dr.)
+40. Capital work-in-progress
+41. Provision for doubtful debts42. Statement of profit & loss (Cr.)43. Uncalled liability on partly paid
+shares held as investments
+44. Claims against the company not
+acknowledged as debt
+45. Capital redemption reserve46. Public deposits47. Authorised Capital
+Illustration 6
+From the given particulars of Shine and Bright Co. Ltd., as at March 31,
+2017, prepare balance sheet in accordance to the Schedule III:
+Reprint 2026-27
+160 Accountancy
+
+urrent:
+if it is involved in entity’s operating cycle or,
+is expected to be realised/settled within twelve months or,
+if it is held primarily for trading or,
+is cash and cash equivalent or,
+if entity does not have on unconditional rights to defer settlement ofliability for atleast 12 months after the reporting period,
+Other assets and liabilities are non-current.
+Illustration 2
+Show the following items in the balance sheet of Amba Ltd. as on March 31,
+2017:      Rs.
+8% Debentures 10,00,000
+Equity share capital 50,00,000
+Securities premium 20,000
+Preliminary expenses 40,000
+Statement of Profit & Loss (cr.) 1,50,000
+Loose tools 20,000
+Bank balance 60,000
+Cash in hand 38,000
+Solution:
+Books of Amba Ltd.
+*Balance Sheet as at March 31, 2017
+Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+a) Share capital 50,00,000
+b) Reserve and surplus 1 1,30,000
+2. Non-current Liabilities
+a) Long-term borrowings 2 10,00,000
+II. Assets
+Current assets
+a) Inventories 
+***********************************************************************
+
+Context preview:
+l of Rs. 50,00,000 divided into equity
+shares of Rs. 100 each. The company invited applications for 40,000 shares,
+applications for 36,000 shares were received. All calls were made and duly
+received except for 500 shares on which the final call of Rs. 20 was not
+received. The company forfeited 200 shares on which final call was not received.
+Show how share capital will appear in the balance sheet of the company. Also
+prepare ‘Notes to Accounts’ for the same.
+Solution:
+Books of Dinkar Limited
+Bal...
+  ✓ Correct!
+
+  [HARD] [scenario-based] Q2:
+  If Dinkar Ltd. has 200 shares forfeited due to non-payment of the final call, what is the total amount of share capital that is subscribed but not fully paid-up?
+
+    A) Rs. 30,000
+    B) Rs. 20,000
+    C) Rs. 10,000
+    D) Rs. 30000 - 200*20
+  ✗ Incorrect.
+  Correct answer: D) Rs. 30000 - 200*20
+  Why: The total amount of share capital that is subscribed but not fully paid-up is the amount received for 300 shares that are not fully paid minus the amount not received for the 200 forfeited shares.
+
+  [HARD] [definition] Q3:
+  What is the term for the amount received by a company that is converted into shares at a specified date and rate, and how should it be disclosed in the balance sheet?
+
+    A) Share warrant; as a separate line item under shareholder's fund
+    B) Share capital; as part of reserves and surplus
+    C) Reserve and surplus; as a separate line item under shareholder's fund
+    D) Share option; as a part of share capital
+  ✓ Correct!
+
+  [HARD] [compare/contrast] Q4:
+  How does the treatment of a credit balance in the 'Stock option outstanding Account' differ between the ICAI's Guidance Note on Accounting for Employee share based payments and Schedule III of the Companies Act, 2013?
+
+    A) The Guidance Note requires disclosure under reserves and surplus, while Schedule III requires disclosure under share capital
+    B) The Guidance Note requires disclosure under share capital, while Schedule III requires disclosure under reserves and surplus
+    C) The Guidance Note and Schedule III both require disclosure under reserves and surplus
+    D) The Guidance Note and Schedule III both require disclosure under share capital
+  ✓ Correct!
+
+  [HARD] [true-or-false-as-MCQ] Q5:
+  Is the following statement true or false: Dinkar Ltd.'s balance sheet will show the full amount of Rs. 50,00,000 as the share capital, despite the fact that not all shares were fully paid-up?
+
+    A) True
+    B) False
+    C) Partially true
+    D) Not enough information to determine
+  ✗ Incorrect.
+  Correct answer: B) False
+  Why: The balance sheet will only show the amount of share capital that has been subscribed and paid-up, not the full authorised amount.
