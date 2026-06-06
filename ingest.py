@@ -206,3 +206,4 @@ for pdf_path in pdf_files:
     print(f"{pdf_path.name} stored successfully.")
 
 print("\nAll PDFs processed successfully.")
+
