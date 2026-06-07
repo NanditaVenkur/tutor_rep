@@ -1,0 +1,17 @@
+Short
+1. User Profile and Mastery Update, fetch current users, check where and how to use the other fields > (Akanksha, Krishna, Karthik, Maruti)
+2. Use the Sciq dataset > (Nandita, Karthik, Isha)
+4. export pdf not working prperky everytime (Nandita)
+
+
+
+Long term
+Later on
+0. Quick Study, administer quiz at the end?
+1. LLM as a Judge. 
+ LLM as a Judge to eval if quiz created is relevant? (relevant) 1-10
+2. 3rd and 4th Agent
+3. Science Business Managment 
+4.Upload pdf, web url? ()
+
+

@@ -1,0 +1,876 @@
+============================================================
+  FULL SCALE — Stage 1: Knowledge Assessment
+============================================================
+  Profile created: {'id': '262e92a0', 'name': 'Francesca', 'topic': 'Reserve and Surplus', 'level': 'advanced'}
+Retrieved 8 chunks for topic 'advanced'.Retrieved 8 chunks for topic 'Reserve and Surplus'.
+Context preview:
+ount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought back.
+(c)    Number and class of shares allotted for consideration other
+      than cash and bonus shares.
+Reprint 2026-27
+151 Financial Statements of a Company
+ix) Terms of any securities convertible into equity/preference shares
+issued along with earliest date of conversion in descending order,
+st...
+***********************************************************************
+Reserve and Surplus intermediate 5 []
+ount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought back.
+(c)    Number and class of shares allotted for consideration other
+      than cash and bonus shares.
+Reprint 2026-27
+151 Financial Statements of a Company
+ix) Terms of any securities convertible into equity/preference shares
+issued along with earliest date of conversion in descending order,
+starting from the farthest such date.
+x) Calls unpaid (aggregate).
+xi) Forfeited shares (amout originally paid up).
+Reserve and SurplusReserves and Surplus are required to be classified as:
+i) Capital Reserve
+ii) Capital Redemption Reserve
+iii)Securities Premium Reserve
+iv) Debenture Redemption Reserve
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Ap
+
+e
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Appropriation such as dividend, bonus shares, transfer to/from
+reserve, etc.
+Significant additions/modifications regarding disclosure of reserve and surplusare as follows:
+a) A reserve specifically represented by earmarked investments shall be
+termed as “Fund”.
+b) ‘Debit’ balance of statement of profit and loss shall be shown as a negative
+figure under ‘Surplus’ head.
+c) The balance of “Reserve and Surplus” after adjusting negative balance of
+Surplus, if any, shall be shown under “Reserve and Surplus” read evenif the resulting figure is ‘negative’.
+d) Share options outstanding account has been recognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be
+
+in the balance sheet of the
+company.
+Reprint 2026-27
+158 Accountancy : Company Accounts and Analysis of Financial Statements
+Solution:
+        Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+Reserve and Surplus                                   (25,000)
+a) Long term borrowings 2 5,00,000
+b) Other long-term liabilities 3 25,000
+Total 5,00,000
+II. Asset
+1. Current Assets
+a) Cash and Cash Equivalents 5,00,000
+Total 5,00,000
+Notes to Accounts
+                                  Particulars Amount
+(Rs.)
+1. Reserves and Surplus i.e. Balance in Statement of Profit & Loss (25,000)
+2. Long Terms Borrowings
+5000, 10% debenture Rs. 100 each 5,00,000
+3. Other long term liabilities 25,000
+Premium on Redemption of Debentures
+4. Cash and Cash Equivalents
+Cash at bank.
+5,00,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptan
+
+nts as per AS-3 is shown here. The supremacy is accorded to AS over
+Schedule III, cash and cash equivalents are to the disclosed in accordance to
+the prescribed standard.
+Illustration 3
+Show the following items in the balance sheet of Sunfill Ltd. as at March 31,
+2017:
+Particulars Amount (Rs.)
+General Reserve (since 31 March 2012) 5,00,000
+Statement of profit & loss (debit balance) for 2016–17 (3,00,000)
+Solution:
+Books of Sunfill Ltd.
+Balance Sheet as at March 31, 2017
+Particulars Note 31st March 31st March
+No. 2017 (Rs.) 2016 (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+Reserve and surplus 1 2,00,000 5,00,000
+Reprint 2026-27
+157 Financial Statements of a Company
+Notes to Accounts
+Particulars Amount
+(Rs.)
+1. Reserve and surplus
+General Reserve (1 April, 2016) 5,00,000
+Less: Statement of profit and loss 3,00,000
+(Dr. balance)
+2,00,000
+Illustration 4
+Show the following items in the balance sheet of Avalon Ltd., as at March 31,
+2017:
+(Rs.) in
+Lakh
+General Reserve (since 31 Marc
+
+Act, 2013 to harmonise the disclosure requirement with theaccounting standards and to converge with new reforms.
+Balance Sheet as at 31st March, 20.....
+Particulars Note No. Figure as Figure as
+at the end at the end
+of Current of Previous
+reporting reporting
+period period
+I. EQUITY AND LIABILITIES
+1) Shareholder’s Funds
+(a) Share Capital(b) Reserves and Surplus(c) Money received against share warrants
+2) Share Application money pending allotment
+Reprint 2026-27
+148 Accountancy : Company Accounts and Analysis of Financial Statements
+3) Non-current Liabilities
+(a) Long term borrowings
+(b) Deferred tax liabilities (net)(c) Other long term liabilities(d) Long term provisions
+4) Current Liabilities
+(a) Short-term borrowings(b) Trade payables(c) Other current liabilities(d) Short-term provisions
+Total
+II.ASSETS
+1) Non-Current Assets
+(a) Fixed assets
+(i) Tangible assets
+(ii)Intangible assets
+(iii)Capital work-in-progress
+(iv)Intangible assets under development
+(b) Non-current investments(c) D
+
+ement of profit and loss 3,00,000
+(Dr. balance)
+2,00,000
+Illustration 4
+Show the following items in the balance sheet of Avalon Ltd., as at March 31,
+2017:
+(Rs.) in
+Lakh
+General Reserve (since 31 March 2016) 5
+Statement of Profit & Loss (Debit Balance) for 2016–17 (8)
+Solution:
+Books of Avalon Ltd.
+Balance Sheet as at March 31, 2017
+Particulars Note 31 March
+No. 2017 (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+a) Reserve and Surplus 1 (3,00,000)
+Notes to Accounts
+Particulars Amount
+(Rs.)
+1. Reserve and Surplus
+ i) General reserve (1 April, 2012) 5,00,000
+ii) Less: Statement of profit and loss      (8,00,000)
+(debit balance) (3,00,000)
+Illustration 5
+Arushi  Ltd. issued 5,000, 10% debentures of Rs. 100 each at par but redeemable
+at a premium of 5% after 5 years. Show these items in the balance sheet of the
+company.
+Reprint 2026-27
+158 Accountancy : Company Accounts and Analysis of Financial Statements
+Solution:
+        Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabiliti
+
+0,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptances4. Preliminary expenses5. Capital reserve6. Loans from banks7. Investment in shares and
+debentures
+8. Interest accrued and due on
+debentures
+9. Interest accrued but not due on
+Secured Loans
+10. Interest accrued but not due on
+Unsecured Loans
+11. Interest accrued on Investments
+Reprint 2026-27
+159 Financial Statements of a Company
+12. Surplus
+13. Securities Premium Reserve
+14. Loose Tools15. Provision for Taxation16. Under writing Commission17. Bills of Exchange18. Unclaimed dividend19. Short term loans & advances
+20. Live stock
+21. Calls unpaid/calls in arrears22. Uncalled liability on shares partly
+paid
+23. Pre-paid Insurance24. Stores and spare parts25. Advances from customers26. Debentures redemption reserve27. Premium on redemption of
+debentures
+28. Loss on issue of debentures29. De
+
+Liabilities
+1. Shareholders’ Funds
+a) Share capital 50,00,000
+b) Reserve and surplus 1 1,30,000
+2. Non-current Liabilities
+a) Long-term borrowings 2 10,00,000
+II. Assets
+Current assets
+a) Inventories 3 20,000
+b) Cash and cash equivalents 4 98,000
+c) Other current assets 5 10,000
+* Relevant items only
+Reprint 2026-27
+154 Accountancy : Company Accounts and Analysis of Financial Statements
+Notes to Accounts
+Particulars Amount Amount
+(Rs.) (Rs.)
+1. Reserve and surplus
+Securities premium 20,000
+Less: Preliminary expenses (40,000)
+(20,000)
+Statement of profit and loss 1,50,000 1,30,000
+2. Long-term borrowings
+8% debentures 10,00,000
+3. Inventory
+Loose tools 20,000
+4. Cash and cash equivalents
+Bank balance 60,000
+Cash in hand 38,000 98,000
+5. Other current assets
+Discount on issue of 8% debentures 10,000
+(¼ of Rs. 40,000)
+Important points:
+Preliminary expenses are to be written-off completely in the year in which
+such expenses are incurred. They should be written-off first from
+securities pr
+***********************************************************************
+
+Context preview:
+ted to realise within twelve months are considered as current
+investments under current assets. Others are classified as non-current
+investments under non-current assets. Both are however shown on the face of
+the balance sheet.
+Inventories
+All inventories are always treated as current.
+Trade receivables
+Trade receivables realised beyond twelve months from reporting date/
+operating cycle starting from the date of their recognition are classified as
+“Other non-current assets” under the head non-cu...
+***********************************************************************
+Reserve and Surplus intermediate 5 []
+ount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought back.
+(c)    Number and class of shares allotted for consideration other
+      than cash and bonus shares.
+Reprint 2026-27
+151 Financial Statements of a Company
+ix) Terms of any securities convertible into equity/preference shares
+issued along with earliest date of conversion in descending order,
+starting from the farthest such date.
+x) Calls unpaid (aggregate).
+xi) Forfeited shares (amout originally paid up).
+Reserve and SurplusReserves and Surplus are required to be classified as:
+i) Capital Reserve
+ii) Capital Redemption Reserve
+iii)Securities Premium Reserve
+iv) Debenture Redemption Reserve
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Ap
+
+e
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Appropriation such as dividend, bonus shares, transfer to/from
+reserve, etc.
+Significant additions/modifications regarding disclosure of reserve and surplusare as follows:
+a) A reserve specifically represented by earmarked investments shall be
+termed as “Fund”.
+b) ‘Debit’ balance of statement of profit and loss shall be shown as a negative
+figure under ‘Surplus’ head.
+c) The balance of “Reserve and Surplus” after adjusting negative balance of
+Surplus, if any, shall be shown under “Reserve and Surplus” read evenif the resulting figure is ‘negative’.
+d) Share options outstanding account has been recognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be
+
+in the balance sheet of the
+company.
+Reprint 2026-27
+158 Accountancy : Company Accounts and Analysis of Financial Statements
+Solution:
+        Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+Reserve and Surplus                                   (25,000)
+a) Long term borrowings 2 5,00,000
+b) Other long-term liabilities 3 25,000
+Total 5,00,000
+II. Asset
+1. Current Assets
+a) Cash and Cash Equivalents 5,00,000
+Total 5,00,000
+Notes to Accounts
+                                  Particulars Amount
+(Rs.)
+1. Reserves and Surplus i.e. Balance in Statement of Profit & Loss (25,000)
+2. Long Terms Borrowings
+5000, 10% debenture Rs. 100 each 5,00,000
+3. Other long term liabilities 25,000
+Premium on Redemption of Debentures
+4. Cash and Cash Equivalents
+Cash at bank.
+5,00,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptan
+
+nts as per AS-3 is shown here. The supremacy is accorded to AS over
+Schedule III, cash and cash equivalents are to the disclosed in accordance to
+the prescribed standard.
+Illustration 3
+Show the following items in the balance sheet of Sunfill Ltd. as at March 31,
+2017:
+Particulars Amount (Rs.)
+General Reserve (since 31 March 2012) 5,00,000
+Statement of profit & loss (debit balance) for 2016–17 (3,00,000)
+Solution:
+Books of Sunfill Ltd.
+Balance Sheet as at March 31, 2017
+Particulars Note 31st March 31st March
+No. 2017 (Rs.) 2016 (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+Reserve and surplus 1 2,00,000 5,00,000
+Reprint 2026-27
+157 Financial Statements of a Company
+Notes to Accounts
+Particulars Amount
+(Rs.)
+1. Reserve and surplus
+General Reserve (1 April, 2016) 5,00,000
+Less: Statement of profit and loss 3,00,000
+(Dr. balance)
+2,00,000
+Illustration 4
+Show the following items in the balance sheet of Avalon Ltd., as at March 31,
+2017:
+(Rs.) in
+Lakh
+General Reserve (since 31 Marc
+
+Act, 2013 to harmonise the disclosure requirement with theaccounting standards and to converge with new reforms.
+Balance Sheet as at 31st March, 20.....
+Particulars Note No. Figure as Figure as
+at the end at the end
+of Current of Previous
+reporting reporting
+period period
+I. EQUITY AND LIABILITIES
+1) Shareholder’s Funds
+(a) Share Capital(b) Reserves and Surplus(c) Money received against share warrants
+2) Share Application money pending allotment
+Reprint 2026-27
+148 Accountancy : Company Accounts and Analysis of Financial Statements
+3) Non-current Liabilities
+(a) Long term borrowings
+(b) Deferred tax liabilities (net)(c) Other long term liabilities(d) Long term provisions
+4) Current Liabilities
+(a) Short-term borrowings(b) Trade payables(c) Other current liabilities(d) Short-term provisions
+Total
+II.ASSETS
+1) Non-Current Assets
+(a) Fixed assets
+(i) Tangible assets
+(ii)Intangible assets
+(iii)Capital work-in-progress
+(iv)Intangible assets under development
+(b) Non-current investments(c) D
+
+ement of profit and loss 3,00,000
+(Dr. balance)
+2,00,000
+Illustration 4
+Show the following items in the balance sheet of Avalon Ltd., as at March 31,
+2017:
+(Rs.) in
+Lakh
+General Reserve (since 31 March 2016) 5
+Statement of Profit & Loss (Debit Balance) for 2016–17 (8)
+Solution:
+Books of Avalon Ltd.
+Balance Sheet as at March 31, 2017
+Particulars Note 31 March
+No. 2017 (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+a) Reserve and Surplus 1 (3,00,000)
+Notes to Accounts
+Particulars Amount
+(Rs.)
+1. Reserve and Surplus
+ i) General reserve (1 April, 2012) 5,00,000
+ii) Less: Statement of profit and loss      (8,00,000)
+(debit balance) (3,00,000)
+Illustration 5
+Arushi  Ltd. issued 5,000, 10% debentures of Rs. 100 each at par but redeemable
+at a premium of 5% after 5 years. Show these items in the balance sheet of the
+company.
+Reprint 2026-27
+158 Accountancy : Company Accounts and Analysis of Financial Statements
+Solution:
+        Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabiliti
+
+0,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptances4. Preliminary expenses5. Capital reserve6. Loans from banks7. Investment in shares and
+debentures
+8. Interest accrued and due on
+debentures
+9. Interest accrued but not due on
+Secured Loans
+10. Interest accrued but not due on
+Unsecured Loans
+11. Interest accrued on Investments
+Reprint 2026-27
+159 Financial Statements of a Company
+12. Surplus
+13. Securities Premium Reserve
+14. Loose Tools15. Provision for Taxation16. Under writing Commission17. Bills of Exchange18. Unclaimed dividend19. Short term loans & advances
+20. Live stock
+21. Calls unpaid/calls in arrears22. Uncalled liability on shares partly
+paid
+23. Pre-paid Insurance24. Stores and spare parts25. Advances from customers26. Debentures redemption reserve27. Premium on redemption of
+debentures
+28. Loss on issue of debentures29. De
+
+Liabilities
+1. Shareholders’ Funds
+a) Share capital 50,00,000
+b) Reserve and surplus 1 1,30,000
+2. Non-current Liabilities
+a) Long-term borrowings 2 10,00,000
+II. Assets
+Current assets
+a) Inventories 3 20,000
+b) Cash and cash equivalents 4 98,000
+c) Other current assets 5 10,000
+* Relevant items only
+Reprint 2026-27
+154 Accountancy : Company Accounts and Analysis of Financial Statements
+Notes to Accounts
+Particulars Amount Amount
+(Rs.) (Rs.)
+1. Reserve and surplus
+Securities premium 20,000
+Less: Preliminary expenses (40,000)
+(20,000)
+Statement of profit and loss 1,50,000 1,30,000
+2. Long-term borrowings
+8% debentures 10,00,000
+3. Inventory
+Loose tools 20,000
+4. Cash and cash equivalents
+Bank balance 60,000
+Cash in hand 38,000 98,000
+5. Other current assets
+Discount on issue of 8% debentures 10,000
+(¼ of Rs. 40,000)
+Important points:
+Preliminary expenses are to be written-off completely in the year in which
+such expenses are incurred. They should be written-off first from
+securities pr
+***********************************************************************
+
+  [EASY] [conceptual] Q1:
+  What is the primary purpose of classifying Reserves and Surplus in a company's balance sheet?
+
+    A) To hide profits from shareholders
+    B) To provide a clear picture of the company's financial health
+    C) To reduce tax liabilities
+    D) To increase the company's debt
+  ✗ Incorrect.
+  Correct answer: B) To provide a clear picture of the company's financial health
+  Why: Classifying Reserves and Surplus helps to provide a clear and transparent picture of the company's financial health.
+
+  [MEDIUM] [scenario-based] Q2:
+  A company has a debit balance of Rs. 3,00,000 in its Statement of Profit and Loss. How will this be shown in the balance sheet?
+
+    A) As a negative figure under the Surplus head
+    B) As a positive figure under the Reserve head
+    C) As a negative figure under the Reserve head
+    D) As a positive figure under the Surplus head
+  ✗ Incorrect.
+  Correct answer: A) As a negative figure under the Surplus head
+  Why: A debit balance in the Statement of Profit and Loss is shown as a negative figure under the Surplus head in the balance sheet.
+
+  [MEDIUM] [definition] Q3:
+  What is the meaning of the term 'Fund' in the context of Reserves and Surplus?
+
+    A) A type of reserve that is not specifically represented by earmarked investments
+    B) A type of reserve that is specifically represented by earmarked investments
+    C) A type of surplus that is not available for distribution
+    D) A type of surplus that is available for distribution
+  ✗ Incorrect.
+  Correct answer: B) A type of reserve that is specifically represented by earmarked investments
+  Why: A Fund refers to a reserve that is specifically represented by earmarked investments.
+
+  [HARD] [compare/contrast] Q4:
+  How do Securities Premium Reserve and Debenture Redemption Reserve differ in terms of their purpose and treatment in the balance sheet?
+
+    A) Securities Premium Reserve is used to redeem debentures, while Debenture Redemption Reserve is used to issue bonus shares
+    B) Securities Premium Reserve is used to issue bonus shares, while Debenture Redemption Reserve is used to redeem debentures
+    C) Securities Premium Reserve is used to redeem preference shares, while Debenture Redemption Reserve is used to redeem debentures
+    D) Securities Premium Reserve is used to issue bonus shares, while Debenture Redemption Reserve is used to redeem preference shares
+  ✗ Incorrect.
+  Correct answer: B) Securities Premium Reserve is used to issue bonus shares, while Debenture Redemption Reserve is used to redeem debentures
+  Why: Securities Premium Reserve is used to issue bonus shares, while Debenture Redemption Reserve is used to redeem debentures.
+
+  [HARD] [true-or-false-as-MCQ] Q5:
+  Is it true that a company can show a negative balance in the Reserve and Surplus section of the balance sheet?
+
+    A) Yes, if the negative balance is due to a debit balance in the Statement of Profit and Loss
+    B) No, a company can never show a negative balance in the Reserve and Surplus section
+    C) Yes, if the negative balance is due to a credit balance in the Statement of Profit and Loss
+    D) No, a company can only show a positive balance in the Reserve and Surplus section
+  ✓ Correct!
+***********************************************************************
+Reserve and Surplus intermediate 5 []
+ount.
+viii) For a period of 5 years immediately proceeding the date at which
+ balance sheet in prepared for:
+(a)    Shares reserved under contracts/commitments.(b)   Number and class of shares bought back.
+(c)    Number and class of shares allotted for consideration other
+      than cash and bonus shares.
+Reprint 2026-27
+151 Financial Statements of a Company
+ix) Terms of any securities convertible into equity/preference shares
+issued along with earliest date of conversion in descending order,
+starting from the farthest such date.
+x) Calls unpaid (aggregate).
+xi) Forfeited shares (amout originally paid up).
+Reserve and SurplusReserves and Surplus are required to be classified as:
+i) Capital Reserve
+ii) Capital Redemption Reserve
+iii)Securities Premium Reserve
+iv) Debenture Redemption Reserve
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Ap
+
+e
+v) Revaluation Reserve
+vi) Share Options Outstanding Account
+vii) Other Reserves (Specifying nature and purpose)
+viii) Surplus: Balance in statement of profit and loss; disclosing allocations
+and Appropriation such as dividend, bonus shares, transfer to/from
+reserve, etc.
+Significant additions/modifications regarding disclosure of reserve and surplusare as follows:
+a) A reserve specifically represented by earmarked investments shall be
+termed as “Fund”.
+b) ‘Debit’ balance of statement of profit and loss shall be shown as a negative
+figure under ‘Surplus’ head.
+c) The balance of “Reserve and Surplus” after adjusting negative balance of
+Surplus, if any, shall be shown under “Reserve and Surplus” read evenif the resulting figure is ‘negative’.
+d) Share options outstanding account has been recognised as a separate
+item under ‘Reserve and Surplus’. ICAI’s Guidance Note on Accounting
+for Employee share based payments requires a credit balance in the ‘Stock
+option outstanding Account’ to be
+
+in the balance sheet of the
+company.
+Reprint 2026-27
+158 Accountancy : Company Accounts and Analysis of Financial Statements
+Solution:
+        Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+Reserve and Surplus                                   (25,000)
+a) Long term borrowings 2 5,00,000
+b) Other long-term liabilities 3 25,000
+Total 5,00,000
+II. Asset
+1. Current Assets
+a) Cash and Cash Equivalents 5,00,000
+Total 5,00,000
+Notes to Accounts
+                                  Particulars Amount
+(Rs.)
+1. Reserves and Surplus i.e. Balance in Statement of Profit & Loss (25,000)
+2. Long Terms Borrowings
+5000, 10% debenture Rs. 100 each 5,00,000
+3. Other long term liabilities 25,000
+Premium on Redemption of Debentures
+4. Cash and Cash Equivalents
+Cash at bank.
+5,00,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptan
+
+nts as per AS-3 is shown here. The supremacy is accorded to AS over
+Schedule III, cash and cash equivalents are to the disclosed in accordance to
+the prescribed standard.
+Illustration 3
+Show the following items in the balance sheet of Sunfill Ltd. as at March 31,
+2017:
+Particulars Amount (Rs.)
+General Reserve (since 31 March 2012) 5,00,000
+Statement of profit & loss (debit balance) for 2016–17 (3,00,000)
+Solution:
+Books of Sunfill Ltd.
+Balance Sheet as at March 31, 2017
+Particulars Note 31st March 31st March
+No. 2017 (Rs.) 2016 (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+Reserve and surplus 1 2,00,000 5,00,000
+Reprint 2026-27
+157 Financial Statements of a Company
+Notes to Accounts
+Particulars Amount
+(Rs.)
+1. Reserve and surplus
+General Reserve (1 April, 2016) 5,00,000
+Less: Statement of profit and loss 3,00,000
+(Dr. balance)
+2,00,000
+Illustration 4
+Show the following items in the balance sheet of Avalon Ltd., as at March 31,
+2017:
+(Rs.) in
+Lakh
+General Reserve (since 31 Marc
+
+Act, 2013 to harmonise the disclosure requirement with theaccounting standards and to converge with new reforms.
+Balance Sheet as at 31st March, 20.....
+Particulars Note No. Figure as Figure as
+at the end at the end
+of Current of Previous
+reporting reporting
+period period
+I. EQUITY AND LIABILITIES
+1) Shareholder’s Funds
+(a) Share Capital(b) Reserves and Surplus(c) Money received against share warrants
+2) Share Application money pending allotment
+Reprint 2026-27
+148 Accountancy : Company Accounts and Analysis of Financial Statements
+3) Non-current Liabilities
+(a) Long term borrowings
+(b) Deferred tax liabilities (net)(c) Other long term liabilities(d) Long term provisions
+4) Current Liabilities
+(a) Short-term borrowings(b) Trade payables(c) Other current liabilities(d) Short-term provisions
+Total
+II.ASSETS
+1) Non-Current Assets
+(a) Fixed assets
+(i) Tangible assets
+(ii)Intangible assets
+(iii)Capital work-in-progress
+(iv)Intangible assets under development
+(b) Non-current investments(c) D
+
+ement of profit and loss 3,00,000
+(Dr. balance)
+2,00,000
+Illustration 4
+Show the following items in the balance sheet of Avalon Ltd., as at March 31,
+2017:
+(Rs.) in
+Lakh
+General Reserve (since 31 March 2016) 5
+Statement of Profit & Loss (Debit Balance) for 2016–17 (8)
+Solution:
+Books of Avalon Ltd.
+Balance Sheet as at March 31, 2017
+Particulars Note 31 March
+No. 2017 (Rs.)
+I. Equity and Liabilities
+1. Shareholders’ Funds
+a) Reserve and Surplus 1 (3,00,000)
+Notes to Accounts
+Particulars Amount
+(Rs.)
+1. Reserve and Surplus
+ i) General reserve (1 April, 2012) 5,00,000
+ii) Less: Statement of profit and loss      (8,00,000)
+(debit balance) (3,00,000)
+Illustration 5
+Arushi  Ltd. issued 5,000, 10% debentures of Rs. 100 each at par but redeemable
+at a premium of 5% after 5 years. Show these items in the balance sheet of the
+company.
+Reprint 2026-27
+158 Accountancy : Company Accounts and Analysis of Financial Statements
+Solution:
+        Particulars Note Amount
+No. (Rs.)
+I. Equity and Liabiliti
+
+0,000
+Do it yourself
+Classify the following items in the balance sheet of a company under
+Major heads and Sub-heads
+S. No. Items Major Head Sub-head (if any)
+1. Goodwill
+2. Forfeited shares3. Acceptances4. Preliminary expenses5. Capital reserve6. Loans from banks7. Investment in shares and
+debentures
+8. Interest accrued and due on
+debentures
+9. Interest accrued but not due on
+Secured Loans
+10. Interest accrued but not due on
+Unsecured Loans
+11. Interest accrued on Investments
+Reprint 2026-27
+159 Financial Statements of a Company
+12. Surplus
+13. Securities Premium Reserve
+14. Loose Tools15. Provision for Taxation16. Under writing Commission17. Bills of Exchange18. Unclaimed dividend19. Short term loans & advances
+20. Live stock
+21. Calls unpaid/calls in arrears22. Uncalled liability on shares partly
+paid
+23. Pre-paid Insurance24. Stores and spare parts25. Advances from customers26. Debentures redemption reserve27. Premium on redemption of
+debentures
+28. Loss on issue of debentures29. De
+
+Liabilities
+1. Shareholders’ Funds
+a) Share capital 50,00,000
+b) Reserve and surplus 1 1,30,000
+2. Non-current Liabilities
+a) Long-term borrowings 2 10,00,000
+II. Assets
+Current assets
+a) Inventories 3 20,000
+b) Cash and cash equivalents 4 98,000
+c) Other current assets 5 10,000
+* Relevant items only
+Reprint 2026-27
+154 Accountancy : Company Accounts and Analysis of Financial Statements
+Notes to Accounts
+Particulars Amount Amount
+(Rs.) (Rs.)
+1. Reserve and surplus
+Securities premium 20,000
+Less: Preliminary expenses (40,000)
+(20,000)
+Statement of profit and loss 1,50,000 1,30,000
+2. Long-term borrowings
+8% debentures 10,00,000
+3. Inventory
+Loose tools 20,000
+4. Cash and cash equivalents
+Bank balance 60,000
+Cash in hand 38,000 98,000
+5. Other current assets
+Discount on issue of 8% debentures 10,000
+(¼ of Rs. 40,000)
+Important points:
+Preliminary expenses are to be written-off completely in the year in which
+such expenses are incurred. They should be written-off first from
+securities pr
+***********************************************************************
+
+  [EASY] [conceptual] Q1:
+  What is the primary purpose of classifying Reserves and Surplus in a company's balance sheet?
+
+    A) To hide the company's financial troubles
+    B) To provide a clear picture of the company's financial health
+    C) To mislead investors and stakeholders
+    D) To reduce the company's tax liability
+
+  Topic Reserve and Surplus, Score: 1/5 (20%) — not yet passed
+  ✗ Incorrect.
+  Correct answer: B) To provide a clear picture of the company's financial health
+  Why: The primary purpose of classifying Reserves and Surplus is to provide a clear and transparent picture of the company's financial health and position.
+
+  [MEDIUM] [scenario-based] Q2:
+  A company has a debit balance of Rs. 3,00,000 in its Statement of Profit and Loss. How will this be shown in the balance sheet?
+
+    A) As a negative figure under the 'Reserve and Surplus' head
+    B) As a positive figure under the 'Reserve and Surplus' head
+    C) As a separate item under 'Non-Current Liabilities'
+    D) As a reduction in Share Capital
+  ✗ Incorrect.
+  Correct answer: A) As a negative figure under the 'Reserve and Surplus' head
+  Why: The debit balance will be shown as a negative figure under the 'Reserve and Surplus' head, as per the accounting standards.
+
+  [MEDIUM] [definition] Q3:
+  What is the meaning of 'Fund' in the context of Reserves and Surplus?
+
+    A) A type of reserve that is not specifically represented by earmarked investments
+    B) A type of reserve that is specifically represented by earmarked investments
+    C) A type of surplus that is available for distribution
+    D) A type of liability that is not related to reserves or surplus
+  ✗ Incorrect.
+  Correct answer: B) A type of reserve that is specifically represented by earmarked investments
+  Why: A 'Fund' refers to a reserve that is specifically represented by earmarked investments, as per the accounting standards.
+
+  [HARD] [compare/contrast] Q4:
+  How does the treatment of a debit balance in the Statement of Profit and Loss differ from the treatment of a credit balance in the same statement?
+
+    A) A debit balance is shown as a positive figure, while a credit balance is shown as a negative figure
+    B) A debit balance is shown as a negative figure, while a credit balance is shown as a positive figure
+    C) A debit balance is shown as a separate item under 'Non-Current Liabilities', while a credit balance is shown under 'Reserve and Surplus'
+    D) A debit balance is not shown in the balance sheet, while a credit balance is shown under 'Reserve and Surplus'
+  ✗ Incorrect.
+  Correct answer: B) A debit balance is shown as a negative figure, while a credit balance is shown as a positive figure
+  Why: A debit balance is shown as a negative figure under 'Reserve and Surplus', while a credit balance is shown as a positive figure under the same head.
+
+  [HARD] [true-or-false-as-MCQ] Q5:
+  Is it true that the balance of 'Reserve and Surplus' can be shown as a negative figure in the balance sheet?
+
+    A) Yes, if the debit balance in the Statement of Profit and Loss exceeds the credit balance in Reserves
+    B) No, the balance of 'Reserve and Surplus' can never be shown as a negative figure
+    C) Yes, but only if the company has incurred a loss in the current year
+    D) No, the balance of 'Reserve and Surplus' is always shown as a positive figure
+  ✗ Incorrect.
+  Correct answer: A) Yes, if the debit balance in the Statement of Profit and Loss exceeds the credit balance in Reserves
+  Why: The balance of 'Reserve and Surplus' can indeed be shown as a negative figure if the debit balance in the Statement of Profit and Loss exceeds the credit balance in Reserves.
+
+  Assessment complete.
+  Diagnostic score: 20% — not passed
+
+------------------------------------------------------------
+  FULL SCALE — Stage 3: Learning Path
+------------------------------------------------------------
+
+ChatCompletion(id='chatcmpl-83fa346a-c453-4a14-8cd3-343e2bd7d77b', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content='{"gaps":["Classification of Reserves and Surplus","Treatment of Debit and Credit Balances in Statement of Profit and Loss","Definition of Fund in Reserves and Surplus","Difference between Debit and Credit Balances in Statement of Profit and Loss","Negative Balance of Reserve and Surplus"],"learning_path":[{"order":1,"subtopic":"Introduction to Reserves and Surplus","addresses_gap":["Classification of Reserves and Surplus","Definition of Fund in Reserves and Surplus"],"why":"Understanding the basics of Reserves and Surplus is crucial for classifying and representing them accurately in the balance sheet."},{"order":2,"subtopic":"Statement of Profit and Loss and its Impact on Balance Sheet","addresses_gap":["Treatment of Debit and Credit Balances in Statement of Profit and Loss","Difference between Debit and Credit Balances in Statement of Profit and Loss"],"why":"Recognizing how the Statement of Profit and Loss affects the balance sheet is essential for correctly representing debit and credit balances."},{"order":3,"subtopic":"Representation of Reserves and Surplus in Balance Sheet","addresses_gap":["Classification of Reserves and Surplus","Negative Balance of Reserve and Surplus"],"why":"Knowing how to represent Reserves and Surplus in the balance sheet is vital for providing a clear picture of a company\'s financial health."}],"summary":"The student needs to revisit the fundamental concepts of Reserves and Surplus, including classification, treatment of balances, and representation in the balance sheet, to address the identified knowledge gaps and improve their understanding of the topic."}', role='assistant', annotations=None, executed_tools=None, function_call=None, reasoning=None, tool_calls=None))], created=1780809581, model='llama-3.3-70b-versatile', object='chat.completion', mcp_list_tools=None, service_tier='on_demand', system_fingerprint='fp_3272ea2d91', usage=CompletionUsage(completion_tokens=318, prompt_tokens=490, total_tokens=808, completion_time=0.840390656, completion_tokens_details=None, prompt_time=0.084032547, prompt_tokens_details=None, queue_time=0.163925211, total_time=0.924423203), usage_breakdown=None, x_groq=XGroq(id='req_01ktg8bfp5fvfabwqe13fmtb4q', debug=None, seed=1414925461, usage=None))
+  Learning path saved: outputs\learning_path_262e92a0_Reserve and Surplus.json
+  Learning path generated.
