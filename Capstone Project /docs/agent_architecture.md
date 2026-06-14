@@ -42,19 +42,37 @@ Writes to:
 - `learner_subject_profiles`
 - `topic_mastery`
 
+Handoff to Learning Path Agent:
+
+- `learner_id`
+- `email`
+- `subject_id`
+- `topic`
+- `level`
+- `attempt_id`
+- `score`
+- `total_questions`
+- `correct_answers`
+- `status`
+- `responses`
+- `weak_points`
+
+See [`agent_handoff.md`](/Users/akankshacheeti/Capstone%20Project%20/docs/agent_handoff.md) for the full contract.
+
 ### 2. Learning Path Agent
 
 Purpose:
 
 - find knowledge gaps
 - retrieve relevant materials
-- build an ordered roadmap
-- attach content references to each step  dsa  -> arrays, struings, linked lists, trees, graphs 
+- build either a detailed roadmap or a quick study path
+- attach content references to each step
+- cache the learner-facing step content so it is stable on the next dashboard load
 
 
 Inputs:
 
-- latest quiz result
+- latest quiz result or quick-study request
 - learner profile
 - topic prerequisite graph.   
 - content from vector DB
@@ -64,6 +82,8 @@ Outputs:
 - `learning_paths` row
 - ordered `learning_path_steps`
 - step-to-content references
+- mode-aware path summary
+- optional `learner_content_views` rows for rendered step content
 
 Reads from:
 
@@ -74,12 +94,27 @@ Reads from:
 - `quiz_responses`
 - `topics`
 - vector DB content
+- `content_resources`
+- `content_chunks`
 
 Writes to:
 
 - `learning_paths`
 - `learning_path_steps`
 - `learner_subject_profiles`
+- `learner_content_views`
+
+Consumes:
+
+- latest diagnostic result from the Knowledge Assessment Agent
+- `learner_id`
+- `subject_id`
+- `topic`
+- `score`
+- `responses`
+- `weak_points`
+- `level`
+- `study_mode`
 
 ### 3. Adaptive Quiz Agent
 
@@ -162,14 +197,14 @@ Quick Study does not need a separate long-lived agent.
 It should reuse:
 
 - Learning Path Agent
-- Adaptive Quiz Agent
+- optional Adaptive Quiz Agent for follow-up practice
 
 Flow:
 
 1. learner enters a topic
 2. Learning Path Agent builds a short path
-3. Adaptive Quiz Agent gives a quick quiz
-4. export or summary is generated
+3. dashboard shows the compact study path and summary
+4. optional quiz follow-up can happen later
 
 ### Full Study Flow
 
@@ -208,4 +243,3 @@ For this project, keep the order as:
 4. Mastery Tracking Agent
 
 Socratic Explanation Agent can be added later as a support layer for wrong answers and guided reasoning.
-

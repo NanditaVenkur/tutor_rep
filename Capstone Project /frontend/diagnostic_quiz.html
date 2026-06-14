@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Tutor - Diagnostic Quiz</title>
+  <link rel="stylesheet" href="/frontend/app/styles.css" />
+</head>
+<body>
+  <main class="app-shell diagnostic-shell">
+    <section class="app-card diagnostic-card">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Adaptive Tutor</p>
+          <h1>Diagnostic Quiz</h1>
+          <p class="subtle" id="quizSubtitle">Answer a few questions to calibrate your roadmap.</p>
+        </div>
+        <div class="diagnostic-meta" id="diagnosticMeta"></div>
+      </header>
+
+      <form id="diagnosticForm" class="diagnostic-form">
+        <div class="diagnostic-context" id="diagnosticContext"></div>
+        <div id="diagnosticQuestions" class="diagnostic-questions"></div>
+
+        <div class="subject-actions">
+          <button type="button" class="btn secondary" id="backToDashboard">Skip for now</button>
+          <button type="submit" class="btn primary">Submit quiz</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="/frontend/app/diagnostic.js?v=3"></script>
+</body>
+</html>
