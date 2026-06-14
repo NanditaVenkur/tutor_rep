@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Tutor - Choose Topic</title>
+  <link rel="stylesheet" href="./app/styles.css" />
+</head>
+<body>
+  <main class="app-shell subject-shell">
+    <section class="app-card">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Adaptive Tutor</p>
+          <h1>Choose a subject or topic</h1>
+          <p class="subtle">Pick what you want to study now. You can come back later and create a new roadmap for something else.</p>
+        </div>
+      </header>
+
+      <div class="subject-layout">
+        <form id="subjectForm" class="subject-panel">
+          <div class="subject-intro">
+            <h2>Start a roadmap</h2>
+            <p>Enter a subject, topic, or even a chapter name. Keep it specific enough for the learning path generator.</p>
+          </div>
+
+          <label class="field">
+            <span>Subject or topic</span>
+            <input name="topic" type="text" placeholder="Example: Balance sheet, MCP servers, Newton's laws" required />
+          </label>
+
+          <label class="field">
+            <span>What do you want to do?</span>
+            <select name="study_mode">
+              <option value="roadmap">Create roadmap</option>
+              <option value="quick_study">Quick study</option>
+              <option value="quiz_only">Quiz only</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>How familiar are you?</span>
+            <select name="familiarity">
+              <option value="">Select one</option>
+              <option>New to this</option>
+              <option>Some familiarity</option>
+              <option>Comfortable with basics</option>
+              <option>Already advanced</option>
+            </select>
+          </label>
+
+          <div class="field">
+            <span>Popular starting points</span>
+            <div class="topic-suggestions" id="topicSuggestions">
+              <button type="button" class="topic-chip" data-topic="Balance sheet">Balance sheet</button>
+              <button type="button" class="topic-chip" data-topic="MCP servers">MCP servers</button>
+              <button type="button" class="topic-chip" data-topic="Python basics">Python basics</button>
+              <button type="button" class="topic-chip" data-topic="Data structures">Data structures</button>
+            </div>
+          </div>
+
+          <div class="subject-actions">
+            <button type="button" class="btn secondary" id="backToProfile">Back to profile</button>
+            <button type="submit" class="btn primary">Generate roadmap</button>
+          </div>
+        </form>
+
+        <aside class="subject-panel subject-help">
+          <div class="summary-head">
+            <h3>What happens next</h3>
+            <p>We use the selected topic to build the right learning flow.</p>
+          </div>
+
+          <dl class="summary-list">
+            <div><dt>1</dt><dd>Retrieve learning material</dd></div>
+            <div><dt>2</dt><dd>Find prerequisites</dd></div>
+            <div><dt>3</dt><dd>Create roadmap</dd></div>
+            <div><dt>4</dt><dd>Start quiz or quick study</dd></div>
+          </dl>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app/subject.js"></script>
+</body>
+</html>
