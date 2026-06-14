@@ -1,0 +1,89 @@
+9. Multi-Agent Personalized Learning & Adaptive Assessment System
+Business Challenge:
+Traditional training programs treat every learner the same — same content, same pace, same difficulty
+— regardless of what they already know or where they struggle. This means advanced learners get
+bored while beginners feel overwhelmed, and most people don't actually learn effectively. Educators
+and corporate trainers want to personalize learning for each individual, but doing this manually for
+hundreds or thousands of learners is impossible. Existing adaptive learning platforms are expensive and
+locked behind proprietary systems that most institutions can't afford. Build an AI-powered adaptive
+tutor that can assess each learner's strengths and weaknesses, create a customized learning path, adjust
+quiz difficulty in real-time based on performance, explain mistakes through guided reasoning instead
+of just showing answers, and track progress over time — making truly personalized education
+accessible and scalable for everyone.
+Project Objective:
+Build a LangGraph multi-agent adaptive tutor. A Knowledge Assessment Agent administers
+diagnostic MCQs and estimates learner ability using Item Response Theory (IRT), storing profiles in
+SQLite. A Learning Path Agent identifies knowledge gaps, retrieves materials from ChromaDB, and
+sequences them using topological sort on a prerequisite dependency graph built in NetworkX(ensuring basics come before advanced topics). An Adaptive Quiz Agent generates questions via
+Mistral-7B with difficulty matched to learner ability, using Computerized Adaptive Testing (CAT)
+to pick questions that maximise learning insight. A Socratic Explanation Agent uses chain-of-thought
+prompting with ChromaDB-retrieved concepts to guide learners through reasoning steps instead of
+giving direct answers. A Mastery Tracking Agent uses Bayesian Knowledge Tracing (BKT) to estimate mastery probability per topic — triggering review when it drops below 0.8. The full loop
+cycles: assess → generate path → teach → quiz → explain → update mastery → repeat.
+
+
+detailed plan :
+
+9. Multi-Agent Personalized Learning & Adaptive Assessment System
+Business Challenge:
+One-size-fits-all training programs fail 70% of learners. Enterprises lose $13.5M annually per 1,000 employees
+due to ineffective training. Adaptive learning requires expensive proprietary platforms. Educators lack tools to
+create personalized learning paths at scale.
+Project Objective:
+Build an agentic AI tutor that assesses a learner's knowledge gaps, generates personalized learning paths, creates
+adaptive quizzes that adjust difficulty in real-time, provides Socratic explanations for incorrect answers, and
+tracks mastery progression using Bayesian Knowledge Tracing.
+Implementation Approach:
+Environment Setup:
+Google Colab with T4 GPU; install LangChain, LangGraph, HuggingFace Transformers, Mistral-7BInstruct, ChromaDB, SQLite, Gradio, NetworkX, scikit-learn, and sentence-transformers via pip. Use
+4-bit NF4 quantisation via BitsAndBytes.
+Agent Architecture (LangGraph):
+• Knowledge Assessment Agent: Administers a diagnostic quiz (10–15 MCQs) generated from the
+knowledge base. Uses Item Response Theory (IRT) to estimate learner ability (θ parameter). Stores learner
+profile in SQLite with topic-level proficiency scores.
+• Learning Path Agent: Based on knowledge gaps identified, retrieves relevant learning materials from
+ChromaDB. Generates a sequenced learning path using topological sort on a prerequisite dependency graph
+(NetworkX). Ensures foundational concepts precede advanced topics.
+• Adaptive Quiz Agent: Generates questions using  Mistral-7B with difficulty calibrated to learner's current
+θ. Uses Computerized Adaptive Testing (CAT) algorithm to select next question maximizing information
+gain. Adjusts difficulty after each response in real-time.Socratic Explanation Agent: When learner answers incorrectly, uses chain-of-thought prompting to guide
+them through reasoning steps rather than giving direct answers. Retrieves relevant concepts from
+ChromaDB for grounded, step-by-step explanations.
+• Mastery Tracking Agent: Maintains a knowledge state model per learner per topic in SQLite. Uses
+Bayesian Knowledge Tracing (BKT) to estimate probability of mastery. Recommends review when mastery
+probability drops below 0.8 threshold.
+Knowledge Base:
+Embed SciQ explanations, ARC question contexts, and textbook chapter summaries into ChromaDB
+using sentence-transformers/all-MiniLM-L6-v2. Build a prerequisite dependency graph in NetworkX
+linking topics (e.g., 'algebra' → 'calculus' → 'differential equations').
+LangGraph State Machine:
+Define StateGraph: Assessment → Path Generation → Learning Module → Adaptive Quiz →
+Explanation → Mastery Update → loop back. Low mastery topics trigger re-teaching nodes. Learner
+can interrupt at any point for Socratic Q&A.
+Interface & Reporting:
+Gradio interface with learner dashboard: mastery radar chart (matplotlib), adaptive quiz interface with
+real-time difficulty indicator, Socratic chat panel, learning path visualization (NetworkX graph), and
+downloadable progress report.
+Tools:
+Python, LangChain, LangGraph, Mistral-7B-Instruct (HuggingFace), ChromaDB, SQLite, NetworkX,
+sentence-transformers, scikit-learn (IRT), Gradio, Pandas, matplotlib, BitsAndBytes
+Dataset Sources:
+Dataset Description / Role
+SciQ (HuggingFace) 13.7K science MCQs with explanations — primary question
+generation source
+ARC (AI2 Reasoning Challenge,
+HuggingFace)
+Grade school science questions at varying difficulty levels for
+CAT calibration
+MMLU (HuggingFace) 57 subjects for multi-domain adaptive testing
+Synthetic learner profiles Simulated IRT responses for CAT algorithm validation and BKT
+training
+Custom knowledge base (embedded textbook
+chapters) RAG corpus for Socratic explanations
+Expected Deliverables:
+• Colab notebook demonstrating full adaptive learning pipeline across 3 subject domains.
+• Learner progression reports showing mastery curves and knowledge gap evolution.
+• Evaluation of CAT algorithm effectiveness: question selection efficiency and ability estimation
+convergence.
+• Technical report: IRT/BKT implementation details, prerequisite graph design, adaptive difficulty
+calibration, and Socratic explanation evaluation.
