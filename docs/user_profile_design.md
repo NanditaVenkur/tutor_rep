@@ -417,8 +417,8 @@ Use these joins when building the dashboard later:
 
 To test the schema before building more code, use:
 
-- [`seed_demo_data.sql`](/Users/akankshacheeti/Capstone%20Project%20/seed_demo_data.sql)
-- [`dashboard_queries.sql`](/Users/akankshacheeti/Capstone%20Project%20/dashboard_queries.sql)
+- [`seed_demo_data.sql`](/Users/akankshacheeti/Capstone%20Project%20/data/sql/seed_demo_data.sql)
+- [`dashboard_queries.sql`](/Users/akankshacheeti/Capstone%20Project%20/data/sql/dashboard_queries.sql)
 
 These files let you:
 

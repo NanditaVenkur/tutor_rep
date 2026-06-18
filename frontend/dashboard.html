@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Tutor - Dashboard</title>
+  <link rel="stylesheet" href="/frontend/app/styles.css" />
+</head>
+<body>
+  <main class="app-shell dashboard-shell">
+    <section class="app-card dashboard-card">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Adaptive Tutor</p>
+          <h1>Dashboard</h1>
+          <p class="subtle" id="welcomeText">Welcome back.</p>
+        </div>
+      </header>
+
+      <div class="dashboard-grid">
+        <section class="dashboard-panel">
+          <h2>Start a new path</h2>
+          <p>Choose any subject or topic and generate a roadmap.</p>
+          <a class="btn primary dashboard-link" href="/frontend/subject_topic_entry.html">Enter subject or topic</a>
+        </section>
+
+        <section class="dashboard-panel">
+          <h2>Your profile</h2>
+          <dl class="summary-list dashboard-summary">
+            <div><dt>Name</dt><dd id="dashName">Not set</dd></div>
+            <div><dt>Email</dt><dd id="dashEmail">Not set</dd></div>
+            <div><dt>Language</dt><dd id="dashLanguage">Not set</dd></div>
+          </dl>
+        </section>
+
+        <section class="dashboard-panel">
+          <h2>Current roadmap</h2>
+          <p id="currentRoadmap">No roadmap loaded.</p>
+          <p><strong>Active subject:</strong> <span id="currentSubject">Not set</span></p>
+          <p><strong>Progress:</strong> <span id="currentProgress">Not set</span></p>
+        </section>
+
+        <section class="dashboard-panel">
+          <h2>Next step</h2>
+          <p id="currentStepTitle">No active step.</p>
+          <p id="currentStepDescription">Choose a topic to begin.</p>
+          <div class="content-box" id="currentContentBox">Content will appear here.</div>
+        </section>
+
+        <section class="dashboard-panel">
+          <h2>Latest quiz</h2>
+          <p id="latestQuizSummary">No quiz yet.</p>
+          <ul class="simple-list" id="latestQuizResponses"></ul>
+        </section>
+
+        <section class="dashboard-panel">
+          <h2>Topic mastery</h2>
+          <ul class="simple-list" id="masteryList"></ul>
+        </section>
+
+        <section class="dashboard-panel">
+          <h2>Roadmap steps</h2>
+          <ul class="simple-list" id="stepList"></ul>
+        </section>
+
+        <section class="dashboard-panel">
+          <h2>Recent sessions</h2>
+          <ul class="simple-list" id="sessionList"></ul>
+        </section>
+      </div>
+
+      <div class="subject-actions">
+        <a class="btn secondary" href="/frontend/index.html">Change email</a>
+        <a class="btn secondary" href="/frontend/onboarding_profile_form.html">Edit onboarding</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="/frontend/app/dashboard.js?v=3"></script>
+</body>
+</html>

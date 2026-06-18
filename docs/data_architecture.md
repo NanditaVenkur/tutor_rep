@@ -182,3 +182,16 @@ This keeps the system:
 - cleaner
 - easier to update
 - easier to scale
+
+## 9. Content Storage Contract
+
+For the exact math-oriented storage pattern, see:
+
+- [`content_storage_contract.md`](/Users/akankshacheeti/Capstone%20Project%20/docs/content_storage_contract.md)
+
+That document defines:
+
+- what goes into ChromaDB
+- what stays in SQLite
+- how the learner-facing view is cached
+- how fallback sources are handled when the textbook does not cover a topic well enough

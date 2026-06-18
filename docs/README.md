@@ -6,11 +6,12 @@ This repository currently contains the first frontend onboarding flow for the ad
 
 ```text
 .
-├── index.html
-├── onboarding_profile_form.html
-├── dashboard.html
-├── subject_topic_entry.html
-├── app/
+├── frontend/
+│   ├── index.html
+│   ├── onboarding_profile_form.html
+│   ├── dashboard.html
+│   ├── subject_topic_entry.html
+│   └── app/
 │   ├── styles.css
 │   ├── entry.js
 │   ├── dashboard.js
@@ -18,8 +19,21 @@ This repository currently contains the first frontend onboarding flow for the ad
 │   └── subject.js
 ├── backend/
 │   └── app.py
+├── agents/
+│   └── knowledge_assessment.py
+├── data/
+│   ├── sql/
+│   │   ├── user_profile_schema.sql
+│   │   ├── seed_demo_data.sql
+│   │   └── dashboard_queries.sql
+│   ├── sciq/
+│   └── chroma_db/
+├── notebooks/
+│   ├── knowledge_assessment_agent.ipynb
+│   └── adaptive_tutor_langchain (1).ipynb
+├── scripts/
+│   └── ingest_sciq.py
 ├── user_profile_design.md
-└── user_profile_schema.sql
 ```
 
 ## What the app does right now
@@ -34,10 +48,10 @@ This repository currently contains the first frontend onboarding flow for the ad
 
 ## Flow
 
-1. User enters email on `index.html`.
-2. If the email exists, the app goes to `dashboard.html`.
-3. If the email does not exist, the app goes to `onboarding_profile_form.html`.
-4. After onboarding, the app goes to `dashboard.html`.
+1. User enters email on `frontend/index.html`.
+2. If the email exists, the app goes to `frontend/dashboard.html`.
+3. If the email does not exist, the app goes to `frontend/onboarding_profile_form.html`.
+4. After onboarding, the app goes to `frontend/dashboard.html`.
 5. From the dashboard, the user starts a new subject/topic request.
 
 ## Run the backend
@@ -65,18 +79,18 @@ python3 -m http.server 8000
 Then open:
 
 ```text
-http://localhost:8000/onboarding_profile_form.html
+http://localhost:8000/frontend/onboarding_profile_form.html
 ```
 
 For the full flow, open:
 
 ```text
-http://localhost:8000/index.html
+http://localhost:8000/frontend/index.html
 ```
 
 ## How to run
 
-Open `index.html` in a browser, or use a local server:
+Open `frontend/index.html` in a browser, or use a local server:
 
 ```bash
 python3 -m http.server 8000
@@ -85,7 +99,7 @@ python3 -m http.server 8000
 Then visit:
 
 ```text
-http://localhost:8000/index.html
+http://localhost:8000/frontend/index.html
 ```
 
 ## Next steps
@@ -96,5 +110,5 @@ http://localhost:8000/index.html
 - review [`data_architecture.md`](/Users/akankshacheeti/Capstone%20Project%20/data_architecture.md) for the content vs SQLite split
 - review [`er_diagram_and_query_flow.md`](/Users/akankshacheeti/Capstone%20Project%20/er_diagram_and_query_flow.md) for table relationships and dashboard retrieval
 - review [`agent_architecture.md`](/Users/akankshacheeti/Capstone%20Project%20/agent_architecture.md) for the prescribed LangGraph agent flow
-- review [`dashboard_queries.sql`](/Users/akankshacheeti/Capstone%20Project%20/dashboard_queries.sql) for the dashboard read layer
-- review [`seed_demo_data.sql`](/Users/akankshacheeti/Capstone%20Project%20/seed_demo_data.sql) for sample data that exercises the schema
+- review [`dashboard_queries.sql`](/Users/akankshacheeti/Capstone%20Project%20/data/sql/dashboard_queries.sql) for the dashboard read layer
+- review [`seed_demo_data.sql`](/Users/akankshacheeti/Capstone%20Project%20/data/sql/seed_demo_data.sql) for sample data that exercises the schema
