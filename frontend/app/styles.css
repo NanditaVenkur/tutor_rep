@@ -440,6 +440,191 @@ textarea:focus {
   padding: 18px;
 }
 
+.dashboard-hero-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.dashboard-hero-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-hero-copy p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.dashboard-study-form {
+  display: grid;
+  gap: 12px;
+}
+
+.dashboard-study-actions {
+  justify-content: flex-start;
+}
+
+.subject-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.subject-pill {
+  display: grid;
+  gap: 4px;
+  min-width: 180px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.subject-pill.active {
+  background: var(--primary-soft);
+  border-color: rgba(15, 118, 110, 0.28);
+  color: var(--primary);
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.08);
+}
+
+.subject-pill-name {
+  font-weight: 700;
+}
+
+.subject-pill-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.subject-empty {
+  padding: 14px 0;
+  color: var(--muted);
+}
+
+.dashboard-grid-main {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  margin-top: 18px;
+}
+
+.dashboard-panel-wide {
+  grid-column: span 2;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.panel-head p {
+  margin-bottom: 0;
+}
+
+.roadmap-meta {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.roadmap-summary-card {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.roadmap-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.roadmap-step-item {
+  list-style: none;
+}
+
+.roadmap-step-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.roadmap-step-card.active {
+  border-color: rgba(15, 118, 110, 0.32);
+  background: var(--primary-soft);
+}
+
+.roadmap-step-order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.roadmap-step-body {
+  display: grid;
+  gap: 4px;
+}
+
+.roadmap-step-body span,
+.roadmap-step-body em,
+.roadmap-step-body small {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.content-card {
+  display: grid;
+  gap: 10px;
+}
+
+.content-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.content-rich {
+  white-space: normal;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.content-preview-note {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px dashed rgba(15, 118, 110, 0.24);
+  background: rgba(15, 118, 110, 0.04);
+  color: var(--muted);
+}
+
 .dashboard-panel p {
   color: var(--muted);
   line-height: 1.55;
@@ -472,6 +657,31 @@ textarea:focus {
 
 .dashboard-summary div {
   padding: 10px 0;
+}
+
+.quiz-score {
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.dashboard-footer-actions {
+  margin-top: 18px;
+}
+
+@media (max-width: 960px) {
+  .dashboard-hero-panel,
+  .dashboard-grid-main {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-panel-wide {
+    grid-column: auto;
+  }
+
+  .panel-head {
+    flex-direction: column;
+  }
 }
 
 .diagnostic-shell {

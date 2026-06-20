@@ -33,6 +33,224 @@ def _unique_preserve_order(values: Iterable[str]) -> list[str]:
     return items
 
 
+def _canonical_topic(topic: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", _normalize_text(topic).lower())
+
+
+ROADMAP_BLUEPRINTS = [
+    (
+        "data_structures",
+        (
+            "datastructures",
+            "dsa",
+            "algorithm",
+            "algorithms",
+            "array",
+            "arrays",
+            "string",
+            "strings",
+            "linkedlist",
+            "linkedlistnode",
+            "tree",
+            "trees",
+            "graph",
+            "graphs",
+            "heap",
+            "stack",
+            "queue",
+            "hash",
+            "hashmap",
+        ),
+        [
+            ("Arrays and strings", "Build the foundation with traversal, indexing, and string patterns.", 15),
+            ("Linked lists and pointers", "Learn node linking, pointer movement, and common linked-list operations.", 20),
+            ("Stacks and queues", "Understand LIFO/FIFO behavior and where these structures appear.", 20),
+            ("Trees and binary trees", "Cover tree terminology, traversals, and recursive structure.", 25),
+            ("Binary search trees and heaps", "Study ordering, priority behavior, and common operations.", 25),
+            ("Hash tables and sets", "Learn fast lookup, collisions, and practical use cases.", 20),
+            ("Graphs and traversal", "Practice BFS, DFS, and graph problem patterns.", 25),
+        ],
+    ),
+    (
+        "mathematics",
+        (
+            "math",
+            "mathematics",
+            "algebra",
+            "calculus",
+            "geometry",
+            "trigonometry",
+            "statistics",
+            "probability",
+            "equation",
+            "equations",
+            "fraction",
+            "fractions",
+            "matrix",
+            "matrices",
+            "vector",
+            "vectors",
+        ),
+        [
+            ("Core concepts and notation", "Start with definitions, symbols, and the language of the topic.", 15),
+            ("Foundations and prerequisites", "Review the earlier ideas that the current topic depends on.", 20),
+            ("Worked examples", "Walk through step-by-step solved examples to see the method in action.", 25),
+            ("Practice problems", "Apply the concept with guided practice and short problem sets.", 25),
+            ("Common mistakes and checks", "Review errors, edge cases, and how to verify answers.", 20),
+            ("Extension and review", "Connect the topic to slightly harder material or the next chapter.", 20),
+        ],
+    ),
+    (
+        "finance",
+        (
+            "finance",
+            "accounting",
+            "statement",
+            "statements",
+            "balance sheet",
+            "income statement",
+            "cash flow",
+            "profit",
+            "budget",
+            "valuation",
+        ),
+        [
+            ("Financial basics", "Introduce the key financial terms and how they fit together.", 15),
+            ("Core statements and structure", "Study balance sheet, income statement, and cash flow flow.", 20),
+            ("Reading and interpretation", "Learn how to read the statements and extract meaning.", 25),
+            ("Ratios and analysis", "Connect the numbers to performance, liquidity, and solvency.", 25),
+            ("Practice and review", "Use examples and checks to reinforce the main ideas.", 20),
+        ],
+    ),
+    (
+        "computer_science",
+        (
+            "computer",
+            "programming",
+            "software",
+            "python",
+            "java",
+            "javascript",
+            "oop",
+            "objectoriented",
+            "coding",
+            "development",
+        ),
+        [
+            ("Overview and terminology", "Clarify the key language and what the topic is trying to solve.", 15),
+            ("Core building blocks", "Learn the important parts, patterns, or syntax that make it work.", 20),
+            ("Worked examples", "See the topic in action with small examples or walkthroughs.", 20),
+            ("Practice and application", "Apply the ideas in small tasks or exercises.", 25),
+            ("Common pitfalls", "Review mistakes and how to avoid them in practice.", 20),
+            ("Extensions and next steps", "Connect the topic to the next level of study.", 15),
+        ],
+    ),
+    (
+        "systems",
+        (
+            "operatingsystem",
+            "os",
+            "kernel",
+            "process",
+            "processes",
+            "thread",
+            "threads",
+            "memory",
+            "scheduling",
+            "filesystem",
+            "file",
+            "storage",
+        ),
+        [
+            ("System overview", "See how the topic fits into the broader system or workflow.", 15),
+            ("Core components", "Learn the main moving parts and what each one does.", 20),
+            ("Mechanics and flow", "Understand how the components interact in a full cycle.", 25),
+            ("Examples and scenarios", "Apply the concept to realistic OS or system scenarios.", 20),
+            ("Review and edge cases", "Look at tradeoffs, pitfalls, and tricky details.", 20),
+        ],
+    ),
+    (
+        "databases",
+        (
+            "database",
+            "databases",
+            "dbms",
+            "sql",
+            "rdbms",
+            "schema",
+            "query",
+            "queries",
+            "table",
+            "tables",
+            "normalization",
+            "transaction",
+            "transactions",
+            "index",
+            "indexes",
+        ),
+        [
+            ("Database basics and schema", "Start with the data model, entities, and how tables are organized.", 15),
+            ("SQL and queries", "Learn how to read, write, and reason about queries.", 20),
+            ("Keys, joins, and relationships", "Understand how records connect across tables.", 25),
+            ("Normalization and design", "Organize data cleanly and avoid redundancy.", 20),
+            ("Transactions and indexing", "See how databases stay correct and fast.", 25),
+            ("Practice and review", "Work through query and design practice to lock in the concepts.", 20),
+        ],
+    ),
+]
+
+
+def _match_blueprint(topic: str) -> list[tuple[str, list[str], list[tuple[str, str, int]]]]:
+    topic_key = _canonical_topic(topic)
+    topic_words = {
+        _canonical_topic(part)
+        for part in re.split(r"[\s,/()\-]+", _normalize_text(topic))
+        if part
+    }
+    matches = []
+    for name, keywords, steps in ROADMAP_BLUEPRINTS:
+        if topic_key in keywords or topic_key == name or topic_words.intersection({_canonical_topic(keyword) for keyword in keywords}):
+            matches.append((name, list(keywords), steps))
+    return matches
+
+
+def _rewrite_step_title(title: str, topic: str) -> str:
+    topic_text = _normalize_text(topic)
+    if not topic_text:
+        return title
+    patterns = [
+        (r"\bdata structures\b", topic_text),
+        (r"\bmathematics\b", topic_text),
+        (r"\bfinance\b", topic_text),
+        (r"\bcomputer science\b", topic_text),
+        (r"\bsystems\b", topic_text),
+        (r"\bdatabases\b", topic_text),
+    ]
+    rewritten = title
+    for pattern, replacement in patterns:
+        rewritten = re.sub(pattern, replacement, rewritten, flags=re.IGNORECASE)
+    return rewritten
+
+
+def _build_blueprint_steps(topic: str, score: float, weak_points: list[str]) -> list[dict] | None:
+    matches = _match_blueprint(topic)
+    if not matches:
+        return None
+
+    _, _, template_steps = matches[0]
+    focus_line = ", ".join(weak_points[:3]) if weak_points else f"{topic} fundamentals"
+    steps = []
+    for index, (title, description, minutes) in enumerate(template_steps, start=1):
+        steps.append(
+            {
+                "title": _rewrite_step_title(title, topic),
+                "description": description if score < 0.8 or index < 3 else f"Review and reinforce {title.lower()} with weak points like {focus_line}.",
+                "minutes": minutes,
+            }
+        )
+    return steps
+
+
 def _extract_weak_points(diagnostic_result: dict) -> list[str]:
     responses = diagnostic_result.get("responses") or []
     weak_points = []
@@ -103,6 +321,9 @@ def _load_active_profile(conn, learner_id: str, subject_id: str) -> dict:
 def _build_roadmap_step_plan(topic: str, score: float, weak_points: list[str]) -> list[dict]:
     topic = _normalize_text(topic)
     focus_line = ", ".join(weak_points[:3]) if weak_points else f"{topic} fundamentals"
+    blueprint_steps = _build_blueprint_steps(topic, score, weak_points)
+    if blueprint_steps:
+        return blueprint_steps
 
     if score >= 0.8:
         return [
@@ -112,14 +333,19 @@ def _build_roadmap_step_plan(topic: str, score: float, weak_points: list[str]) -
                 "minutes": 10,
             },
             {
-                "title": f"Applied concepts in {topic}",
-                "description": f"Work through applied examples and connect them to the main ideas in {topic}.",
+                "title": f"Core concepts in {topic}",
+                "description": f"Work through the main ideas and connect them to the weak points: {focus_line}.",
                 "minutes": 15,
             },
             {
                 "title": f"Practice and review for {topic}",
-                "description": f"Focus on the remaining weak points: {focus_line}.",
+                "description": f"Focus on the remaining weak points and apply them to real examples: {focus_line}.",
                 "minutes": 20,
+            },
+            {
+                "title": f"Extension and common pitfalls in {topic}",
+                "description": f"Look at edge cases, tricky parts, and what often goes wrong when studying {topic}.",
+                "minutes": 15,
             },
         ]
 
@@ -137,13 +363,18 @@ def _build_roadmap_step_plan(topic: str, score: float, weak_points: list[str]) -
             },
             {
                 "title": f"Guided examples for {topic}",
-                "description": f"See worked examples that connect the topic to real use cases.",
+                "description": f"See worked examples that connect the topic to real use cases and gaps.",
                 "minutes": 20,
             },
             {
                 "title": f"Practice for {topic}",
-                "description": f"Solve practice items that target the weak areas identified in the diagnostic quiz.",
+                "description": f"Solve practice items that target the weak areas identified in the diagnostic quiz: {focus_line}.",
                 "minutes": 20,
+            },
+            {
+                "title": f"Review and strengthen {topic}",
+                "description": f"Revisit the difficult ideas and make sure the topic feels connected end to end.",
+                "minutes": 15,
             },
         ]
 
@@ -171,6 +402,11 @@ def _build_roadmap_step_plan(topic: str, score: float, weak_points: list[str]) -
         {
             "title": f"Review and next steps",
             "description": f"Summarize progress and identify what should be revised next.",
+            "minutes": 10,
+        },
+        {
+            "title": f"Common mistakes in {topic}",
+            "description": f"Focus on the errors that showed up in the quiz and how to avoid them.",
             "minutes": 10,
         },
     ]

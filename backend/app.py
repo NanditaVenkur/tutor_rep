@@ -376,7 +376,7 @@ def save_diagnostic_attempt(conn, learner_id, subject_id, path_id, step_id, leve
     }
 
 
-def get_dashboard_summary(conn, email):
+def get_dashboard_summary(conn, email, selected_subject_id=None):
     learner = fetchone_dict(
         conn,
         """
@@ -450,6 +450,11 @@ def get_dashboard_summary(conn, email):
     active_subject = None
     if subject_profiles:
         active_subject = subject_profiles[0]
+        if selected_subject_id:
+            for profile in subject_profiles:
+                if profile["subject_id"] == selected_subject_id:
+                    active_subject = profile
+                    break
 
         active_path = fetchone_dict(
             conn,
@@ -498,6 +503,34 @@ def get_dashboard_summary(conn, email):
             ORDER BY step_order ASC
             """,
             (active_subject["active_path_id"],),
+        ) if active_subject.get("active_path_id") else []
+
+        path_views = fetchall_dict(
+            conn,
+            """
+            SELECT
+                view_id,
+                learner_id,
+                path_id,
+                step_id,
+                topic_id,
+                source_resource_id,
+                source_chunk_id,
+                source_content_version,
+                rendered_title,
+                rendered_summary,
+                rendered_content,
+                rendered_format,
+                reading_level,
+                content_hash,
+                view_status,
+                rendered_at,
+                updated_at
+            FROM learner_content_views
+            WHERE learner_id = ? AND path_id = ?
+            ORDER BY rendered_at DESC, updated_at DESC
+            """,
+            (learner["learner_id"], active_subject["active_path_id"]),
         ) if active_subject.get("active_path_id") else []
 
         current_step = None
@@ -655,6 +688,7 @@ def get_dashboard_summary(conn, email):
             **active_subject,
             "active_path": active_path,
             "path_steps": path_steps,
+            "path_views": path_views,
             "latest_quiz": latest_quiz,
             "latest_quiz_responses": latest_quiz_responses,
             "topic_mastery": mastery_rows,
@@ -692,6 +726,7 @@ def get_dashboard_summary(conn, email):
         "subject_profiles": subject_profiles,
         "active_subject": active_subject,
         "recent_sessions": recent_sessions,
+        "selected_subject_id": active_subject["subject_id"] if active_subject else None,
     }
 
 
@@ -1044,11 +1079,12 @@ class RequestHandler(BaseHTTPRequestHandler):
         query = urlparse(self.path).query
         params = parse_qs(query)
         email = (params.get("email", [""])[0]).strip().lower()
+        subject_id = (params.get("subject_id", [""])[0]).strip()
         if not email:
             return json_response(self, 400, {"error": "email is required"})
 
         with get_connection() as conn:
-            summary = get_dashboard_summary(conn, email)
+            summary = get_dashboard_summary(conn, email, subject_id or None)
 
         if not summary:
             return json_response(self, 404, {"error": "learner not found"})

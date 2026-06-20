@@ -17,15 +17,106 @@
         </div>
       </header>
 
-      <div class="dashboard-grid">
-        <section class="dashboard-panel">
-          <h2>Start a new path</h2>
-          <p>Choose any subject or topic and generate a roadmap.</p>
-          <a class="btn primary dashboard-link" href="/frontend/subject_topic_entry.html">Enter subject or topic</a>
+      <section class="dashboard-panel dashboard-hero-panel">
+        <div class="dashboard-hero-copy">
+          <h2>What do you want to learn?</h2>
+          <p>Enter a subject or topic, choose the study mode, and the dashboard will build the right learning flow for you.</p>
+        </div>
+        <form id="dashboardStudyForm" class="dashboard-study-form">
+          <label class="field">
+            <span>Topic</span>
+            <input name="topic" id="dashboardTopicInput" type="text" placeholder="Example: Data structures, Balance sheet, Calculus" required />
+          </label>
+          <label class="field">
+            <span>Study mode</span>
+            <select name="study_mode" id="dashboardStudyMode">
+              <option value="roadmap">Roadmap</option>
+              <option value="quick_study">Quick study</option>
+              <option value="quiz_only">Quiz only</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>How familiar are you?</span>
+            <select name="familiarity" id="dashboardFamiliarity">
+              <option value="">Select one</option>
+              <option>New to this</option>
+              <option>Some familiarity</option>
+              <option>Comfortable with basics</option>
+              <option>Already advanced</option>
+            </select>
+          </label>
+          <div class="actions dashboard-study-actions">
+            <button type="submit" class="btn primary">Start learning</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="dashboard-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Your subjects</h2>
+            <p>Pick any subject below to load its roadmap, content, and quiz summary.</p>
+          </div>
+        </div>
+        <div class="subject-strip" id="subjectStrip"></div>
+      </section>
+
+      <div class="dashboard-grid dashboard-grid-main">
+        <section class="dashboard-panel dashboard-panel-wide">
+          <div class="panel-head">
+            <div>
+              <h2>Roadmap</h2>
+              <p id="currentRoadmap">No roadmap loaded.</p>
+            </div>
+            <div class="roadmap-meta">
+              <span><strong>Subject:</strong> <span id="currentSubject">Not set</span></span>
+              <span><strong>Progress:</strong> <span id="currentProgress">Not set</span></span>
+            </div>
+          </div>
+          <div class="roadmap-summary-card">
+            <p class="subtle" id="roadmapSummary">Select a subject to view its roadmap.</p>
+          </div>
+          <ul class="roadmap-list" id="stepList"></ul>
+        </section>
+
+        <section class="dashboard-panel dashboard-panel-wide">
+          <div class="panel-head">
+            <div>
+              <h2>Step content</h2>
+              <p>Click any roadmap step to see the exact cached content for that step.</p>
+            </div>
+          </div>
+          <div class="content-box roadmap-content" id="currentContentBox">Content will appear here.</div>
         </section>
 
         <section class="dashboard-panel">
-          <h2>Your profile</h2>
+          <div class="panel-head">
+            <div>
+              <h2>Latest quiz</h2>
+              <p>Score and responses for the selected subject.</p>
+            </div>
+          </div>
+          <p class="quiz-score" id="latestQuizSummary">No quiz yet.</p>
+          <ul class="simple-list" id="latestQuizResponses"></ul>
+        </section>
+
+        <section class="dashboard-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Topic mastery</h2>
+              <p>Where the learner needs review or reinforcement.</p>
+            </div>
+          </div>
+          <ul class="simple-list" id="masteryList"></ul>
+        </section>
+
+        <section class="dashboard-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Your profile</h2>
+              <p>Basic learner settings and study preferences.</p>
+            </div>
+          </div>
           <dl class="summary-list dashboard-summary">
             <div><dt>Name</dt><dd id="dashName">Not set</dd></div>
             <div><dt>Email</dt><dd id="dashEmail">Not set</dd></div>
@@ -34,48 +125,23 @@
         </section>
 
         <section class="dashboard-panel">
-          <h2>Current roadmap</h2>
-          <p id="currentRoadmap">No roadmap loaded.</p>
-          <p><strong>Active subject:</strong> <span id="currentSubject">Not set</span></p>
-          <p><strong>Progress:</strong> <span id="currentProgress">Not set</span></p>
-        </section>
-
-        <section class="dashboard-panel">
-          <h2>Next step</h2>
-          <p id="currentStepTitle">No active step.</p>
-          <p id="currentStepDescription">Choose a topic to begin.</p>
-          <div class="content-box" id="currentContentBox">Content will appear here.</div>
-        </section>
-
-        <section class="dashboard-panel">
-          <h2>Latest quiz</h2>
-          <p id="latestQuizSummary">No quiz yet.</p>
-          <ul class="simple-list" id="latestQuizResponses"></ul>
-        </section>
-
-        <section class="dashboard-panel">
-          <h2>Topic mastery</h2>
-          <ul class="simple-list" id="masteryList"></ul>
-        </section>
-
-        <section class="dashboard-panel">
-          <h2>Roadmap steps</h2>
-          <ul class="simple-list" id="stepList"></ul>
-        </section>
-
-        <section class="dashboard-panel">
-          <h2>Recent sessions</h2>
+          <div class="panel-head">
+            <div>
+              <h2>Recent sessions</h2>
+              <p>Latest study sessions and their status.</p>
+            </div>
+          </div>
           <ul class="simple-list" id="sessionList"></ul>
         </section>
       </div>
 
-      <div class="subject-actions">
+      <div class="subject-actions dashboard-footer-actions">
         <a class="btn secondary" href="/frontend/index.html">Change email</a>
         <a class="btn secondary" href="/frontend/onboarding_profile_form.html">Edit onboarding</a>
       </div>
     </section>
   </main>
 
-  <script src="/frontend/app/dashboard.js?v=3"></script>
+  <script src="/frontend/app/dashboard.js?v=5"></script>
 </body>
 </html>
