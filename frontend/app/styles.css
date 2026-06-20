@@ -542,6 +542,34 @@ textarea:focus {
   gap: 10px;
 }
 
+.adaptive-status,
+.adaptive-feedback {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card-soft);
+  line-height: 1.6;
+}
+
+.adaptive-status.error,
+.adaptive-feedback.incorrect {
+  border-color: rgba(185, 28, 28, 0.25);
+  background: #fef2f2;
+}
+
+.adaptive-feedback.correct {
+  border-color: rgba(15, 118, 110, 0.25);
+  background: var(--primary-soft);
+}
+
+.adaptive-feedback p:last-child {
+  margin-bottom: 0;
+}
+
+#startAdaptiveQuiz {
+  margin-top: 14px;
+}
+
 .diagnostic-option {
   position: relative;
   display: flex;

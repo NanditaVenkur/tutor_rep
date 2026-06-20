@@ -10,6 +10,7 @@ const currentProgress = document.getElementById("currentProgress");
 const currentStepTitle = document.getElementById("currentStepTitle");
 const currentStepDescription = document.getElementById("currentStepDescription");
 const currentContentBox = document.getElementById("currentContentBox");
+const startAdaptiveQuiz = document.getElementById("startAdaptiveQuiz");
 const latestQuizSummary = document.getElementById("latestQuizSummary");
 const latestQuizResponses = document.getElementById("latestQuizResponses");
 const masteryList = document.getElementById("masteryList");
@@ -104,6 +105,38 @@ function renderSummary(data) {
   } else {
     currentStepTitle.textContent = "No active step.";
     currentStepDescription.textContent = "Choose a topic to begin.";
+  }
+
+  const pathId = roadmap.path_id || active.active_path_id;
+  if (currentStep && learner.learner_id && active.subject_id && pathId) {
+    startAdaptiveQuiz.classList.remove("hidden");
+    startAdaptiveQuiz.onclick = () => {
+      const launchContext = {
+        learner_id: learner.learner_id,
+        subject_id: active.subject_id,
+        path_id: pathId,
+        step_id: currentStep.step_id,
+        step_title: currentStep.step_title,
+      };
+      const savedSession = (() => {
+        try {
+          return JSON.parse(localStorage.getItem("adaptiveTutorAdaptiveQuizSession") || "null");
+        } catch {
+          return null;
+        }
+      })();
+      if (savedSession?.step_id !== currentStep.step_id) {
+        localStorage.removeItem("adaptiveTutorAdaptiveQuizSession");
+      }
+      localStorage.setItem(
+        "adaptiveTutorAdaptiveQuizContext",
+        JSON.stringify(launchContext),
+      );
+      window.location.href = "/frontend/adaptive_quiz.html";
+    };
+  } else {
+    startAdaptiveQuiz.classList.add("hidden");
+    startAdaptiveQuiz.onclick = null;
   }
 
   if (currentView) {

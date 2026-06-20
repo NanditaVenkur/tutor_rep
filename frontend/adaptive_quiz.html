@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Tutor - Adaptive Quiz</title>
+  <link rel="stylesheet" href="/frontend/app/styles.css" />
+</head>
+<body>
+  <main class="app-shell diagnostic-shell">
+    <section class="app-card diagnostic-card">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Adaptive Tutor</p>
+          <h1>Adaptive Quiz</h1>
+          <p class="subtle" id="adaptiveSubtitle">Preparing a question for this learning step.</p>
+        </div>
+        <div class="diagnostic-meta" id="adaptiveMeta"></div>
+      </header>
+
+      <div class="adaptive-status" id="adaptiveStatus">Starting quiz…</div>
+
+      <form id="adaptiveForm" class="diagnostic-form hidden">
+        <section class="diagnostic-question">
+          <h3 id="adaptiveQuestion"></h3>
+          <div class="diagnostic-options" id="adaptiveOptions"></div>
+        </section>
+        <div class="subject-actions">
+          <button type="button" class="btn secondary" id="adaptiveExit">Back to dashboard</button>
+          <button type="submit" class="btn primary" id="adaptiveSubmit">Submit answer</button>
+        </div>
+      </form>
+
+      <section class="adaptive-feedback hidden" id="adaptiveFeedback" aria-live="polite"></section>
+      <div class="subject-actions hidden" id="adaptiveContinueWrap">
+        <button type="button" class="btn secondary" id="adaptiveDashboard">Back to dashboard</button>
+        <button type="button" class="btn primary" id="adaptiveContinue">Next question</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="/frontend/app/adaptive_quiz.js?v=1"></script>
+</body>
+</html>

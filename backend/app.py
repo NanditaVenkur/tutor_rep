@@ -17,6 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from agents.knowledge_assessment import build_assessment_preview, retrieve_context
 from agents.content_service import ensure_dashboard_step_view
 from agents.learning_path import build_learning_path
+from agents.adaptive_quiz import start_adaptive_quiz, submit_adaptive_answer
 
 DB_PATH = BASE_DIR / "adaptive_tutor_v2.db"
 ROOT_SCHEMA_PATH = BASE_DIR.parent / "data" / "sql" / "user_profile_schema.sql"
@@ -33,6 +34,25 @@ def init_db():
     schema = ROOT_SCHEMA_PATH.read_text(encoding="utf-8")
     with get_connection() as conn:
         conn.executescript(schema)
+        existing_attempt_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(quiz_attempts)")
+        }
+        for column_name in ("starting_difficulty", "ending_difficulty"):
+            if column_name not in existing_attempt_columns:
+                conn.execute(f"ALTER TABLE quiz_attempts ADD COLUMN {column_name} TEXT")
+
+        existing_response_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(quiz_responses)")
+        }
+        for column_name, column_type in (
+            ("question_difficulty", "TEXT"),
+            ("difficulty_after", "TEXT"),
+            ("explanation", "TEXT"),
+        ):
+            if column_name not in existing_response_columns:
+                conn.execute(
+                    f"ALTER TABLE quiz_responses ADD COLUMN {column_name} {column_type}"
+                )
         conn.commit()
 
 
@@ -726,6 +746,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             return self.create_study_request(payload)
         if path == "/api/diagnostic/submit":
             return self.submit_diagnostic(payload)
+        if path == "/api/adaptive-quiz/start":
+            return self.start_adaptive_quiz_request(payload)
+        if path == "/api/adaptive-quiz/answer":
+            return self.submit_adaptive_answer_request(payload)
 
         return json_response(self, 404, {"error": "Not found"})
 
@@ -820,6 +844,89 @@ class RequestHandler(BaseHTTPRequestHandler):
             },
         )
 
+    def start_adaptive_quiz_request(self, payload):
+        required_fields = [
+            "learner_id",
+            "subject_id",
+            "path_id",
+            "step_id",
+        ]
+
+        missing = [
+            field
+            for field in required_fields
+            if not payload.get(field)
+        ]
+
+        if missing:
+            return json_response(
+                self,
+                400,
+                {
+                    "error": (
+                        "Missing required fields: "
+                        + ", ".join(missing)
+                    )
+                },
+            )
+
+        try:
+            with get_connection() as conn:
+                result = start_adaptive_quiz(
+                    conn=conn,
+                    learner_id=payload["learner_id"],
+                    subject_id=payload["subject_id"],
+                    path_id=payload["path_id"],
+                    step_id=payload["step_id"],
+                )
+                conn.commit()
+
+        except ValueError as error:
+            return json_response(
+                self,
+                400,
+                {"error": str(error)},
+            )
+
+        except RuntimeError as error:
+            return json_response(
+                self,
+                500,
+                {"error": str(error)},
+            )
+
+        return json_response(self, 201, result)
+
+    def submit_adaptive_answer_request(self, payload):
+        required_fields = ["attempt_id", "question_id", "selected_answer"]
+        missing = [field for field in required_fields if not payload.get(field)]
+        if missing:
+            return json_response(
+                self,
+                400,
+                {"error": "Missing required fields: " + ", ".join(missing)},
+            )
+
+        try:
+            with get_connection() as conn:
+                result = submit_adaptive_answer(
+                    conn=conn,
+                    attempt_id=payload["attempt_id"],
+                    question_id=payload["question_id"],
+                    selected_answer=payload["selected_answer"],
+                    time_taken_seconds=payload.get("time_taken_seconds"),
+                )
+                conn.commit()
+        except ValueError as error:
+            return json_response(self, 400, {"error": str(error)})
+        except RuntimeError as error:
+            return json_response(self, 500, {"error": str(error)})
+        except sqlite3.Error as error:
+            return json_response(self, 500, {"error": f"Database error: {error}"})
+
+        return json_response(self, 200, result)
+
+
     def create_study_request(self, payload):
         topic = (payload.get("topic") or "").strip()
         if not topic:
@@ -883,24 +990,25 @@ class RequestHandler(BaseHTTPRequestHandler):
         learning_path = None
         if study_flow["assessment_required"]:
             assessment_preview = build_assessment_preview(topic, level, familiarity, question_count=5)
-        elif study_mode == "quick_study":
+        elif study_mode in {"quick_study", "quiz"}:
             learning_path = build_learning_path(
                 conn,
                 learner_id,
                 subject_id,
                 topic,
                 None,
-                study_mode=study_mode,
+                study_mode="quick_study" if study_mode == "quick_study" else "roadmap",
             )
-            assessment_preview = {
-                "topic": topic,
-                "level": level,
-                "mode": "quick_study",
-                "context_source": "learning_path quick study summary",
-                "context": learning_path["summary"] if learning_path else retrieve_context(topic),
-                "questions": [],
-                "learning_path": learning_path,
-            }
+            if study_mode == "quick_study":
+                assessment_preview = {
+                    "topic": topic,
+                    "level": level,
+                    "mode": "quick_study",
+                    "context_source": "learning_path quick study summary",
+                    "context": learning_path["summary"] if learning_path else retrieve_context(topic),
+                    "questions": [],
+                    "learning_path": learning_path,
+                }
 
         conn.commit()
 

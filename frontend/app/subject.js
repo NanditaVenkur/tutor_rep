@@ -63,6 +63,26 @@ subjectForm.addEventListener("submit", (event) => {
         return;
       }
 
+      if (data.study_flow?.route === "adaptive_quiz") {
+        const firstStep = data.learning_path?.steps?.[0];
+        if (!data.learner_id || !data.subject?.subject_id || !data.learning_path?.path_id || !firstStep?.step_id) {
+          throw new Error("Adaptive quiz context could not be created");
+        }
+        localStorage.removeItem("adaptiveTutorAdaptiveQuizSession");
+        localStorage.setItem(
+          "adaptiveTutorAdaptiveQuizContext",
+          JSON.stringify({
+            learner_id: data.learner_id,
+            subject_id: data.subject.subject_id,
+            path_id: data.learning_path.path_id,
+            step_id: firstStep.step_id,
+            step_title: firstStep.step_title,
+          }),
+        );
+        window.location.href = "/frontend/adaptive_quiz.html";
+        return;
+      }
+
       window.location.href = "/frontend/dashboard.html";
     })
     .catch((error) => {

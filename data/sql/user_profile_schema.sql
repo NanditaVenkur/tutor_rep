@@ -239,6 +239,8 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
     mastery_delta REAL DEFAULT 0,
     started_at TEXT NOT NULL DEFAULT (datetime('now')),
     completed_at TEXT,
+    starting_difficulty TEXT,
+    ending_difficulty TEXT,
     FOREIGN KEY (learner_id) REFERENCES learners(learner_id) ON DELETE CASCADE,
     FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
     FOREIGN KEY (path_id) REFERENCES learning_paths(path_id) ON DELETE SET NULL,
@@ -255,7 +257,24 @@ CREATE TABLE IF NOT EXISTS quiz_responses (
     is_correct INTEGER NOT NULL DEFAULT 0,
     time_taken_seconds REAL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    question_difficulty TEXT,
+    difficulty_after TEXT,
+    explanation TEXT,
     FOREIGN KEY (attempt_id) REFERENCES quiz_attempts(attempt_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS quiz_questions (
+    question_id TEXT PRIMARY KEY NOT NULL,
+    attempt_id TEXT NOT NULL,
+    question_text TEXT NOT NULL,
+    options_json TEXT NOT NULL,
+    correct_answer TEXT NOT NULL,
+    explanation TEXT,
+    difficulty_level TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (attempt_id)
+        REFERENCES quiz_attempts(attempt_id)
+        ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_learner_preferences_learner_id
