@@ -64,9 +64,9 @@ See [`agent_handoff.md`](/Users/akankshacheeti/Capstone%20Project%20/docs/agent_
 Purpose:
 
 - find knowledge gaps
-- retrieve relevant materials
-- build either a detailed roadmap or a quick study path
-- attach content references to each step
+- retrieve relevant materials (maybe, for now not needed)
+- build either a detailed roadmap or a quick study path (detailed roadmap done, quick study pathm will return to)
+- attach content references to each step 
 - cache the learner-facing step content so it is stable on the next dashboard load
 
 
