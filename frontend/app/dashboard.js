@@ -40,6 +40,155 @@ function clearList(node, emptyLabel) {
   node.appendChild(item);
 }
 
+function readScopedJSON(key, learnerEmail) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || "null");
+    if (!parsed) return null;
+
+    if (Object.prototype.hasOwnProperty.call(parsed, "ownerEmail")) {
+      return parsed.ownerEmail === learnerEmail ? parsed.value : null;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function normalizeHeading(value) {
+  return String(value ?? "")
+    .replace(/^\d+\.\s*/, "")
+    .trim()
+    .toLowerCase();
+}
+
+function renderMarkdown(value, duplicateTitle = "") {
+  const lines = String(value ?? "").split(/\r?\n/);
+  const html = [];
+  let listOpen = false;
+  let skippedDuplicateTitle = false;
+  const duplicate = normalizeHeading(duplicateTitle);
+
+  function closeList() {
+    if (listOpen) {
+      html.push("</ul>");
+      listOpen = false;
+    }
+  }
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      closeList();
+      return;
+    }
+
+    const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      const headingText = heading[2].trim();
+      if (!skippedDuplicateTitle && duplicate && normalizeHeading(headingText) === duplicate) {
+        skippedDuplicateTitle = true;
+        return;
+      }
+      closeList();
+      const level = Math.min(heading[1].length + 2, 4);
+      html.push(`<h${level}>${escapeHtml(headingText)}</h${level}>`);
+      return;
+    }
+
+    if (trimmed.startsWith("- ")) {
+      if (!listOpen) {
+        html.push("<ul>");
+        listOpen = true;
+      }
+      html.push(`<li>${escapeHtml(trimmed.slice(2))}</li>`);
+      return;
+    }
+
+    closeList();
+    html.push(`<p>${escapeHtml(trimmed)}</p>`);
+  });
+
+  closeList();
+  return html.join("");
+}
+
+function renderCurrentView(currentView, currentStep) {
+  const title = currentStep?.step_title || currentView.rendered_title || "Current content";
+  const content = currentView.rendered_content || currentView.rendered_summary || "No content available.";
+
+  if (currentView.rendered_format === "markdown") {
+    return `<div class="rendered-content">${renderMarkdown(content, title)}</div>`;
+  }
+
+  return `<div class="rendered-content"><p>${escapeHtml(content)}</p></div>`;
+}
+
+function sentenceFromTerms(terms, fallbackTopic = "this step") {
+  if (!Array.isArray(terms) || !terms.length) {
+    return `Build a clearer mental model for ${fallbackTopic}.`;
+  }
+
+  const visibleTerms = terms.slice(0, 3);
+  if (visibleTerms.length === 1) {
+    return `Understand ${visibleTerms[0]} well enough to explain it in your own words.`;
+  }
+
+  const last = visibleTerms[visibleTerms.length - 1];
+  const first = visibleTerms.slice(0, -1).join(", ");
+  return `Connect ${first} and ${last} so the step feels practical, not just memorized.`;
+}
+
+function renderStepPreviewTerms(terms) {
+  if (!Array.isArray(terms) || !terms.length) {
+    return "";
+  }
+
+  return `
+    <div class="roadmap-term-list">
+      ${terms.map((term) => `<span>${escapeHtml(term)}</span>`).join("")}
+    </div>
+  `;
+}
+
+function renderCurrentStepFocus(currentStep, currentView) {
+  if (!currentStep?.preview_terms?.length) {
+    return currentView
+      ? renderCurrentView(currentView, currentStep)
+      : "<div class=\"rendered-content\"><p>No content available.</p></div>";
+  }
+
+  const terms = currentStep.preview_terms;
+  const description = currentStep.step_description || currentView?.rendered_summary || "Work through the next concepts in this roadmap step.";
+
+  return `
+    <div class="next-step-focus">
+      <div>
+        <div class="content-label">You will cover</div>
+        ${renderStepPreviewTerms(terms)}
+      </div>
+      <div class="next-step-note">
+        <div class="content-label">Goal</div>
+        <p>${escapeHtml(description)}</p>
+      </div>
+      <div class="next-step-note">
+        <div class="content-label">Checkpoint</div>
+        <p>${escapeHtml(sentenceFromTerms(terms, currentStep.step_title || "this step"))}</p>
+      </div>
+    </div>
+  `;
+}
+
 function renderSummary(data) {
   const learner = data.learner || {};
   const prefs = data.preferences || {};
@@ -53,34 +202,11 @@ function renderSummary(data) {
   const currentView = active.current_view || null;
   const currentStepContent = active.current_step_content || null;
   const sessions = data.recent_sessions || [];
-  const diagnosticResult = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("adaptiveTutorLatestDiagnosticResult") || "null");
-    } catch {
-      return null;
-    }
-  })();
-  const assessmentPreview = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("adaptiveTutorAssessmentPreview") || "null");
-    } catch {
-      return null;
-    }
-  })();
-  const learningPathPreview = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("adaptiveTutorLearningPathPreview") || "null");
-    } catch {
-      return null;
-    }
-  })();
-  const studyFlow = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("adaptiveTutorStudyFlow") || "null");
-    } catch {
-      return null;
-    }
-  })();
+  const learnerEmail = learner.email || localStorage.getItem("adaptiveTutorLearnerEmail") || "";
+  const diagnosticResult = readScopedJSON("adaptiveTutorLatestDiagnosticResult", learnerEmail);
+  const assessmentPreview = readScopedJSON("adaptiveTutorAssessmentPreview", learnerEmail);
+  const learningPathPreview = readScopedJSON("adaptiveTutorLearningPathPreview", learnerEmail);
+  const studyFlow = readScopedJSON("adaptiveTutorStudyFlow", learnerEmail);
 
   welcomeText.textContent = learner.full_name ? `Welcome back, ${learner.full_name}.` : "Welcome back.";
   dashName.textContent = text(learner.full_name);
@@ -107,34 +233,32 @@ function renderSummary(data) {
   }
 
   if (currentView) {
-    currentContentBox.innerHTML = `
-      <strong>${currentView.rendered_title || "Current content"}</strong>
-      <div>${currentView.rendered_summary || "No summary available."}</div>
-      <div style="margin-top:8px;">${currentView.rendered_content || "No content available."}</div>
-    `;
+    currentContentBox.innerHTML = renderCurrentStepFocus(currentStep, currentView);
   } else if (currentStepContent) {
-    currentContentBox.innerHTML = `
-      <strong>${currentStepContent.source_title || currentStepContent.step_title || "Current content"}</strong>
-      <div style="margin-top:8px;">${currentStepContent.chunk_text || currentStepContent.step_description || "No content available."}</div>
-    `;
+    currentContentBox.innerHTML = currentStep?.preview_terms?.length
+      ? renderCurrentStepFocus(currentStep, null)
+      : `
+        <strong>${escapeHtml(currentStepContent.source_title || currentStepContent.step_title || "Current content")}</strong>
+        <div style="margin-top:8px;">${escapeHtml(currentStepContent.chunk_text || currentStepContent.step_description || "No content available.")}</div>
+      `;
   } else if (learningPathPreview) {
     const previewSteps = Array.isArray(learningPathPreview.steps) ? learningPathPreview.steps : [];
     currentContentBox.innerHTML = `
-      <strong>${learningPathPreview.path_title || "Learning path preview"}</strong>
-      <div style="margin-top:8px;">${learningPathPreview.summary || "A study path is ready."}</div>
+      <strong>${escapeHtml(learningPathPreview.path_title || "Learning path preview")}</strong>
+      <div style="margin-top:8px;">${escapeHtml(learningPathPreview.summary || "A study path is ready.")}</div>
       <div style="margin-top:12px;"><strong>Steps:</strong> ${previewSteps.length}</div>
       <ul style="margin:8px 0 0; padding-left:18px;">
-        ${previewSteps.slice(0, 3).map((step) => `<li>${step.step_title || step.title || "Step"}</li>`).join("")}
+        ${previewSteps.slice(0, 3).map((step) => `<li>${escapeHtml(step.step_title || step.title || "Step")}</li>`).join("")}
       </ul>
     `;
   } else if (assessmentPreview) {
     const previewQuestions = Array.isArray(assessmentPreview.questions) ? assessmentPreview.questions : [];
     currentContentBox.innerHTML = `
-      <strong>Assessment preview for ${assessmentPreview.topic || "your topic"}</strong>
-      <div style="margin-top:8px;">${assessmentPreview.context || "No context available."}</div>
+      <strong>Assessment preview for ${escapeHtml(assessmentPreview.topic || "your topic")}</strong>
+      <div style="margin-top:8px;">${escapeHtml(assessmentPreview.context || "No context available.")}</div>
       <div style="margin-top:12px;"><strong>Generated questions:</strong> ${previewQuestions.length}</div>
       <ul style="margin:8px 0 0; padding-left:18px;">
-        ${previewQuestions.slice(0, 3).map((question) => `<li>${question.question || question.id || "Question"}</li>`).join("")}
+        ${previewQuestions.slice(0, 3).map((question) => `<li>${escapeHtml(question.question || question.id || "Question")}</li>`).join("")}
       </ul>
     `;
   } else if (studyFlow?.route === "quick_study") {
@@ -179,7 +303,14 @@ function renderSummary(data) {
     stepList.innerHTML = "";
     steps.forEach((step) => {
       const li = document.createElement("li");
-      li.textContent = `${step.step_order}. ${step.step_title} - ${step.step_status}`;
+      li.className = "roadmap-step-item";
+      li.innerHTML = `
+        <div class="roadmap-step-line">
+          <span>${escapeHtml(step.step_order)}. ${escapeHtml(step.step_title)}</span>
+          <span class="roadmap-step-status">${escapeHtml(step.step_status)}</span>
+        </div>
+        ${renderStepPreviewTerms(step.preview_terms)}
+      `;
       stepList.appendChild(li);
     });
   } else {

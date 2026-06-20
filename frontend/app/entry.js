@@ -1,6 +1,21 @@
 const API_BASE = "http://localhost:8001";
 const entryForm = document.getElementById("entryForm");
 
+function clearStudyStateForEmailChange(nextEmail) {
+  const currentEmail = localStorage.getItem("adaptiveTutorLearnerEmail");
+  if (!currentEmail || currentEmail === nextEmail) return;
+
+  [
+    "adaptiveTutorSelectedTopic",
+    "adaptiveTutorStudyFlow",
+    "adaptiveTutorAssessmentPreview",
+    "adaptiveTutorLearningPathPreview",
+    "adaptiveTutorActiveSubject",
+    "adaptiveTutorLatestDiagnosticResult",
+    "adaptiveTutorActiveSubjectId"
+  ].forEach((key) => localStorage.removeItem(key));
+}
+
 entryForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -19,6 +34,7 @@ entryForm.addEventListener("submit", async (event) => {
     localStorage.setItem("adaptiveTutorPendingEmail", email);
 
     if (response.ok && data.exists) {
+      clearStudyStateForEmailChange(data.learner.email);
       localStorage.setItem("adaptiveTutorLearnerId", String(data.learner.learner_id));
       localStorage.setItem("adaptiveTutorLearnerEmail", data.learner.email);
       localStorage.setItem("adaptiveTutorLearnerName", data.learner.full_name || "");

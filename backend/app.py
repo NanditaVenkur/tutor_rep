@@ -16,7 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from agents.knowledge_assessment import build_assessment_preview, retrieve_context
 from agents.content_service import ensure_dashboard_step_view
-from agents.learning_path import build_learning_path
+from agents.learning_path import build_learning_path, build_path_preview_terms, build_path_step_titles
 
 DB_PATH = BASE_DIR / "adaptive_tutor_v2.db"
 ROOT_SCHEMA_PATH = BASE_DIR.parent / "data" / "sql" / "user_profile_schema.sql"
@@ -33,7 +33,17 @@ def init_db():
     schema = ROOT_SCHEMA_PATH.read_text(encoding="utf-8")
     with get_connection() as conn:
         conn.executescript(schema)
+        ensure_runtime_migrations(conn)
         conn.commit()
+
+
+def ensure_runtime_migrations(conn):
+    columns = {
+        row["name"]
+        for row in conn.execute("PRAGMA table_info(learning_path_steps)").fetchall()
+    }
+    if "preview_terms" not in columns:
+        conn.execute("ALTER TABLE learning_path_steps ADD COLUMN preview_terms TEXT")
 
 
 def json_response(handler, status_code, payload):
@@ -61,6 +71,24 @@ def fetchone_dict(conn, query, params=()):
 
 def fetchall_dict(conn, query, params=()):
     return [dict(row) for row in conn.execute(query, params).fetchall()]
+
+
+def parse_json_list(value):
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item or "").strip()]
+    if not value:
+        return []
+    try:
+        parsed = json.loads(value)
+    except (TypeError, json.JSONDecodeError):
+        return []
+    if not isinstance(parsed, list):
+        return []
+    return [str(item) for item in parsed if str(item or "").strip()]
+
+
+def dump_json_list(values):
+    return json.dumps([str(item) for item in values if str(item or "").strip()])
 
 
 def normalize_answer_value(value):
@@ -486,6 +514,7 @@ def get_dashboard_summary(conn, email):
                 step_order,
                 step_title,
                 step_description,
+                preview_terms,
                 step_status,
                 estimated_minutes,
                 actual_minutes,
@@ -499,6 +528,44 @@ def get_dashboard_summary(conn, email):
             """,
             (active_subject["active_path_id"],),
         ) if active_subject.get("active_path_id") else []
+        stored_terms_by_step = [parse_json_list(step.get("preview_terms")) for step in path_steps]
+        missing_preview_terms = any(not terms for terms in stored_terms_by_step)
+        generated_terms_by_step = (
+            build_path_preview_terms(active_subject["subject_name"], path_steps)
+            if path_steps and missing_preview_terms
+            else []
+        )
+        preview_terms_by_step = []
+        for index, step in enumerate(path_steps):
+            terms = stored_terms_by_step[index] if index < len(stored_terms_by_step) else []
+            if not terms and index < len(generated_terms_by_step):
+                terms = generated_terms_by_step[index]
+                conn.execute(
+                    """
+                    UPDATE learning_path_steps
+                    SET preview_terms = ?,
+                        updated_at = datetime('now')
+                    WHERE step_id = ?
+                    """,
+                    (dump_json_list(terms), step["step_id"]),
+                )
+            step["preview_terms"] = terms
+            preview_terms_by_step.append(terms)
+
+        display_titles = build_path_step_titles(active_subject["subject_name"], path_steps, preview_terms_by_step) if path_steps else []
+        for index, step in enumerate(path_steps):
+            refined_title = display_titles[index] if index < len(display_titles) else step["step_title"]
+            if refined_title and refined_title != step["step_title"]:
+                conn.execute(
+                    """
+                    UPDATE learning_path_steps
+                    SET step_title = ?,
+                        updated_at = datetime('now')
+                    WHERE step_id = ?
+                    """,
+                    (refined_title, step["step_id"]),
+                )
+                step["step_title"] = refined_title
 
         current_step = None
         for step in path_steps:

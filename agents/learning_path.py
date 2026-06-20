@@ -1,4 +1,5 @@
 import json
+import os
 import sqlite3
 import uuid
 from datetime import datetime, timedelta
@@ -6,11 +7,27 @@ from pathlib import Path
 from typing import Iterable
 import re
 
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv():
+        return None
+
+try:
+    from langchain_groq import ChatGroq
+except ImportError:
+    ChatGroq = None
+
 from agents.content_service import save_path_views
 
 
+load_dotenv()
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = PROJECT_ROOT / "backend" / "adaptive_tutor_v2.db"
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+LLM = None
+PREVIEW_TERMS_CACHE = {}
+STEP_TITLES_CACHE = {}
 
 
 def _now_iso():
@@ -251,6 +268,191 @@ def _build_step_plan(
     )
 
 
+def _get_llm():
+    global LLM
+    if LLM is None:
+        if ChatGroq is None:
+            raise RuntimeError("langchain_groq is not installed")
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            raise RuntimeError("GROQ_API_KEY is not set")
+        LLM = ChatGroq(model=GROQ_MODEL, api_key=api_key, temperature=0.2)
+    return LLM
+
+
+def _extract_json_object(text: str) -> dict:
+    text = str(text or "").strip()
+    if not text:
+        return {}
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", text, flags=re.DOTALL)
+        if not match:
+            return {}
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            return {}
+
+
+def _fallback_preview_terms(topic: str, step: dict, order: int | None = None) -> list[str]:
+    stopwords = {
+        "and", "for", "the", "with", "from", "into", "this", "that", "your",
+        "step", "topic", "basics", "examples", "guided", "walkthroughs",
+        "practice", "checkpoint", "review", "next", "start", "learn",
+        "cover", "needed", "understand", "short", "core", "ideas",
+    }
+    text = " ".join(
+        [
+            _normalize_text(topic),
+            _normalize_text(step.get("step_title") or step.get("title") or ""),
+            _normalize_text(step.get("step_description") or step.get("description") or ""),
+        ]
+    )
+    words = [
+        word for word in re.findall(r"[A-Za-z][A-Za-z0-9+#.-]*", text)
+        if len(word) > 2 and word.lower() not in stopwords
+    ]
+    terms = _unique_preserve_order(words)
+    return terms[:4]
+
+
+def build_path_preview_terms(topic: str, steps: list[dict]) -> list[list[str]]:
+    prompt_steps = []
+    for index, step in enumerate(steps, start=1):
+        prompt_steps.append(
+            {
+                "order": step.get("step_order") or index,
+                "title": step.get("step_title") or step.get("title") or "",
+                "description": step.get("step_description") or step.get("description") or "",
+            }
+        )
+    cache_key = json.dumps([topic, prompt_steps], ensure_ascii=False, sort_keys=True)
+    if cache_key in PREVIEW_TERMS_CACHE:
+        return PREVIEW_TERMS_CACHE[cache_key]
+
+    prompt = (
+        "Generate learner-facing preview terms for an adaptive tutor roadmap.\n"
+        "Return only valid JSON with this shape: "
+        "{\"steps\":[{\"order\":1,\"terms\":[\"term\",\"term\",\"term\",\"term\"]}]}.\n"
+        "Rules: exactly 4 concise terms per step; terms must be specific to the topic and stage; "
+        "avoid generic words like basics, examples, practice, review unless they are part of a real concept; "
+        "use title case for terms; do not include explanations.\n\n"
+        f"Topic: {topic}\n"
+        f"Roadmap steps: {json.dumps(prompt_steps, ensure_ascii=False)}"
+    )
+
+    try:
+        response = _get_llm().invoke(prompt)
+        payload = _extract_json_object(getattr(response, "content", response))
+        rows = payload.get("steps") if isinstance(payload, dict) else []
+        by_order = {}
+        for row in rows if isinstance(rows, list) else []:
+            terms = row.get("terms") if isinstance(row, dict) else []
+            if not isinstance(terms, list):
+                continue
+            try:
+                order = int(row.get("order"))
+            except (TypeError, ValueError):
+                continue
+            by_order[order] = _unique_preserve_order(str(term) for term in terms)[:4]
+
+        generated = []
+        for index, step in enumerate(steps, start=1):
+            order = int(step.get("step_order") or index)
+            terms = by_order.get(order) or _fallback_preview_terms(topic, step, order)
+            generated.append(terms[:4])
+        PREVIEW_TERMS_CACHE[cache_key] = generated
+        return generated
+    except Exception:
+        generated = [
+            _fallback_preview_terms(topic, step, step.get("step_order") or index)
+            for index, step in enumerate(steps, start=1)
+        ]
+        PREVIEW_TERMS_CACHE[cache_key] = generated
+        return generated
+
+
+def build_step_preview_terms(topic: str, step: dict, order: int | None = None) -> list[str]:
+    step_with_order = {**step, "step_order": order or step.get("step_order") or 1}
+    return build_path_preview_terms(topic, [step_with_order])[0]
+
+
+def _fallback_step_title(topic: str, terms: list[str], step: dict, order: int | None = None) -> str:
+    clean_terms = _unique_preserve_order(str(term) for term in terms if _normalize_text(term))
+    if len(clean_terms) >= 2:
+        return f"{clean_terms[0]} and {clean_terms[1]}"
+    if len(clean_terms) == 1:
+        return f"{clean_terms[0]} in {topic}"
+    return _normalize_text(step.get("step_title") or step.get("title") or topic)
+
+
+def build_path_step_titles(topic: str, steps: list[dict], preview_terms_by_step: list[list[str]]) -> list[str]:
+    prompt_steps = []
+    for index, step in enumerate(steps, start=1):
+        prompt_steps.append(
+            {
+                "order": step.get("step_order") or index,
+                "current_title": step.get("step_title") or step.get("title") or "",
+                "description": step.get("step_description") or step.get("description") or "",
+                "preview_terms": preview_terms_by_step[index - 1] if index - 1 < len(preview_terms_by_step) else [],
+            }
+        )
+    cache_key = json.dumps([topic, prompt_steps], ensure_ascii=False, sort_keys=True)
+    if cache_key in STEP_TITLES_CACHE:
+        return STEP_TITLES_CACHE[cache_key]
+
+    prompt = (
+        "Rewrite roadmap step headings for an adaptive tutor.\n"
+        "Return only valid JSON with this shape: "
+        "{\"steps\":[{\"order\":1,\"title\":\"Specific heading\"}]}.\n"
+        "Rules: one short learner-facing heading per step; 3 to 7 words each; "
+        "make each heading specific to the topic and preview terms; preserve step order and progression; "
+        "avoid generic scaffolding like Foundations, Key ideas, Guided examples, Practice, Review, Basics, or Prerequisites "
+        "unless the word is part of an actual domain concept; do not include numbering or status.\n\n"
+        f"Topic: {topic}\n"
+        f"Roadmap steps: {json.dumps(prompt_steps, ensure_ascii=False)}"
+    )
+
+    try:
+        response = _get_llm().invoke(prompt)
+        payload = _extract_json_object(getattr(response, "content", response))
+        rows = payload.get("steps") if isinstance(payload, dict) else []
+        by_order = {}
+        for row in rows if isinstance(rows, list) else []:
+            if not isinstance(row, dict):
+                continue
+            title = _normalize_text(row.get("title") or "")
+            if not title:
+                continue
+            try:
+                order = int(row.get("order"))
+            except (TypeError, ValueError):
+                continue
+            by_order[order] = title
+
+        generated = []
+        for index, step in enumerate(steps, start=1):
+            order = int(step.get("step_order") or index)
+            terms = preview_terms_by_step[index - 1] if index - 1 < len(preview_terms_by_step) else []
+            generated.append(by_order.get(order) or _fallback_step_title(topic, terms, step, order))
+        STEP_TITLES_CACHE[cache_key] = generated
+        return generated
+    except Exception:
+        generated = [
+            _fallback_step_title(
+                topic,
+                preview_terms_by_step[index - 1] if index - 1 < len(preview_terms_by_step) else [],
+                step,
+                step.get("step_order") or index,
+            )
+            for index, step in enumerate(steps, start=1)
+        ]
+        STEP_TITLES_CACHE[cache_key] = generated
+        return generated
+
+
 def _upsert_subject_topic(conn, subject_id, topic_name, description=None, prerequisite_topic_id=None, topic_order=0):
     topic_name = _normalize_text(topic_name)
     row = conn.execute(
@@ -379,11 +581,15 @@ def build_learning_path(
 
     prev_topic_id = root_topic_id
     step_rows = []
+    preview_terms_by_step = build_path_preview_terms(topic, steps)
+    step_titles = build_path_step_titles(topic, steps, preview_terms_by_step)
     for order, step in enumerate(steps, start=1):
+        step_title = step_titles[order - 1] if order - 1 < len(step_titles) else step["title"]
+        preview_terms = preview_terms_by_step[order - 1] if order - 1 < len(preview_terms_by_step) else []
         step_topic_id = _upsert_subject_topic(
             conn,
             subject_id,
-            step["title"],
+            step_title,
             description=step["description"],
             prerequisite_topic_id=prev_topic_id,
             topic_order=order,
@@ -393,11 +599,11 @@ def build_learning_path(
             """
             INSERT INTO learning_path_steps (
                 step_id, path_id, topic_id, resource_id, chunk_id,
-                content_version, step_order, step_title, step_description,
+                content_version, step_order, step_title, step_description, preview_terms,
                 step_status, estimated_minutes, actual_minutes,
                 started_at, completed_at, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, 'not_started', ?, 0, NULL, NULL, datetime('now'), datetime('now'))
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, 'not_started', ?, 0, NULL, NULL, datetime('now'), datetime('now'))
             """,
             (
                 step_id,
@@ -406,8 +612,9 @@ def build_learning_path(
                 None,
                 None,
                 order,
-                step["title"],
+                step_title,
                 step["description"],
+                json.dumps(preview_terms),
                 step["minutes"],
             ),
         )
@@ -416,8 +623,9 @@ def build_learning_path(
                 "path_id": path_id,
                 "step_id": step_id,
                 "step_order": order,
-                "step_title": step["title"],
+                "step_title": step_title,
                 "step_description": step["description"],
+                "preview_terms": preview_terms,
                 "estimated_minutes": step["minutes"],
                 "topic_id": step_topic_id,
                 "content_depth": content_depth,
@@ -500,6 +708,22 @@ def build_learning_path(
             ),
         )
 
+    print({
+        "path_id": path_id,
+        "path_title": path_title,
+        "mode": mode,
+        "root_topic_id": root_topic_id,
+        "total_steps": len(step_rows),
+        "estimated_total_minutes": estimated_total_minutes,
+        "summary": summary,
+        "score": score,
+        "weak_points": weak_points,
+        "steps": step_rows,
+        "cached_views": cached_views,
+        "created_at": _now_iso(),
+        "content_depth": content_depth,
+        "target_outcome": target_outcome,
+    })
     return {
         "path_id": path_id,
         "path_title": path_title,

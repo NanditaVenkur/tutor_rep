@@ -93,6 +93,21 @@ function persistDraft() {
   localStorage.setItem("adaptiveTutorOnboarding", JSON.stringify(getFormValues()));
 }
 
+function clearStudyStateForEmailChange(nextEmail) {
+  const currentEmail = localStorage.getItem("adaptiveTutorLearnerEmail");
+  if (!currentEmail || currentEmail === nextEmail) return;
+
+  [
+    "adaptiveTutorSelectedTopic",
+    "adaptiveTutorStudyFlow",
+    "adaptiveTutorAssessmentPreview",
+    "adaptiveTutorLearningPathPreview",
+    "adaptiveTutorActiveSubject",
+    "adaptiveTutorLatestDiagnosticResult",
+    "adaptiveTutorActiveSubjectId"
+  ].forEach((key) => localStorage.removeItem(key));
+}
+
 async function createProfile() {
   const values = getFormValues();
   const response = await fetch(`${API_BASE}/api/onboarding`, {
@@ -106,6 +121,7 @@ async function createProfile() {
     throw new Error(data.error || "Failed to create profile");
   }
 
+  clearStudyStateForEmailChange(values.email);
   localStorage.setItem("adaptiveTutorLearnerId", String(data.learner_id));
   localStorage.setItem("adaptiveTutorLearnerEmail", values.email);
   localStorage.setItem("adaptiveTutorPreferredLanguage", values.preferred_language || "English");

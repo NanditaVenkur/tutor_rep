@@ -87,6 +87,7 @@ SELECT
     step_order,
     step_title,
     step_description,
+    preview_terms,
     step_status,
     estimated_minutes,
     actual_minutes,

@@ -14,6 +14,24 @@ function readJSON(key) {
   }
 }
 
+function readScopedJSON(key, learnerEmail) {
+  const parsed = readJSON(key);
+  if (!parsed) return null;
+
+  if (Object.prototype.hasOwnProperty.call(parsed, "ownerEmail")) {
+    return parsed.ownerEmail === learnerEmail ? parsed.value : null;
+  }
+
+  return null;
+}
+
+function writeScopedJSON(key, value, learnerEmail) {
+  localStorage.setItem(key, JSON.stringify({
+    ownerEmail: learnerEmail || "",
+    value
+  }));
+}
+
 function escapeHTML(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -90,10 +108,10 @@ function validateAnswers(preview) {
   return true;
 }
 
-const preview = readJSON("adaptiveTutorAssessmentPreview");
-const subject = readJSON("adaptiveTutorActiveSubject");
 const learnerEmail = localStorage.getItem("adaptiveTutorLearnerEmail");
-const studyFlow = readJSON("adaptiveTutorStudyFlow");
+const preview = readScopedJSON("adaptiveTutorAssessmentPreview", learnerEmail);
+const subject = readScopedJSON("adaptiveTutorActiveSubject", learnerEmail);
+const studyFlow = readScopedJSON("adaptiveTutorStudyFlow", learnerEmail);
 
 if (!preview) {
   window.location.href = "/frontend/subject_topic_entry.html";
@@ -133,7 +151,7 @@ diagnosticForm.addEventListener("submit", async (event) => {
       throw new Error(data.error || "Failed to submit diagnostic quiz");
     }
 
-    localStorage.setItem("adaptiveTutorLatestDiagnosticResult", JSON.stringify(data.result || {}));
+    writeScopedJSON("adaptiveTutorLatestDiagnosticResult", data.result || {}, learnerEmail);
     if (data.subject_id) {
       localStorage.setItem("adaptiveTutorActiveSubjectId", data.subject_id);
     }

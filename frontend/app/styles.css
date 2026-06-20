@@ -455,12 +455,96 @@ textarea:focus {
   line-height: 1.6;
 }
 
+.rendered-content h3,
+.rendered-content h4 {
+  margin: 0 0 8px;
+  font-size: 0.98rem;
+}
+
+.rendered-content p {
+  margin: 0;
+}
+
+.rendered-content p + p,
+.rendered-content p + ul,
+.rendered-content ul + p,
+.rendered-content h3 + p,
+.rendered-content h4 + p {
+  margin-top: 8px;
+}
+
+.rendered-content ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.next-step-focus {
+  display: grid;
+  gap: 12px;
+}
+
+.content-label {
+  margin-bottom: 6px;
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.next-step-note {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.next-step-note p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .simple-list {
   display: grid;
   gap: 8px;
   margin: 0;
   padding-left: 18px;
   color: var(--muted);
+}
+
+.roadmap-step-item {
+  padding-left: 2px;
+}
+
+.roadmap-step-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text);
+}
+
+.roadmap-step-status {
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.roadmap-term-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.roadmap-term-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.2;
 }
 
 .dashboard-link {

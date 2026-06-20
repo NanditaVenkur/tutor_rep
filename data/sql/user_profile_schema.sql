@@ -110,6 +110,7 @@ CREATE TABLE IF NOT EXISTS learning_path_steps (
     step_order INTEGER NOT NULL,
     step_title TEXT NOT NULL,
     step_description TEXT,
+    preview_terms TEXT,
     step_status TEXT NOT NULL DEFAULT 'not_started',
     estimated_minutes INTEGER DEFAULT 0,
     actual_minutes INTEGER DEFAULT 0,

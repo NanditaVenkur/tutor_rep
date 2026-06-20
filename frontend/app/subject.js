@@ -4,6 +4,13 @@ const topicInput = subjectForm.querySelector('[name="topic"]');
 const topicSuggestions = document.getElementById("topicSuggestions");
 const API_BASE = "http://localhost:8001";
 
+function writeScopedJSON(key, value, learnerEmail) {
+  localStorage.setItem(key, JSON.stringify({
+    ownerEmail: learnerEmail || "",
+    value
+  }));
+}
+
 backToProfile.addEventListener("click", () => {
   window.location.href = "/frontend/dashboard.html";
 });
@@ -37,18 +44,18 @@ subjectForm.addEventListener("submit", (event) => {
         throw new Error(data.error || "Failed to create study request");
       }
 
-      localStorage.setItem("adaptiveTutorSelectedTopic", JSON.stringify(values));
+      writeScopedJSON("adaptiveTutorSelectedTopic", values, learnerEmail);
       if (data.study_flow) {
-        localStorage.setItem("adaptiveTutorStudyFlow", JSON.stringify(data.study_flow));
+        writeScopedJSON("adaptiveTutorStudyFlow", data.study_flow, learnerEmail);
       }
       if (data.assessment_preview) {
-        localStorage.setItem("adaptiveTutorAssessmentPreview", JSON.stringify(data.assessment_preview));
+        writeScopedJSON("adaptiveTutorAssessmentPreview", data.assessment_preview, learnerEmail);
       }
       if (data.learning_path) {
-        localStorage.setItem("adaptiveTutorLearningPathPreview", JSON.stringify(data.learning_path));
+        writeScopedJSON("adaptiveTutorLearningPathPreview", data.learning_path, learnerEmail);
       }
       if (data.subject) {
-        localStorage.setItem("adaptiveTutorActiveSubject", JSON.stringify(data.subject));
+        writeScopedJSON("adaptiveTutorActiveSubject", data.subject, learnerEmail);
       }
       const mode = data.study_flow?.study_mode || values.study_mode || "roadmap";
       alert(`${mode.replaceAll("_", " ")} started for: ${values.topic}`);
