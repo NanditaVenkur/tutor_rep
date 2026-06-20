@@ -1,5 +1,5 @@
 const API_BASE = "http://localhost:8001";
-const QUIZ_LENGTH = 5;
+const QUIZ_LENGTH = 15;
 
 const form = document.getElementById("adaptiveForm");
 const subtitle = document.getElementById("adaptiveSubtitle");
