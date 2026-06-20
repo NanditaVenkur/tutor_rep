@@ -1,12 +1,9 @@
 import json
-import uuid
-import sqlite3
 import os
 import re
-from dataclasses import dataclass
-from datetime import datetime
+import sqlite3
+import uuid
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
@@ -22,6 +19,7 @@ ADAPTIVE_QUIZ_LENGTH = 15
 PASS_THRESHOLD = 0.80
 
 LLM = None
+
 
 def _normalize_options(options):
     if isinstance(options, dict):
@@ -40,6 +38,20 @@ def _canonicalize_text(value):
 
 def _normalize_text(value):
     return " ".join(str(value or "").strip().split())
+
+
+def _parse_preview_terms(value) -> list[str]:
+    if isinstance(value, list):
+        return [_normalize_text(item) for item in value if _normalize_text(item)]
+    if not value:
+        return []
+    try:
+        parsed = json.loads(value)
+    except (TypeError, json.JSONDecodeError):
+        return []
+    if not isinstance(parsed, list):
+        return []
+    return [_normalize_text(item) for item in parsed if _normalize_text(item)]
 
 
 def _extract_option_key(raw_value):
@@ -97,6 +109,7 @@ def _normalize_quiz_question_item(item):
     item["correct_answer"] = _normalize_correct_answer(item.get("correct_answer", ""), item["options"])
     return item
 
+
 def _get_llm():
     global LLM
     if LLM is None:
@@ -137,7 +150,6 @@ def determine_starting_difficulty(profile, mastery=None):
         return "hard"
 
     level = str(profile.get("current_level") or "").lower()
-
     return {
         "beginner": "easy",
         "intermediate": "medium",
@@ -145,13 +157,7 @@ def determine_starting_difficulty(profile, mastery=None):
     }.get(level, "medium")
 
 
-def load_adaptive_quiz_context(
-    conn,
-    learner_id,
-    subject_id,
-    path_id,
-    step_id,
-):
+def load_adaptive_quiz_context(conn, learner_id, subject_id, path_id, step_id):
     row = conn.execute(
         """
         SELECT
@@ -159,11 +165,14 @@ def load_adaptive_quiz_context(
             lp.learner_id,
             lp.subject_id,
             lp.path_status,
+            lp.total_steps,
 
             lps.step_id,
             lps.topic_id,
+            lps.step_order,
             lps.step_title,
             lps.step_description,
+            lps.preview_terms,
             lps.step_status,
 
             lsp.current_level,
@@ -175,76 +184,61 @@ def load_adaptive_quiz_context(
             lcv.rendered_summary,
             lcv.rendered_content
         FROM learning_paths lp
-
-        JOIN learning_path_steps lps
-            ON lps.path_id = lp.path_id
-
+        JOIN learning_path_steps lps ON lps.path_id = lp.path_id
         LEFT JOIN learner_subject_profiles lsp
             ON lsp.learner_id = lp.learner_id
             AND lsp.subject_id = lp.subject_id
-
         LEFT JOIN topic_mastery tm
             ON tm.learner_id = lp.learner_id
             AND tm.subject_id = lp.subject_id
             AND tm.topic_id = lps.topic_id
-
         LEFT JOIN learner_content_views lcv
             ON lcv.learner_id = lp.learner_id
             AND lcv.step_id = lps.step_id
             AND lcv.view_status = 'active'
-
         WHERE lp.path_id = ?
           AND lp.learner_id = ?
           AND lp.subject_id = ?
           AND lps.step_id = ?
-
         ORDER BY lcv.updated_at DESC
         LIMIT 1
         """,
-        (
-            path_id,
-            learner_id,
-            subject_id,
-            step_id,
-        ),
+        (path_id, learner_id, subject_id, step_id),
     ).fetchone()
 
     if not row:
-        raise ValueError(
-            "The learner, subject, path and step do not belong together"
-        )
+        raise ValueError("The learner, subject, path and step do not belong together")
 
     context = dict(row)
-
     return {
         "learner_id": context["learner_id"],
         "subject_id": context["subject_id"],
         "path_id": context["path_id"],
         "step_id": context["step_id"],
         "topic_id": context["topic_id"],
+        "step_order": context.get("step_order"),
+        "total_steps": context.get("total_steps"),
         "step_title": context["step_title"],
         "step_description": context.get("step_description") or "",
+        "preview_terms": _parse_preview_terms(context.get("preview_terms")),
         "step_status": context.get("step_status"),
         "path_status": context.get("path_status"),
         "current_level": context.get("current_level") or "beginner",
         "mastery_score": context.get("mastery_score"),
-        "mastery_probability": context.get("mastery_probability")
+        "mastery_probability": context.get("mastery_probability"),
     }
 
 
-def generate_adaptive_question(
-    topic,
-    step_title,
-    step_description,
-    difficulty,
-    previous_questions=None,
-):
+def generate_adaptive_question(topic, step_title, step_description, preview_terms, difficulty, previous_questions=None):
+    preview_terms = preview_terms or []
+    preview_terms_text = ", ".join(preview_terms) if preview_terms else step_title
     prompt = f"""
         Generate one MCQ for the supplied learning-path step.
         Difficulty: {difficulty}
-        Topic: {topic}
-        Step: {step_title}
-        Step discription: {step_description}
+        Overall topic: {topic}
+        Current roadmap step: {step_title}
+        Step description: {step_description}
+        Required subtopics for this step: {preview_terms_text}
 
         Return JSON containing:
         - id
@@ -255,16 +249,16 @@ def generate_adaptive_question(
         - difficulty
 
         Rules:
-        - Question must directly test the entered topic: {topic}
+        - Question must directly test the current roadmap step: {step_title}
+        - Base the question on one or more of these step subtopics: {preview_terms_text}
+        - Do not ask about preview terms from other roadmap steps
         - Do not use finance, accounting, or any unrelated subject unless the topic itself is about that subject
-        - Keep the questions aligned to {difficulty} difficulty
+        - Keep the question aligned to {difficulty} difficulty
         - Set correct_answer to the key of the right option, not the full option text
-        - Question must align to the sub topic {step_title} with the Step direction: {step_description} used as guideline
-
-        The question must be answerable from the supplied content.
-        Do not repeat these questions: {previous_questions} 
+        - The question must be answerable from the supplied step title, description, and subtopics
+        - Do not repeat these questions: {previous_questions}
         """
-    
+
     response = _get_llm().invoke(prompt)
     raw = getattr(response, "content", str(response)).strip()
     start = raw.find("{")
@@ -277,41 +271,20 @@ def generate_adaptive_question(
     question_item = json.loads(raw)
 
     question_item["explanation"] = _normalize_text(
-        question_item.get("explanation")
-        or "Explanation not available."
+        question_item.get("explanation") or "Explanation not available."
     )
-    generated_difficulty = _normalize_text(
-        question_item.get("difficulty")
-    ).lower()
-    
-    question_item["difficulty"] = (
-        generated_difficulty
-        if generated_difficulty in DIFFICULTIES
-        else difficulty
-    )
-    normalized_question_item = _normalize_quiz_question_item(question_item)
-
-    return normalized_question_item
+    generated_difficulty = _normalize_text(question_item.get("difficulty")).lower()
+    question_item["difficulty"] = generated_difficulty if generated_difficulty in DIFFICULTIES else difficulty
+    return _normalize_quiz_question_item(question_item)
 
 
-def save_generated_question(
-    conn,
-    attempt_id,
-    question,
-    difficulty,
-):
+def save_generated_question(conn, attempt_id, question, difficulty):
     question_id = str(uuid.uuid4())
-
     conn.execute(
         """
         INSERT INTO quiz_questions (
-            question_id,
-            attempt_id,
-            question_text,
-            options_json,
-            correct_answer,
-            explanation,
-            difficulty_level
+            question_id, attempt_id, question_text, options_json,
+            correct_answer, explanation, difficulty_level
         )
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
@@ -325,8 +298,7 @@ def save_generated_question(
             difficulty,
         ),
     )
-
-    return question_id       
+    return question_id
 
 
 def public_question(question_id, question, difficulty):
@@ -338,23 +310,119 @@ def public_question(question_id, question, difficulty):
     }
 
 
-def start_adaptive_quiz(
-    conn,
-    learner_id,
-    subject_id,
-    path_id,
-    step_id,
-):
-    # 1. Validate relationships and load context.
-    context = load_adaptive_quiz_context(
-        conn=conn,
-        learner_id=learner_id,
-        subject_id=subject_id,
-        path_id=path_id,
-        step_id=step_id,
+def _step_payload(context):
+    return {
+        "step_id": context["step_id"],
+        "step_order": context.get("step_order"),
+        "total_steps": context.get("total_steps"),
+        "step_title": context["step_title"],
+        "step_description": context.get("step_description"),
+        "preview_terms": context.get("preview_terms") or [],
+    }
+
+
+def complete_step_and_advance(conn, learner_id, subject_id, path_id, step_id):
+    current = conn.execute(
+        """
+        SELECT step_id, step_order
+        FROM learning_path_steps
+        WHERE path_id = ? AND step_id = ?
+        """,
+        (path_id, step_id),
+    ).fetchone()
+    if not current:
+        raise ValueError("Completed step was not found in the roadmap")
+
+    conn.execute(
+        """
+        UPDATE learning_path_steps
+        SET step_status = 'completed',
+            actual_minutes = COALESCE(actual_minutes, 0),
+            completed_at = COALESCE(completed_at, datetime('now')),
+            updated_at = datetime('now')
+        WHERE step_id = ?
+        """,
+        (step_id,),
     )
 
-    # 2. Prevent multiple unfinished attempts for the same step.
+    next_step = conn.execute(
+        """
+        SELECT step_id, step_order, step_title, step_description, preview_terms
+        FROM learning_path_steps
+        WHERE path_id = ?
+          AND step_order > ?
+          AND step_status != 'completed'
+        ORDER BY step_order ASC
+        LIMIT 1
+        """,
+        (path_id, current["step_order"]),
+    ).fetchone()
+
+    if next_step:
+        conn.execute(
+            """
+            UPDATE learning_path_steps
+            SET step_status = 'in_progress',
+                started_at = COALESCE(started_at, datetime('now')),
+                updated_at = datetime('now')
+            WHERE step_id = ? AND step_status = 'not_started'
+            """,
+            (next_step["step_id"],),
+        )
+
+    counts = conn.execute(
+        """
+        SELECT
+            COUNT(*) AS total_steps,
+            SUM(CASE WHEN step_status = 'completed' THEN 1 ELSE 0 END) AS completed_steps
+        FROM learning_path_steps
+        WHERE path_id = ?
+        """,
+        (path_id,),
+    ).fetchone()
+    total_steps = int(counts["total_steps"] or 0)
+    completed_steps = int(counts["completed_steps"] or 0)
+    completion_pct = round((completed_steps / total_steps) * 100, 3) if total_steps else 0
+    path_status = "completed" if total_steps and completed_steps >= total_steps else "active"
+
+    conn.execute(
+        """
+        UPDATE learning_paths
+        SET completed_steps = ?,
+            path_status = ?,
+            updated_at = datetime('now'),
+            last_accessed_at = datetime('now')
+        WHERE path_id = ?
+        """,
+        (completed_steps, path_status, path_id),
+    )
+    conn.execute(
+        """
+        UPDATE learner_subject_profiles
+        SET completed_step_count = ?,
+            total_step_count = ?,
+            path_completion_pct = ?,
+            status = 'active',
+            last_activity_at = datetime('now'),
+            updated_at = datetime('now')
+        WHERE learner_id = ? AND subject_id = ?
+        """,
+        (completed_steps, total_steps, completion_pct, learner_id, subject_id),
+    )
+
+    return {
+        "completed_step_id": step_id,
+        "next_step": dict(next_step) if next_step else None,
+        "completed_steps": completed_steps,
+        "total_steps": total_steps,
+        "path_completion_pct": completion_pct,
+        "path_status": path_status,
+    }
+
+
+def start_adaptive_quiz(conn, learner_id, subject_id, path_id, step_id):
+    context = load_adaptive_quiz_context(conn, learner_id, subject_id, path_id, step_id)
+
     existing_attempt = conn.execute(
         """
         SELECT attempt_id
@@ -368,137 +436,76 @@ def start_adaptive_quiz(
         ORDER BY started_at DESC
         LIMIT 1
         """,
-        (
-            learner_id,
-            subject_id,
-            path_id,
-            step_id,
-        ),
+        (learner_id, subject_id, path_id, step_id),
     ).fetchone()
-
     if existing_attempt:
-        raise ValueError(
-            "An adaptive quiz is already in progress for this step"
+        raise ValueError("An adaptive quiz is already in progress for this step")
+
+    if context.get("step_status") == "not_started":
+        conn.execute(
+            """
+            UPDATE learning_path_steps
+            SET step_status = 'in_progress',
+                started_at = COALESCE(started_at, datetime('now')),
+                updated_at = datetime('now')
+            WHERE step_id = ?
+            """,
+            (step_id,),
         )
 
-    # 3. Determine starting difficulty.
     mastery = context.get("mastery_probability")
-
     if mastery is None:
         mastery = context.get("mastery_score")
+    starting_difficulty = determine_starting_difficulty({"current_level": context.get("current_level")}, mastery)
 
-    starting_difficulty = determine_starting_difficulty(
-        {"current_level": context.get("current_level")},
-        mastery,
-    )
-
-    # 4. Create the attempt.
     attempt_id = str(uuid.uuid4())
-
     conn.execute(
         """
         INSERT INTO quiz_attempts (
-            attempt_id,
-            learner_id,
-            subject_id,
-            path_id,
-            step_id,
-            quiz_type,
-            difficulty_level,
-            starting_difficulty,
-            score,
-            total_questions,
-            correct_answers,
-            completion_status
+            attempt_id, learner_id, subject_id, path_id, step_id,
+            quiz_type, difficulty_level, starting_difficulty, score,
+            total_questions, correct_answers, completion_status
         )
         VALUES (?, ?, ?, ?, ?, 'adaptive', ?, ?, 0, 0, 0, 'in_progress')
         """,
-        (
-            attempt_id,
-            learner_id,
-            subject_id,
-            path_id,
-            step_id,
-            starting_difficulty,
-            starting_difficulty,
-        ),
+        (attempt_id, learner_id, subject_id, path_id, step_id, starting_difficulty, starting_difficulty),
     )
 
-    # 5. Generate the first question.
     question = generate_adaptive_question(
         topic=context["step_title"],
         step_title=context["step_title"],
         step_description=context["step_description"],
+        preview_terms=context.get("preview_terms") or [],
         difficulty=starting_difficulty,
         previous_questions=[],
     )
-
-    if not question:
+    if not question or not question.get("question"):
         raise RuntimeError("Failed to generate the first adaptive question")
+    if not question.get("options") or not question.get("correct_answer"):
+        raise RuntimeError("Generated adaptive question is incomplete")
 
-    if not question.get("question"):
-        raise RuntimeError("Generated question has no question text")
-
-    if not question.get("options"):
-        raise RuntimeError("Generated question has no answer options")
-
-    if not question.get("correct_answer"):
-        raise RuntimeError("Generated question has no correct answer")
-
-    # 6. Save the private question and answer.
-    question_id = save_generated_question(
-        conn=conn,
-        attempt_id=attempt_id,
-        question=question,
-        difficulty=starting_difficulty,
-    )
-
-    # 7. Return only learner-safe information.
+    question_id = save_generated_question(conn, attempt_id, question, starting_difficulty)
     return {
         "attempt_id": attempt_id,
         "quiz_type": "adaptive",
-        "step": {
-            "step_id": context["step_id"],
-            "step_title": context["step_title"],
-            "step_description": context.get("step_description"),
-        },
+        "step": _step_payload(context),
+        "quiz_length": ADAPTIVE_QUIZ_LENGTH,
         "starting_difficulty": starting_difficulty,
         "questions_answered": 0,
-        "question": public_question(
-            question_id=question_id,
-            question=question,
-            difficulty=starting_difficulty,
-        ),
+        "question": public_question(question_id, question, starting_difficulty),
     }
 
 
-def submit_adaptive_answer(
-    conn,
-    attempt_id,
-    question_id,
-    selected_answer,
-    time_taken_seconds=None,
-):
-    """Grade one adaptive response and return feedback plus the next question."""
+def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_taken_seconds=None):
     attempt = conn.execute(
         """
-        SELECT
-            attempt_id,
-            learner_id,
-            subject_id,
-            path_id,
-            step_id,
-            quiz_type,
-            difficulty_level,
-            total_questions,
-            correct_answers,
-            completion_status
+        SELECT attempt_id, learner_id, subject_id, path_id, step_id, quiz_type,
+               difficulty_level, total_questions, correct_answers, completion_status
         FROM quiz_attempts
         WHERE attempt_id = ?
         """,
         (attempt_id,),
     ).fetchone()
-
     if not attempt:
         raise ValueError("Adaptive quiz attempt not found")
 
@@ -510,20 +517,13 @@ def submit_adaptive_answer(
 
     question = conn.execute(
         """
-        SELECT
-            question_id,
-            attempt_id,
-            question_text,
-            options_json,
-            correct_answer,
-            explanation,
-            difficulty_level
+        SELECT question_id, attempt_id, question_text, options_json,
+               correct_answer, explanation, difficulty_level
         FROM quiz_questions
         WHERE question_id = ? AND attempt_id = ?
         """,
         (question_id, attempt_id),
     ).fetchone()
-
     if not question:
         raise ValueError("Question does not belong to this adaptive attempt")
 
@@ -559,24 +559,14 @@ def submit_adaptive_answer(
     correct_answers = int(attempt.get("correct_answers") or 0) + int(is_correct)
     score = round(correct_answers / total_questions, 3)
     quiz_complete = total_questions >= ADAPTIVE_QUIZ_LENGTH
-    status = "passed" if quiz_complete and score >= PASS_THRESHOLD else (
-        "needs_review" if quiz_complete else "in_progress"
-    )
+    status = "passed" if quiz_complete and score >= PASS_THRESHOLD else ("needs_review" if quiz_complete else "in_progress")
 
     conn.execute(
         """
         INSERT INTO quiz_responses (
-            response_id,
-            attempt_id,
-            question_id,
-            question_text,
-            selected_answer,
-            correct_answer,
-            is_correct,
-            time_taken_seconds,
-            question_difficulty,
-            difficulty_after,
-            explanation
+            response_id, attempt_id, question_id, question_text, selected_answer,
+            correct_answer, is_correct, time_taken_seconds, question_difficulty,
+            difficulty_after, explanation
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
@@ -596,27 +586,22 @@ def submit_adaptive_answer(
     )
 
     if quiz_complete:
+        roadmap = complete_step_and_advance(
+            conn=conn,
+            learner_id=attempt["learner_id"],
+            subject_id=attempt["subject_id"],
+            path_id=attempt["path_id"],
+            step_id=attempt["step_id"],
+        )
         conn.execute(
             """
             UPDATE quiz_attempts
-            SET difficulty_level = ?,
-                ending_difficulty = ?,
-                score = ?,
-                total_questions = ?,
-                correct_answers = ?,
-                completion_status = ?,
+            SET difficulty_level = ?, ending_difficulty = ?, score = ?,
+                total_questions = ?, correct_answers = ?, completion_status = ?,
                 completed_at = datetime('now')
             WHERE attempt_id = ?
             """,
-            (
-                next_difficulty,
-                next_difficulty,
-                score,
-                total_questions,
-                correct_answers,
-                status,
-                attempt_id,
-            ),
+            (next_difficulty, next_difficulty, score, total_questions, correct_answers, status, attempt_id),
         )
         return {
             "attempt_id": attempt_id,
@@ -634,25 +619,17 @@ def submit_adaptive_answer(
                 "status": status,
                 "ending_difficulty": next_difficulty,
             },
+            "roadmap": roadmap,
             "next_question": None,
         }
 
     conn.execute(
         """
         UPDATE quiz_attempts
-        SET difficulty_level = ?,
-            score = ?,
-            total_questions = ?,
-            correct_answers = ?
+        SET difficulty_level = ?, score = ?, total_questions = ?, correct_answers = ?
         WHERE attempt_id = ?
         """,
-        (
-            next_difficulty,
-            score,
-            total_questions,
-            correct_answers,
-            attempt_id,
-        ),
+        (next_difficulty, score, total_questions, correct_answers, attempt_id),
     )
 
     context = load_adaptive_quiz_context(
@@ -677,23 +654,17 @@ def submit_adaptive_answer(
     next_question = generate_adaptive_question(
         topic=context["step_title"],
         step_title=context["step_title"],
-        step_description=context['step_description'],
+        step_description=context["step_description"],
+        preview_terms=context.get("preview_terms") or [],
         difficulty=next_difficulty,
         previous_questions=previous_questions,
     )
-
     if not next_question or not next_question.get("question"):
         raise RuntimeError("Failed to generate the next adaptive question")
     if not next_question.get("options") or not next_question.get("correct_answer"):
         raise RuntimeError("Generated adaptive question is incomplete")
 
-    next_question_id = save_generated_question(
-        conn=conn,
-        attempt_id=attempt_id,
-        question=next_question,
-        difficulty=next_difficulty,
-    )
-
+    next_question_id = save_generated_question(conn, attempt_id, next_question, next_difficulty)
     return {
         "attempt_id": attempt_id,
         "feedback": {
@@ -708,10 +679,6 @@ def submit_adaptive_answer(
             "correct_answers": correct_answers,
             "quiz_length": ADAPTIVE_QUIZ_LENGTH,
         },
-        "next_question": public_question(
-            question_id=next_question_id,
-            question=next_question,
-            difficulty=next_difficulty,
-        ),
+        "step": _step_payload(context),
+        "next_question": public_question(next_question_id, next_question, next_difficulty),
     }
-    
