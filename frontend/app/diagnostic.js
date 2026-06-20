@@ -154,6 +154,7 @@ diagnosticForm.addEventListener("submit", async (event) => {
     writeScopedJSON("adaptiveTutorLatestDiagnosticResult", data.result || {}, learnerEmail);
     if (data.subject_id) {
       localStorage.setItem("adaptiveTutorActiveSubjectId", data.subject_id);
+      localStorage.setItem("adaptiveTutorSelectedSubjectId", data.subject_id);
     }
     window.location.href = "/frontend/dashboard.html";
   } catch (error) {

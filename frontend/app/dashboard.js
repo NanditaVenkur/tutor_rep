@@ -1,21 +1,26 @@
 const API_BASE = "http://localhost:8001";
+const SELECTED_SUBJECT_KEY = "adaptiveTutorSelectedSubjectId";
 
 const welcomeText = document.getElementById("welcomeText");
+const userMenuButton = document.getElementById("userMenuButton");
+const userMenuPanel = document.getElementById("userMenuPanel");
 const dashName = document.getElementById("dashName");
 const dashEmail = document.getElementById("dashEmail");
 const dashLanguage = document.getElementById("dashLanguage");
-const currentRoadmap = document.getElementById("currentRoadmap");
-const currentSubject = document.getElementById("currentSubject");
-const currentProgress = document.getElementById("currentProgress");
-const currentStepTitle = document.getElementById("currentStepTitle");
-const currentStepDescription = document.getElementById("currentStepDescription");
-const currentContentBox = document.getElementById("currentContentBox");
-const startAdaptiveQuiz = document.getElementById("startAdaptiveQuiz");
-const latestQuizSummary = document.getElementById("latestQuizSummary");
-const latestQuizResponses = document.getElementById("latestQuizResponses");
-const masteryList = document.getElementById("masteryList");
-const stepList = document.getElementById("stepList");
-const sessionList = document.getElementById("sessionList");
+const subjectList = document.getElementById("subjectList");
+const selectedSubjectTitle = document.getElementById("selectedSubjectTitle");
+const selectedSubjectTopic = document.getElementById("selectedSubjectTopic");
+const selectedSubjectStats = document.getElementById("selectedSubjectStats");
+const detailRoadmapText = document.getElementById("detailRoadmapText");
+const detailRoadmapMeta = document.getElementById("detailRoadmapMeta");
+const detailStepTitle = document.getElementById("detailStepTitle");
+const detailStepDescription = document.getElementById("detailStepDescription");
+const detailCurrentContent = document.getElementById("detailCurrentContent");
+const practiceStepButton = document.getElementById("practiceStepButton");
+const detailStepList = document.getElementById("detailStepList");
+const detailSessionList = document.getElementById("detailSessionList");
+
+let dashboardState = null;
 
 function text(value, fallback = "Not set") {
   return value || fallback;
@@ -24,36 +29,23 @@ function text(value, fallback = "Not set") {
 function formatPercent(value) {
   if (value === null || value === undefined || value === "") return "Not set";
   const num = Number(value);
-  return Number.isNaN(num) ? String(value) : `${num.toFixed(0)}%`;
+  if (Number.isNaN(num)) return String(value);
+  const pct = num <= 1 ? num * 100 : num;
+  return `${pct.toFixed(0)}%`;
+}
+
+function formatScore(value) {
+  if (value === null || value === undefined || value === "") return "Not set";
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value);
+  return `${Math.round(num * 100)}%`;
 }
 
 function formatQuizSummary(quiz) {
   if (!quiz) return "No quiz yet.";
   const total = Number(quiz.total_questions ?? 0);
   const correct = Number(quiz.correct_answers ?? 0);
-  return `${correct}/${total || "N/A"}`;
-}
-
-function clearList(node, emptyLabel) {
-  node.innerHTML = "";
-  const item = document.createElement("li");
-  item.textContent = emptyLabel;
-  node.appendChild(item);
-}
-
-function readScopedJSON(key, learnerEmail) {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(key) || "null");
-    if (!parsed) return null;
-
-    if (Object.prototype.hasOwnProperty.call(parsed, "ownerEmail")) {
-      return parsed.ownerEmail === learnerEmail ? parsed.value : null;
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
+  return `${correct}/${total || "N/A"} correct`;
 }
 
 function escapeHtml(value) {
@@ -65,19 +57,19 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function normalizeHeading(value) {
-  return String(value ?? "")
-    .replace(/^\d+\.\s*/, "")
-    .trim()
-    .toLowerCase();
+function clearList(node, emptyLabel) {
+  node.innerHTML = "";
+  const item = document.createElement("li");
+  item.textContent = emptyLabel;
+  node.appendChild(item);
 }
 
 function renderMarkdown(value, duplicateTitle = "") {
   const lines = String(value ?? "").split(/\r?\n/);
   const html = [];
   let listOpen = false;
-  let skippedDuplicateTitle = false;
-  const duplicate = normalizeHeading(duplicateTitle);
+  const duplicate = String(duplicateTitle || "").trim().toLowerCase();
+  let skippedDuplicate = false;
 
   function closeList() {
     if (listOpen) {
@@ -88,7 +80,6 @@ function renderMarkdown(value, duplicateTitle = "") {
 
   lines.forEach((line) => {
     const trimmed = line.trim();
-
     if (!trimmed) {
       closeList();
       return;
@@ -97,8 +88,9 @@ function renderMarkdown(value, duplicateTitle = "") {
     const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
     if (heading) {
       const headingText = heading[2].trim();
-      if (!skippedDuplicateTitle && duplicate && normalizeHeading(headingText) === duplicate) {
-        skippedDuplicateTitle = true;
+      const normalized = headingText.replace(/^\d+\.\s*/, "").trim().toLowerCase();
+      if (!skippedDuplicate && duplicate && normalized === duplicate) {
+        skippedDuplicate = true;
         return;
       }
       closeList();
@@ -125,14 +117,23 @@ function renderMarkdown(value, duplicateTitle = "") {
 }
 
 function renderCurrentView(currentView, currentStep) {
-  const title = currentStep?.step_title || currentView.rendered_title || "Current content";
-  const content = currentView.rendered_content || currentView.rendered_summary || "No content available.";
+  const title = currentStep?.step_title || currentView?.rendered_title || "Current content";
+  const content = currentView?.rendered_content || currentView?.rendered_summary || "No content available.";
 
-  if (currentView.rendered_format === "markdown") {
+  if (currentView?.rendered_format === "markdown") {
     return `<div class="rendered-content">${renderMarkdown(content, title)}</div>`;
   }
 
   return `<div class="rendered-content"><p>${escapeHtml(content)}</p></div>`;
+}
+
+function renderStepPreviewTerms(terms) {
+  if (!Array.isArray(terms) || !terms.length) return "";
+  return `
+    <div class="roadmap-term-list">
+      ${terms.map((term) => `<span>${escapeHtml(term)}</span>`).join("")}
+    </div>
+  `;
 }
 
 function sentenceFromTerms(terms, fallbackTopic = "this step") {
@@ -150,47 +151,321 @@ function sentenceFromTerms(terms, fallbackTopic = "this step") {
   return `Connect ${first} and ${last} so the step feels practical, not just memorized.`;
 }
 
-function renderStepPreviewTerms(terms) {
-  if (!Array.isArray(terms) || !terms.length) {
+function renderContentFocus(currentStep, currentView) {
+  if (currentStep?.preview_terms?.length) {
+    const description = currentStep.step_description || currentView?.rendered_summary || "Work through the next concepts in this roadmap step.";
+    return `
+      <div class="next-step-focus">
+        <div>
+          <div class="content-label">You will cover</div>
+          ${renderStepPreviewTerms(currentStep.preview_terms)}
+        </div>
+        <div class="next-step-note">
+          <div class="content-label">Goal</div>
+          <p>${escapeHtml(description)}</p>
+        </div>
+        <div class="next-step-note">
+          <div class="content-label">Checkpoint</div>
+          <p>${escapeHtml(sentenceFromTerms(currentStep.preview_terms, currentStep.step_title || "this step"))}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  if (currentView) {
+    return renderCurrentView(currentView, currentStep);
+  }
+
+  return `<div class="rendered-content"><p>No content available.</p></div>`;
+}
+
+function renderStat(label, value) {
+  return `
+    <div class="stat-chip">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `;
+}
+
+function renderTopicPills(items, tone) {
+  if (!Array.isArray(items) || !items.length) {
     return "";
   }
 
   return `
-    <div class="roadmap-term-list">
-      ${terms.map((term) => `<span>${escapeHtml(term)}</span>`).join("")}
+    <div class="mastery-pill-group ${escapeHtml(tone)}">
+      ${items.map((item) => `<span class="mastery-pill">${escapeHtml(item)}</span>`).join("")}
     </div>
   `;
 }
 
-function renderCurrentStepFocus(currentStep, currentView) {
-  if (!currentStep?.preview_terms?.length) {
-    return currentView
-      ? renderCurrentView(currentView, currentStep)
-      : "<div class=\"rendered-content\"><p>No content available.</p></div>";
-  }
-
-  const terms = currentStep.preview_terms;
-  const description = currentStep.step_description || currentView?.rendered_summary || "Work through the next concepts in this roadmap step.";
+function renderMasteryStepCard(step) {
+  const strong = step.topics_strong || [];
+  const review = step.topics_to_review || [];
+  const practice = step.topics_to_practice || [];
+  const subtopics = step.subtopics || [];
+  const accuracy = step.accuracy === null || step.accuracy === undefined ? "Not set" : `${step.accuracy.toFixed(1)}%`;
+  const answered = Number(step.answered_questions || 0);
+  const correct = Number(step.correct_answers || 0);
+  const hasAnySignals = strong.length || review.length || practice.length;
 
   return `
-    <div class="next-step-focus">
-      <div>
-        <div class="content-label">You will cover</div>
-        ${renderStepPreviewTerms(terms)}
+    <li class="mastery-step-card">
+      <div class="mastery-step-head">
+        <div>
+          <p class="mastery-step-label">Step ${escapeHtml(step.step_order ?? "—")}</p>
+          <h4>${escapeHtml(step.step_title || "Untitled step")}</h4>
+        </div>
+        <span class="mastery-step-badge">${escapeHtml(step.step_status || "unknown")}</span>
       </div>
-      <div class="next-step-note">
-        <div class="content-label">Goal</div>
-        <p>${escapeHtml(description)}</p>
+      <p class="mastery-step-summary">${escapeHtml(step.summary || "No summary available.")}</p>
+      <div class="mastery-step-metrics">
+        <span>${answered} answered</span>
+        <span>${correct} correct</span>
+        <span>${accuracy} accuracy</span>
       </div>
-      <div class="next-step-note">
-        <div class="content-label">Checkpoint</div>
-        <p>${escapeHtml(sentenceFromTerms(terms, currentStep.step_title || "this step"))}</p>
+      ${renderTopicPills(strong, "strong")}
+      ${renderTopicPills(review, "review")}
+      ${renderTopicPills(practice, "practice")}
+      ${!hasAnySignals && Array.isArray(step.preview_terms) && step.preview_terms.length
+        ? renderTopicPills(step.preview_terms, "untried")
+        : ""}
+      {subtopics}
+    </li>
+  `.replace("{subtopics}", subtopics.length ? `
+      <div class="mastery-subtopic-grid">
+        ${subtopics.map((topic) => `
+          <div class="mastery-subtopic-card ${escapeHtml(topic.bucket)}">
+            <div class="mastery-subtopic-title">${escapeHtml(topic.topic)}</div>
+            <div class="mastery-subtopic-meta">
+              <span>${topic.answered ? `${topic.answered} answer${topic.answered === 1 ? "" : "s"}` : "Not practiced"}</span>
+              <span>${topic.correct ? `${topic.correct} correct` : "0 correct"}</span>
+              <span>${topic.accuracy === null || topic.accuracy === undefined ? "No score yet" : `${topic.accuracy.toFixed(1)}%`}</span>
+            </div>
+          </div>
+        `).join("")}
       </div>
+    ` : "");
+}
+
+function renderQuizPanel(step, quizInfo, isCurrentStep) {
+  if (!quizInfo?.attempt) {
+    return `
+      <div class="step-section">
+        <div class="step-section-head">
+          <span class="step-section-label">Quiz</span>
+          <span class="step-section-chip">No quiz yet</span>
+        </div>
+        <p class="step-section-text">This step has not been practiced yet.</p>
+      </div>
+    `;
+  }
+
+  const attempt = quizInfo.attempt;
+  const responses = quizInfo.responses || [];
+  return `
+    <div class="step-section">
+      <div class="step-section-head">
+        <span class="step-section-label">Quiz</span>
+        <span class="step-section-chip">${escapeHtml(formatQuizSummary(attempt))}</span>
+      </div>
+      <p class="step-section-text">
+        ${isCurrentStep ? "Latest quiz for this step." : "Most recent quiz attempt for this step."}
+      </p>
+      <ul class="step-response-list">
+        ${responses.length ? responses.map((response) => `
+          <li class="step-response-item ${response.is_correct ? "correct" : "incorrect"}">
+            <strong>${escapeHtml(response.is_correct ? "Correct" : "Incorrect")}</strong>
+            <span>${escapeHtml(response.question_text || "Question")}</span>
+            <span class="step-response-answer">${escapeHtml(response.selected_answer || "No answer")}</span>
+          </li>
+        `).join("") : "<li class=\"step-response-item muted\">No answer details available.</li>"}
+      </ul>
     </div>
   `;
 }
 
-function renderSummary(data) {
+function renderMasteryPanel(step, masterySummary) {
+  if (!masterySummary) {
+    return `
+      <div class="step-section">
+        <div class="step-section-head">
+          <span class="step-section-label">Mastery</span>
+          <span class="step-section-chip">No mastery data</span>
+        </div>
+        <p class="step-section-text">We do not have mastery data for this step yet.</p>
+      </div>
+    `;
+  }
+
+  const strong = masterySummary.topics_strong || [];
+  const review = masterySummary.topics_to_review || [];
+  const practice = masterySummary.topics_to_practice || [];
+  const subtopics = masterySummary.subtopics || [];
+  return `
+    <div class="step-section">
+      <div class="step-section-head">
+        <span class="step-section-label">Mastery</span>
+        <span class="step-section-chip">${escapeHtml(masterySummary.summary || "Step summary")}</span>
+      </div>
+      <p class="step-section-text">
+        ${escapeHtml((step.preview_terms || []).length ? "Subtopic-level mastery based on the latest quiz answers." : "Mastery details for this step.")}
+      </p>
+      <div class="mastery-pill-group strong">${strong.map((item) => `<span class="mastery-pill">${escapeHtml(item)}</span>`).join("")}</div>
+      <div class="mastery-pill-group review">${review.map((item) => `<span class="mastery-pill">${escapeHtml(item)}</span>`).join("")}</div>
+      <div class="mastery-pill-group practice">${practice.map((item) => `<span class="mastery-pill">${escapeHtml(item)}</span>`).join("")}</div>
+      ${subtopics.length ? `
+        <div class="mastery-subtopic-grid">
+          ${subtopics.map((topic) => `
+            <div class="mastery-subtopic-card ${escapeHtml(topic.bucket)}">
+              <div class="mastery-subtopic-title">${escapeHtml(topic.topic)}</div>
+              <div class="mastery-subtopic-meta">
+                <span>${topic.answered ? `${topic.answered} answer${topic.answered === 1 ? "" : "s"}` : "Not practiced"}</span>
+                <span>${topic.correct ? `${topic.correct} correct` : "0 correct"}</span>
+                <span>${topic.accuracy === null || topic.accuracy === undefined ? "No score yet" : `${topic.accuracy.toFixed(1)}%`}</span>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      ` : ""}
+    </div>
+  `;
+}
+
+function renderStepAccordion(step, active, quizInfo, masterySummary) {
+  const isCurrentStep = active?.current_step?.step_id === step.step_id;
+  const isCompleted = step.step_status === "completed";
+  const isReview = step.step_status === "needs_review";
+  const summaryClass = isCurrentStep ? "current" : isCompleted ? "completed" : isReview ? "review" : "";
+  const openAttr = isCurrentStep ? " open" : "";
+
+  return `
+    <details class="step-accordion ${summaryClass}"${openAttr}>
+      <summary class="step-accordion-summary">
+        <div class="step-accordion-main">
+          <span class="step-accordion-order">Step ${escapeHtml(step.step_order ?? "—")}</span>
+          <strong>${escapeHtml(step.step_title || "Untitled step")}</strong>
+          <span class="step-accordion-desc">${escapeHtml(step.step_description || "No description available.")}</span>
+        </div>
+        <div class="step-accordion-meta">
+          <span class="step-accordion-badge">${escapeHtml(step.step_status || "unknown")}</span>
+          <span class="step-accordion-chev" aria-hidden="true">⌄</span>
+        </div>
+      </summary>
+      <div class="step-accordion-body">
+        <div class="step-card-grid">
+          <div class="step-section">
+            <div class="step-section-head">
+              <span class="step-section-label">Overview</span>
+              <span class="step-section-chip">${escapeHtml(isCurrentStep ? "Current step" : step.step_status || "unknown")}</span>
+            </div>
+            <p class="step-section-text">${escapeHtml(step.step_description || "No description available.")}</p>
+            ${renderStepPreviewTerms(step.preview_terms)}
+          </div>
+          <div class="step-section">
+            <div class="step-section-head">
+              <span class="step-section-label">Step focus</span>
+              <span class="step-section-chip">${escapeHtml((step.preview_terms || []).length ? `${step.preview_terms.length} subtopics` : "No subtopics")}</span>
+            </div>
+            ${isCurrentStep && active?.current_view ? renderContentFocus(step, active.current_view) : `
+              <p class="step-section-text">${escapeHtml(sentenceFromTerms(step.preview_terms, step.step_title || "this step"))}</p>
+            `}
+            ${isCurrentStep && active?.current_step_content ? `
+              <div class="content-box step-current-content">
+                <strong>${escapeHtml(active.current_step_content.source_title || active.current_step_content.step_title || "Current content")}</strong>
+                <div style="margin-top:8px;">${escapeHtml(active.current_step_content.chunk_text || active.current_step_content.step_description || "No content available.")}</div>
+              </div>
+            ` : ""}
+            ${isCurrentStep && active?.subject_id && active?.active_path?.path_id ? `
+              <button class="btn primary step-practice-btn" type="button" data-practice-step="${escapeHtml(step.step_id)}">Practice this step</button>
+            ` : ""}
+          </div>
+          ${renderQuizPanel(step, quizInfo, isCurrentStep)}
+          ${renderMasteryPanel(step, masterySummary)}
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+function setSelectedSubject(selectedSubjectId) {
+  if (selectedSubjectId) {
+    localStorage.setItem(SELECTED_SUBJECT_KEY, selectedSubjectId);
+    localStorage.setItem("adaptiveTutorActiveSubjectId", selectedSubjectId);
+  } else {
+    localStorage.removeItem(SELECTED_SUBJECT_KEY);
+    localStorage.removeItem("adaptiveTutorActiveSubjectId");
+  }
+}
+
+function getSelectedSubjectId() {
+  return localStorage.getItem(SELECTED_SUBJECT_KEY)
+    || localStorage.getItem("adaptiveTutorActiveSubjectId")
+    || "";
+}
+
+async function loadDashboard(selectedSubjectId = getSelectedSubjectId()) {
+  const email = localStorage.getItem("adaptiveTutorLearnerEmail");
+  if (!email) {
+    window.location.href = "/frontend/index.html";
+    return;
+  }
+
+  const params = new URLSearchParams({ email });
+  if (selectedSubjectId) {
+    params.set("selected_subject_id", selectedSubjectId);
+  }
+
+  const response = await fetch(`${API_BASE}/api/dashboard?${params.toString()}`);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to load dashboard");
+  }
+
+  dashboardState = data;
+  renderDashboard(data);
+  setSelectedSubject(data.selected_subject_id || data.active_subject?.subject_id || "");
+}
+
+function renderSubjectCards(subjectProfiles, activeSubjectId) {
+  subjectList.innerHTML = "";
+
+  if (!subjectProfiles.length) {
+    subjectList.innerHTML = `<p class="empty-state">No subjects yet. Start a new topic to create your first roadmap.</p>`;
+    return;
+  }
+
+  subjectProfiles.forEach((profile) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `subject-card${profile.subject_id === activeSubjectId ? " active" : ""}`;
+    button.innerHTML = `
+      <div class="subject-card-top">
+        <div>
+          <p class="subject-card-label">Subject / topic</p>
+          <h3>${escapeHtml(profile.subject_name || profile.subject_id)}</h3>
+        </div>
+        <span class="subject-card-badge">${escapeHtml(profile.status || "active")}</span>
+      </div>
+      <div class="subject-card-meta">
+        <span>Topic: ${escapeHtml(profile.current_topic_name || profile.current_topic_id || "Not set")}</span>
+        <span>Level: ${escapeHtml(profile.current_level || "Not set")}</span>
+        <span>Progress: ${escapeHtml(formatPercent(profile.path_completion_pct))}</span>
+      </div>
+    `;
+    button.addEventListener("click", () => {
+      setSelectedSubject(profile.subject_id);
+      loadDashboard(profile.subject_id).catch((error) => {
+        welcomeText.textContent = error.message;
+      });
+    });
+    subjectList.appendChild(button);
+  });
+}
+
+function renderDashboard(data) {
   const learner = data.learner || {};
   const prefs = data.preferences || {};
   const active = data.active_subject || {};
@@ -199,48 +474,63 @@ function renderSummary(data) {
   const latestQuiz = active.latest_quiz || null;
   const responses = active.latest_quiz_responses || [];
   const mastery = active.topic_mastery || [];
+  const masteryBreakdown = active.mastery_breakdown || [];
+  const stepQuizMap = active.step_quiz_map || {};
   const currentStep = active.current_step || null;
   const currentView = active.current_view || null;
   const currentStepContent = active.current_step_content || null;
   const sessions = data.recent_sessions || [];
-  const learnerEmail = learner.email || localStorage.getItem("adaptiveTutorLearnerEmail") || "";
-  const diagnosticResult = readScopedJSON("adaptiveTutorLatestDiagnosticResult", learnerEmail);
-  const assessmentPreview = readScopedJSON("adaptiveTutorAssessmentPreview", learnerEmail);
-  const learningPathPreview = readScopedJSON("adaptiveTutorLearningPathPreview", learnerEmail);
-  const studyFlow = readScopedJSON("adaptiveTutorStudyFlow", learnerEmail);
 
-  welcomeText.textContent = learner.full_name ? `Welcome back, ${learner.full_name}.` : "Welcome back.";
+  welcomeText.textContent = learner.full_name
+    ? `Choose a subject below. We’ll keep you in the selected roadmap.`
+    : "Choose a subject below to see the roadmap, next step, quiz, and mastery view.";
   dashName.textContent = text(learner.full_name);
   dashEmail.textContent = text(learner.email);
   dashLanguage.textContent = text(learner.preferred_language);
 
-  currentSubject.textContent = text(active.subject_name);
-  currentRoadmap.textContent = roadmap.path_title
-    ? `${roadmap.path_title} ${roadmap.path_status ? `(${roadmap.path_status})` : ""}`
-    : "No active roadmap.";
-  if (studyFlow) {
-    currentRoadmap.textContent += ` �?${studyFlow.description || studyFlow.study_mode || "selected flow"}`;
+  renderSubjectCards(data.subject_profiles || [], active.subject_id || data.selected_subject_id || "");
+
+  selectedSubjectTitle.textContent = active.subject_name
+    ? `${active.subject_name} roadmap`
+    : "No subject selected";
+  selectedSubjectTopic.textContent = active.subject_id
+    ? `Current topic: ${text(active.current_topic_name || active.current_topic_id)}`
+    : "Pick a subject card above to view its roadmap.";
+
+  selectedSubjectStats.innerHTML = [
+    renderStat("Roadmap", text(roadmap.path_title, "Not set")),
+    renderStat("Progress", active.path_completion_pct !== undefined ? formatPercent(active.path_completion_pct) : "Not set"),
+    renderStat("Mastery", formatScore(active.mastery_score)),
+    renderStat("Review", text(active.next_review_at, "Not set")),
+  ].join("");
+
+  if (roadmap.path_id) {
+    detailRoadmapText.textContent = `${text(active.subject_name || roadmap.path_title)} ${roadmap.path_status ? `(${roadmap.path_status})` : ""}`;
+    detailRoadmapMeta.innerHTML = `
+      <p><strong>Target outcome:</strong> ${escapeHtml(roadmap.target_outcome || "Not set")}</p>
+      <p><strong>Steps complete:</strong> ${escapeHtml(`${roadmap.completed_steps || 0}/${roadmap.total_steps || steps.length || 0}`)}</p>
+      <p><strong>Current level:</strong> ${escapeHtml(active.current_level || "Not set")}</p>
+    `;
+  } else {
+    detailRoadmapText.textContent = "No active roadmap.";
+    detailRoadmapMeta.textContent = "Roadmap details will appear here.";
   }
-  currentProgress.textContent = active.path_completion_pct !== undefined
-    ? `${formatPercent(active.path_completion_pct)} complete`
-    : "Not set";
 
   if (currentStep) {
-    currentStepTitle.textContent = `${currentStep.step_order}. ${currentStep.step_title}`;
-    currentStepDescription.textContent = text(currentStep.step_description, "No description available.");
+    detailStepTitle.textContent = `${currentStep.step_order}. ${currentStep.step_title}`;
+    detailStepDescription.textContent = text(currentStep.step_description, "No description available.");
   } else {
-    currentStepTitle.textContent = "No active step.";
-    currentStepDescription.textContent = "Choose a topic to begin.";
+    detailStepTitle.textContent = "No active step.";
+    detailStepDescription.textContent = "Choose a subject to see the next step.";
   }
 
-  const pathId = roadmap.path_id || active.active_path_id;
-  if (currentStep && learner.learner_id && active.subject_id && pathId) {
-    startAdaptiveQuiz.classList.remove("hidden");
-    startAdaptiveQuiz.onclick = () => {
+  if (currentStep && learner.learner_id && active.subject_id && roadmap.path_id) {
+    practiceStepButton.classList.remove("hidden");
+    practiceStepButton.onclick = () => {
       const launchContext = {
         learner_id: learner.learner_id,
         subject_id: active.subject_id,
-        path_id: pathId,
+        path_id: roadmap.path_id,
         step_id: currentStep.step_id,
         step_title: currentStep.step_title,
       };
@@ -254,133 +544,88 @@ function renderSummary(data) {
       if (savedSession?.step_id !== currentStep.step_id) {
         localStorage.removeItem("adaptiveTutorAdaptiveQuizSession");
       }
-      localStorage.setItem(
-        "adaptiveTutorAdaptiveQuizContext",
-        JSON.stringify(launchContext),
-      );
+      localStorage.setItem("adaptiveTutorAdaptiveQuizContext", JSON.stringify(launchContext));
       window.location.href = "/frontend/adaptive_quiz.html";
     };
   } else {
-    startAdaptiveQuiz.classList.add("hidden");
-    startAdaptiveQuiz.onclick = null;
+    practiceStepButton.classList.add("hidden");
+    practiceStepButton.onclick = null;
   }
 
-  if (currentView) {
-    currentContentBox.innerHTML = renderCurrentStepFocus(currentStep, currentView);
-  } else if (currentStepContent) {
-    currentContentBox.innerHTML = currentStep?.preview_terms?.length
-      ? renderCurrentStepFocus(currentStep, null)
-      : `
-        <strong>${escapeHtml(currentStepContent.source_title || currentStepContent.step_title || "Current content")}</strong>
-        <div style="margin-top:8px;">${escapeHtml(currentStepContent.chunk_text || currentStepContent.step_description || "No content available.")}</div>
-      `;
-  } else if (learningPathPreview) {
-    const previewSteps = Array.isArray(learningPathPreview.steps) ? learningPathPreview.steps : [];
-    currentContentBox.innerHTML = `
-      <strong>${escapeHtml(learningPathPreview.path_title || "Learning path preview")}</strong>
-      <div style="margin-top:8px;">${escapeHtml(learningPathPreview.summary || "A study path is ready.")}</div>
-      <div style="margin-top:12px;"><strong>Steps:</strong> ${previewSteps.length}</div>
-      <ul style="margin:8px 0 0; padding-left:18px;">
-        ${previewSteps.slice(0, 3).map((step) => `<li>${escapeHtml(step.step_title || step.title || "Step")}</li>`).join("")}
-      </ul>
-    `;
-  } else if (assessmentPreview) {
-    const previewQuestions = Array.isArray(assessmentPreview.questions) ? assessmentPreview.questions : [];
-    currentContentBox.innerHTML = `
-      <strong>Assessment preview for ${escapeHtml(assessmentPreview.topic || "your topic")}</strong>
-      <div style="margin-top:8px;">${escapeHtml(assessmentPreview.context || "No context available.")}</div>
-      <div style="margin-top:12px;"><strong>Generated questions:</strong> ${previewQuestions.length}</div>
-      <ul style="margin:8px 0 0; padding-left:18px;">
-        ${previewQuestions.slice(0, 3).map((question) => `<li>${escapeHtml(question.question || question.id || "Question")}</li>`).join("")}
-      </ul>
-    `;
-  } else if (studyFlow?.route === "quick_study") {
-    currentContentBox.innerHTML = `
-      <strong>Quick study mode</strong>
-      <div style="margin-top:8px;">A concise explanation will appear here for the selected topic.</div>
-    `;
-  } else {
-    currentContentBox.textContent = "Content will appear here.";
-  }
+  const stepCards = steps.length
+    ? steps.map((step) => {
+        const quizInfo = stepQuizMap[step.step_id] || null;
+        const masterySummary = masteryBreakdown.find((item) => item.step_id === step.step_id) || null;
+        return renderStepAccordion(step, active, quizInfo, masterySummary);
+      }).join("")
+    : `<p class="empty-state">No roadmap steps yet.</p>`;
+  detailStepList.innerHTML = stepCards;
 
-  if (latestQuiz) {
-    latestQuizSummary.textContent = formatQuizSummary(latestQuiz);
-    latestQuizResponses.innerHTML = "";
-    if (responses.length) {
-      responses.forEach((response) => {
-        const li = document.createElement("li");
-        li.textContent = `${response.is_correct ? "?" : "?"} ${response.question_text || response.question_id || "Question"}`
-          + (response.selected_answer ? ` - ${response.selected_answer}` : "");
-        latestQuizResponses.appendChild(li);
-      });
-    } else {
-      clearList(latestQuizResponses, "No response details yet.");
-    }
-  } else {
-    latestQuizSummary.textContent = diagnosticResult ? formatQuizSummary(diagnosticResult) : "No quiz yet.";
-    clearList(latestQuizResponses, "No quiz responses yet.");
-  }
-
-  if (mastery.length) {
-    masteryList.innerHTML = "";
-    mastery.forEach((item) => {
-      const li = document.createElement("li");
-      li.textContent = `${item.topic_id}: ${formatPercent(item.mastery_probability)} (${item.mastery_status || "unknown"})`;
-      masteryList.appendChild(li);
+  detailStepList.querySelectorAll("[data-practice-step]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!currentStep || button.getAttribute("data-practice-step") !== currentStep.step_id) {
+        return;
+      }
+      practiceStepButton.click();
     });
-  } else {
-    clearList(masteryList, "No mastery data yet.");
-  }
-
-  if (steps.length) {
-    stepList.innerHTML = "";
-    steps.forEach((step) => {
-      const li = document.createElement("li");
-      li.className = "roadmap-step-item";
-      li.innerHTML = `
-        <div class="roadmap-step-line">
-          <span>${escapeHtml(step.step_order)}. ${escapeHtml(step.step_title)}</span>
-          <span class="roadmap-step-status">${escapeHtml(step.step_status)}</span>
-        </div>
-        ${renderStepPreviewTerms(step.preview_terms)}
-      `;
-      stepList.appendChild(li);
-    });
-  } else {
-    clearList(stepList, "No roadmap steps yet.");
-  }
+  });
 
   if (sessions.length) {
-    sessionList.innerHTML = "";
+    detailSessionList.innerHTML = "";
     sessions.forEach((session) => {
       const li = document.createElement("li");
       li.textContent = `${session.session_type} - ${session.session_status} - ${session.session_summary || session.started_at}`;
-      sessionList.appendChild(li);
+      detailSessionList.appendChild(li);
     });
   } else {
-    clearList(sessionList, "No recent sessions.");
+    clearList(detailSessionList, "No recent sessions.");
+  }
+
+  if (!active.subject_id) {
+    detailRoadmapText.textContent = "No subject selected.";
+  }
+
+  if (prefs) {
+    void prefs;
   }
 }
 
-async function loadDashboard() {
-  const email = localStorage.getItem("adaptiveTutorLearnerEmail");
-  if (!email) {
-    window.location.href = "/frontend/index.html";
-    return;
-  }
+function wireUserMenu() {
+  if (!userMenuButton || !userMenuPanel) return;
 
-  const response = await fetch(`${API_BASE}/api/dashboard?email=${encodeURIComponent(email)}`);
-  const data = await response.json();
+  const closeMenu = () => {
+    userMenuPanel.classList.add("hidden");
+    userMenuButton.setAttribute("aria-expanded", "false");
+  };
 
-  if (!response.ok) {
-    throw new Error(data.error || "Failed to load dashboard");
-  }
+  const toggleMenu = (event) => {
+    event.stopPropagation();
+    const isOpen = !userMenuPanel.classList.contains("hidden");
+    if (isOpen) {
+      closeMenu();
+      return;
+    }
+    userMenuPanel.classList.remove("hidden");
+    userMenuButton.setAttribute("aria-expanded", "true");
+  };
 
-  renderSummary(data);
+  userMenuButton.addEventListener("click", toggleMenu);
+  document.addEventListener("click", (event) => {
+    if (!userMenuPanel.contains(event.target) && !userMenuButton.contains(event.target)) {
+      closeMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMenu();
+    }
+  });
 }
+
+wireUserMenu();
 
 loadDashboard().catch((error) => {
   welcomeText.textContent = error.message;
-  currentContentBox.textContent = "Unable to load dashboard data.";
+  selectedSubjectTitle.textContent = "Unable to load dashboard";
+  detailCurrentContent.textContent = "Unable to load dashboard data.";
 });
-
