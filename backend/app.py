@@ -51,6 +51,7 @@ def init_db():
             ("question_difficulty", "TEXT"),
             ("difficulty_after", "TEXT"),
             ("explanation", "TEXT"),
+            ("options_json", "TEXT"),
         ):
             if column_name not in existing_response_columns:
                 conn.execute(
@@ -66,6 +67,8 @@ def ensure_runtime_migrations(conn):
     }
     if "preview_terms" not in columns:
         conn.execute("ALTER TABLE learning_path_steps ADD COLUMN preview_terms TEXT")
+    if "prerequisite_step_ids" not in columns:
+        conn.execute("ALTER TABLE learning_path_steps ADD COLUMN prerequisite_step_ids TEXT")
 
 
 def json_response(handler, status_code, payload):
@@ -78,6 +81,18 @@ def json_response(handler, status_code, payload):
     handler.send_header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
     handler.end_headers()
     handler.wfile.write(body)
+
+
+def text_response(handler, status_code, body, content_type):
+    payload = body.encode("utf-8")
+    handler.send_response(status_code)
+    handler.send_header("Content-Type", content_type)
+    handler.send_header("Content-Length", str(len(payload)))
+    handler.send_header("Access-Control-Allow-Origin", "*")
+    handler.send_header("Access-Control-Allow-Headers", "Content-Type")
+    handler.send_header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    handler.end_headers()
+    handler.wfile.write(payload)
 
 
 def read_json(handler):
@@ -113,12 +128,89 @@ def dump_json_list(values):
     return json.dumps([str(item) for item in values if str(item or "").strip()])
 
 
+def parse_json_object(value):
+    if isinstance(value, dict):
+        return {str(key): value[key] for key in value}
+    if not value:
+        return {}
+    try:
+        parsed = json.loads(value)
+    except (TypeError, json.JSONDecodeError):
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def normalize_quiz_style_value(value):
+    if isinstance(value, list):
+        cleaned = [str(item).strip() for item in value if str(item or "").strip()]
+        return json.dumps(cleaned) if cleaned else "mcq"
+    cleaned = str(value or "").strip()
+    return cleaned or "mcq"
+
+
+def normalize_text_value(value, fallback=""):
+    if value is None:
+        return fallback
+    if isinstance(value, list):
+        cleaned = [str(item).strip() for item in value if str(item or "").strip()]
+        return ", ".join(cleaned) if cleaned else fallback
+    cleaned = str(value).strip()
+    return cleaned or fallback
+
+
 def normalize_answer_value(value):
     return str(value or "").strip().upper()
 
 
 def canonicalize_text(value):
     return re.sub(r"[^a-z0-9]+", "", str(value or "").strip().lower())
+
+
+def normalize_topic_text(value):
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9\s]+", " ", str(value or "").strip().lower())).strip()
+
+
+def tokenize_topic(value):
+    return [token for token in normalize_topic_text(value).split(" ") if len(token) > 2]
+
+
+def topic_similarity(left, right):
+    left_tokens = tokenize_topic(left)
+    right_tokens = tokenize_topic(right)
+    if not left_tokens or not right_tokens:
+        return 0.0
+    right_set = set(right_tokens)
+    score = 0.0
+    for token in left_tokens:
+        if token in right_set:
+            score += 3.0
+            continue
+        partial_match = next(
+            (candidate for candidate in right_tokens if candidate.startswith(token) or token.startswith(candidate)),
+            None,
+        )
+        if partial_match:
+            score += 1.0
+    return score
+
+
+def escape_xml(value):
+    return (
+        str(value or "")
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&apos;")
+    )
+
+
+def resolve_answer_text(answer_key, options):
+    normalized_options = parse_json_object(options)
+    cleaned_key = str(answer_key or "").strip().upper()
+    if cleaned_key and cleaned_key in normalized_options:
+        return str(normalized_options[cleaned_key])
+    return cleaned_key
 
 
 def _term_matches_text(term, text):
@@ -447,6 +539,8 @@ def save_diagnostic_attempt(conn, learner_id, subject_id, path_id, step_id, leve
                 "selected_answer": selected_value,
                 "correct_answer": correct,
                 "is_correct": int(is_correct),
+                "options_json": json.dumps(options or {}),
+                "explanation": question.get("explanation") or "",
             }
         )
 
@@ -485,9 +579,10 @@ def save_diagnostic_attempt(conn, learner_id, subject_id, path_id, step_id, leve
             """
             INSERT INTO quiz_responses (
                 response_id, attempt_id, question_id, question_text,
-                selected_answer, correct_answer, is_correct, time_taken_seconds
+                selected_answer, correct_answer, is_correct, time_taken_seconds,
+                explanation, options_json
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 str(uuid.uuid4()),
@@ -498,6 +593,8 @@ def save_diagnostic_attempt(conn, learner_id, subject_id, path_id, step_id, leve
                 row["correct_answer"],
                 row["is_correct"],
                 None,
+                row["explanation"],
+                row["options_json"],
             ),
         )
 
@@ -662,6 +759,7 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
             step_title,
             step_description,
             preview_terms,
+            prerequisite_step_ids,
             step_status,
             estimated_minutes,
             actual_minutes,
@@ -676,6 +774,7 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
         (active_subject["active_path_id"],),
     ) if active_subject and active_subject.get("active_path_id") else []
     stored_terms_by_step = [parse_json_list(step.get("preview_terms")) for step in path_steps]
+    stored_prereqs_by_step = [parse_json_list(step.get("prerequisite_step_ids")) for step in path_steps]
     missing_preview_terms = any(not terms for terms in stored_terms_by_step)
     generated_terms_by_step = (
         build_path_preview_terms(active_subject["subject_name"], path_steps)
@@ -685,6 +784,7 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
     preview_terms_by_step = []
     for index, step in enumerate(path_steps):
         terms = stored_terms_by_step[index] if index < len(stored_terms_by_step) else []
+        step["prerequisite_step_ids"] = stored_prereqs_by_step[index] if index < len(stored_prereqs_by_step) else []
         if not terms and index < len(generated_terms_by_step):
             terms = generated_terms_by_step[index]
             conn.execute(
@@ -974,6 +1074,379 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
     }
 
 
+def get_roadmap_graph_summary(conn, email, selected_subject_id=None):
+    summary = get_dashboard_summary(conn, email, selected_subject_id=selected_subject_id)
+    if not summary:
+        return None
+
+    active_subject = summary.get("active_subject") or {}
+    active_path = active_subject.get("active_path") or {}
+    path_steps = active_subject.get("path_steps") or []
+    step_lookup = {step.get("step_id"): step for step in path_steps if step.get("step_id")}
+
+    nodes = []
+    edges = []
+    for step in path_steps:
+        step_id = step.get("step_id")
+        nodes.append({
+            "step_id": step_id,
+            "step_order": step.get("step_order"),
+            "step_title": step.get("step_title"),
+            "step_status": step.get("step_status"),
+            "preview_terms": step.get("preview_terms") or [],
+            "prerequisite_step_ids": step.get("prerequisite_step_ids") or [],
+        })
+        for prerequisite_step_id in step.get("prerequisite_step_ids") or []:
+            edges.append({
+                "from_step_id": prerequisite_step_id,
+                "to_step_id": step_id,
+                "from_step_title": (step_lookup.get(prerequisite_step_id) or {}).get("step_title"),
+                "to_step_title": step.get("step_title"),
+            })
+
+    networkx_available = False
+    graph_valid = True
+    topological_order = [step.get("step_id") for step in path_steps if step.get("step_id")]
+    try:
+        import networkx as nx
+        networkx_available = True
+        graph = nx.DiGraph()
+        for node in nodes:
+            graph.add_node(node["step_id"], **node)
+        for edge in edges:
+            graph.add_edge(edge["from_step_id"], edge["to_step_id"])
+        topological_order = list(nx.topological_sort(graph))
+    except ImportError:
+        networkx_available = False
+    except Exception:
+        graph_valid = False
+
+    return {
+        "learner": {
+            "learner_id": summary["learner"].get("learner_id"),
+            "email": summary["learner"].get("email"),
+        },
+        "subject": {
+            "subject_id": active_subject.get("subject_id"),
+            "subject_name": active_subject.get("subject_name"),
+            "current_topic_name": active_subject.get("current_topic_name"),
+        },
+        "path": {
+            "path_id": active_path.get("path_id"),
+            "path_title": active_path.get("path_title"),
+            "path_status": active_path.get("path_status"),
+            "total_steps": active_path.get("total_steps"),
+            "completed_steps": active_path.get("completed_steps"),
+        },
+        "graph": {
+            "networkx_available": networkx_available,
+            "graph_valid": graph_valid,
+            "node_count": len(nodes),
+            "edge_count": len(edges),
+            "nodes": nodes,
+            "edges": edges,
+            "topological_order": topological_order,
+        },
+    }
+
+
+def build_preview_topic_graph(graph_summary):
+    graph = (graph_summary or {}).get("graph") or {}
+    step_nodes = list(graph.get("nodes") or [])
+    step_edges = list(graph.get("edges") or [])
+    order_lookup = {
+        step_id: index
+        for index, step_id in enumerate(graph.get("topological_order") or [])
+    }
+    ordered_steps = sorted(
+        step_nodes,
+        key=lambda node: (
+            order_lookup.get(node.get("step_id"), 10**6),
+            int(node.get("step_order") or 0),
+        ),
+    )
+    step_count = len(ordered_steps) or 1
+    topic_nodes = []
+    nodes_by_step = {}
+    for index, step in enumerate(ordered_steps):
+        topics = parse_json_list(step.get("preview_terms")) or [step.get("step_title") or f"Step {index + 1}"]
+        tier = min(2, int((index / step_count) * 3))
+        current_nodes = []
+        for topic_index, topic in enumerate(topics):
+            node = {
+                "id": f"{step.get('step_id')}::{topic_index}",
+                "label": topic,
+                "step_id": step.get("step_id"),
+                "step_title": step.get("step_title"),
+                "step_order": step.get("step_order"),
+                "tier": tier,
+            }
+            current_nodes.append(node)
+            topic_nodes.append(node)
+        nodes_by_step[step.get("step_id")] = current_nodes
+
+    topic_edges = []
+    edge_keys = set()
+
+    def add_edge(from_node, to_node, reason):
+        if not from_node or not to_node or from_node["id"] == to_node["id"]:
+            return
+        edge_key = (from_node["id"], to_node["id"])
+        if edge_key in edge_keys:
+            return
+        edge_keys.add(edge_key)
+        topic_edges.append(
+            {
+                "from": from_node["id"],
+                "to": to_node["id"],
+                "from_label": from_node["label"],
+                "to_label": to_node["label"],
+                "reason": reason,
+            }
+        )
+
+    for step_id, nodes in nodes_by_step.items():
+        for index in range(1, len(nodes)):
+            add_edge(nodes[index - 1], nodes[index], "within-step flow")
+
+    for step_edge in step_edges:
+        from_nodes = nodes_by_step.get(step_edge.get("from_step_id")) or []
+        to_nodes = nodes_by_step.get(step_edge.get("to_step_id")) or []
+        if not from_nodes or not to_nodes:
+            continue
+
+        matched = False
+        for target_index, target_node in enumerate(to_nodes):
+            best_source = None
+            best_score = -1.0
+            for source_index, source_node in enumerate(from_nodes):
+                fallback_bias = 0.25 if source_index == len(from_nodes) - 1 else 0.0
+                score = topic_similarity(source_node["label"], target_node["label"]) + fallback_bias
+                if score > best_score:
+                    best_score = score
+                    best_source = source_node
+            if best_source and (best_score > 0 or target_index == 0):
+                add_edge(best_source, target_node, "cross-step dependency" if best_score > 0 else "step prerequisite")
+                matched = True
+
+        if not matched:
+            add_edge(from_nodes[-1], to_nodes[0], "step prerequisite")
+
+    return {
+        "nodes": topic_nodes,
+        "edges": topic_edges,
+    }
+
+
+def render_preview_topic_graph_svg(graph_summary):
+    topic_graph = build_preview_topic_graph(graph_summary)
+    nodes = topic_graph["nodes"]
+    edges = topic_graph["edges"]
+    if not nodes:
+        return (
+            '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="200" viewBox="0 0 960 200">'
+            '<text x="40" y="100" fill="#5f7682" font-size="18" font-family="Arial, sans-serif">'
+            "No graph nodes available."
+            "</text></svg>"
+        )
+
+    tier_labels = ["Foundational", "Core build", "Advanced application"]
+    tier_columns = {0: [], 1: [], 2: []}
+    for node in nodes:
+        tier_columns.get(int(node.get("tier", 0)), tier_columns[0]).append(node)
+
+    tier_width = 300
+    node_width = 196
+    node_height = 60
+    row_gap = 34
+    margin_x = 44
+    margin_y = 42
+    header_height = 68
+    max_rows = max(len(column) for column in tier_columns.values()) or 1
+    width = max(1040, margin_x * 2 + tier_width * 3)
+    height = margin_y * 2 + header_height + max_rows * node_height + max(0, max_rows - 1) * row_gap
+
+    positions = {}
+    for tier in range(3):
+        for row_index, node in enumerate(tier_columns[tier]):
+            x = margin_x + (tier * tier_width)
+            y = margin_y + header_height + row_index * (node_height + row_gap)
+            positions[node["id"]] = {
+                "x": x,
+                "y": y,
+                "center_x": x + node_width / 2,
+                "center_y": y + node_height / 2,
+            }
+
+    svg = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
+        "<defs>",
+        '<marker id="graphArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">',
+        '<path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"></path>',
+        "</marker>",
+        "</defs>",
+        f'<rect x="0" y="0" width="{width}" height="{height}" fill="#ffffff"></rect>',
+    ]
+
+    for tier, label in enumerate(tier_labels):
+        x = margin_x + tier * tier_width
+        svg.append(
+            f'<text x="{x + 14}" y="{margin_y + 18}" fill="#4b5563" font-size="14" font-weight="700" font-family="Arial, sans-serif">{escape_xml(label)}</text>'
+        )
+        svg.append(
+            f'<line x1="{x}" y1="{margin_y + 30}" x2="{x + tier_width - 26}" y2="{margin_y + 30}" stroke="#d5e3fc" stroke-width="2"></line>'
+        )
+
+    for edge in edges:
+        from_pos = positions.get(edge["from"])
+        to_pos = positions.get(edge["to"])
+        if not from_pos or not to_pos:
+            continue
+        start_x = from_pos["x"] + node_width
+        start_y = from_pos["center_y"]
+        end_x = to_pos["x"]
+        end_y = to_pos["center_y"]
+        mid_x = start_x + (end_x - start_x) / 2
+        stroke = "#94a3b8" if edge["reason"] == "within-step flow" else "#0f766e"
+        stroke_width = 2 if edge["reason"] == "within-step flow" else 3
+        opacity = "0.72" if edge["reason"] == "within-step flow" else "0.92"
+        svg.append(
+            f'<path d="M {start_x} {start_y} C {mid_x} {start_y}, {mid_x} {end_y}, {end_x} {end_y}" '
+            f'fill="none" stroke="{stroke}" stroke-width="{stroke_width}" stroke-linecap="round" '
+            f'marker-end="url(#graphArrow)" opacity="{opacity}"></path>'
+        )
+
+    tier_fills = {0: "#e7faf3", 1: "#eef2ff", 2: "#fff4ed"}
+    tier_strokes = {0: "#9ad8bd", 1: "#c7d2fe", 2: "#fdba74"}
+    for node in nodes:
+        pos = positions.get(node["id"])
+        if not pos:
+            continue
+        tier = int(node.get("tier", 0))
+        fill = tier_fills.get(tier, "#f7fcfb")
+        stroke = tier_strokes.get(tier, "#c7ded8")
+        sub_label = f"Step {node.get('step_order') or '?'}"
+        svg.append(
+            f'<rect x="{pos["x"]}" y="{pos["y"]}" width="{node_width}" height="{node_height}" rx="18" ry="18" '
+            f'fill="{fill}" stroke="{stroke}" stroke-width="2"></rect>'
+        )
+        svg.append(
+            f'<text x="{pos["x"] + 14}" y="{pos["y"] + 22}" fill="#6b7280" font-size="11" font-weight="700" font-family="Arial, sans-serif">{escape_xml(sub_label)}</text>'
+        )
+        svg.append(
+            f'<text x="{pos["x"] + 14}" y="{pos["y"] + 42}" fill="#16323b" font-size="14" font-weight="700" font-family="Arial, sans-serif">{escape_xml(node["label"])}</text>'
+        )
+
+    svg.append("</svg>")
+    return "".join(svg)
+
+
+def get_quiz_attempt_summary(conn, attempt_id):
+    attempt = fetchone_dict(
+        conn,
+        """
+        SELECT
+            qa.attempt_id,
+            qa.learner_id,
+            qa.subject_id,
+            qa.path_id,
+            qa.step_id,
+            qa.quiz_type,
+            qa.difficulty_level,
+            qa.score,
+            qa.total_questions,
+            qa.correct_answers,
+            qa.completion_status,
+            qa.mastery_delta,
+            qa.started_at,
+            qa.completed_at,
+            s.subject_name,
+            lps.step_title,
+            lps.step_order
+        FROM quiz_attempts qa
+        JOIN subjects s ON s.subject_id = qa.subject_id
+        LEFT JOIN learning_path_steps lps ON lps.step_id = qa.step_id
+        WHERE qa.attempt_id = ?
+        """,
+        (attempt_id,),
+    )
+    if not attempt:
+        return None
+
+    responses = fetchall_dict(
+        conn,
+        """
+        SELECT
+            qr.response_id,
+            qr.attempt_id,
+            qr.question_id,
+            COALESCE(qr.question_text, qq.question_text) AS question_text,
+            qr.selected_answer,
+            qr.correct_answer,
+            qr.is_correct,
+            qr.time_taken_seconds,
+            qr.created_at,
+            qr.question_difficulty,
+            qr.difficulty_after,
+            COALESCE(qr.explanation, qq.explanation) AS explanation,
+            COALESCE(qr.options_json, qq.options_json) AS options_json
+        FROM quiz_responses qr
+        LEFT JOIN quiz_questions qq
+            ON qq.question_id = qr.question_id
+            AND qq.attempt_id = qr.attempt_id
+        WHERE qr.attempt_id = ?
+        ORDER BY qr.created_at ASC
+        """,
+        (attempt_id,),
+    )
+
+    normalized_responses = []
+    incorrect_questions = []
+    for index, response in enumerate(responses, start=1):
+        options = parse_json_object(response.get("options_json"))
+        selected_answer = str(response.get("selected_answer") or "").strip().upper()
+        correct_answer = str(response.get("correct_answer") or "").strip().upper()
+        response_payload = {
+            "index": index,
+            "response_id": response.get("response_id"),
+            "question_id": response.get("question_id"),
+            "question_text": response.get("question_text") or "Question unavailable",
+            "selected_answer": selected_answer,
+            "selected_answer_text": resolve_answer_text(selected_answer, options),
+            "correct_answer": correct_answer,
+            "correct_answer_text": resolve_answer_text(correct_answer, options),
+            "is_correct": bool(int(response.get("is_correct") or 0)),
+            "time_taken_seconds": response.get("time_taken_seconds"),
+            "question_difficulty": response.get("question_difficulty"),
+            "difficulty_after": response.get("difficulty_after"),
+            "explanation": response.get("explanation") or "",
+            "options": options,
+        }
+        if not response_payload["is_correct"]:
+            incorrect_questions.append(index)
+        normalized_responses.append(response_payload)
+
+    score_ratio = float(attempt.get("score") or 0)
+    total_questions = int(attempt.get("total_questions") or len(normalized_responses) or 0)
+    correct_answers = int(attempt.get("correct_answers") or 0)
+    if total_questions == 0 and normalized_responses:
+        total_questions = len(normalized_responses)
+    if correct_answers == 0 and normalized_responses:
+        correct_answers = sum(1 for item in normalized_responses if item["is_correct"])
+
+    return {
+        "attempt": attempt,
+        "summary": {
+            "score_ratio": score_ratio,
+            "score_percent": round(score_ratio * 100),
+            "total_questions": total_questions,
+            "correct_answers": correct_answers,
+            "incorrect_questions": incorrect_questions,
+        },
+        "responses": normalized_responses,
+    }
+
+
 class RequestHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(204)
@@ -990,6 +1463,12 @@ class RequestHandler(BaseHTTPRequestHandler):
             return self.lookup_learner()
         if path == "/api/dashboard":
             return self.get_dashboard()
+        if path == "/api/roadmap-graph":
+            return self.get_roadmap_graph()
+        if path == "/api/roadmap-graph-image":
+            return self.get_roadmap_graph_image()
+        if path == "/api/quiz-summary":
+            return self.get_quiz_summary()
         return json_response(self, 404, {"error": "Not found"})
 
     def do_POST(self):
@@ -1015,14 +1494,17 @@ class RequestHandler(BaseHTTPRequestHandler):
         return json_response(self, 404, {"error": "Not found"})
 
     def create_learner(self, payload):
-        email = (payload.get("email") or "").strip().lower()
-        full_name = (payload.get("full_name") or "").strip()
-        preferred_language = (payload.get("preferred_language") or "English").strip()
-
+        email = normalize_text_value(payload.get("email")).lower()
+        full_name = normalize_text_value(payload.get("full_name"))
+        age_group = normalize_text_value(payload.get("age_group")) or None
+        role = normalize_text_value(payload.get("role")) or None
+        explanation_style = normalize_text_value(payload.get("explanation_style"), "step_by_step")
+        feedback_style = normalize_text_value(payload.get("feedback_style"), "immediate")
+        accessibility_notes = normalize_text_value(payload.get("accessibility_notes")) or None
         if not email:
             return json_response(self, 400, {"error": "email is required"})
         if not full_name:
-            return json_response(self, 400, {"error": "full_name is required"})
+            full_name = email.split("@", 1)[0] or "Learner"
 
         with get_connection() as conn:
             existing = conn.execute(
@@ -1036,14 +1518,13 @@ class RequestHandler(BaseHTTPRequestHandler):
                 conn.execute(
                     """
                     UPDATE learners
-                    SET full_name = ?, age_group = ?, role = ?, preferred_language = ?, updated_at = datetime('now')
+                    SET full_name = ?, age_group = ?, role = ?, updated_at = datetime('now')
                     WHERE learner_id = ?
                     """,
                     (
                         full_name,
-                        payload.get("age_group"),
-                        payload.get("role"),
-                        preferred_language,
+                        age_group,
+                        role,
                         learner_id,
                     ),
                 )
@@ -1051,32 +1532,27 @@ class RequestHandler(BaseHTTPRequestHandler):
                 learner_id = str(uuid.uuid4())
                 conn.execute(
                     """
-                    INSERT INTO learners (learner_id, email, full_name, age_group, role, preferred_language)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO learners (learner_id, email, full_name, age_group, role)
+                    VALUES (?, ?, ?, ?, ?)
                     """,
                     (
                         learner_id,
                         email,
                         full_name,
-                        payload.get("age_group"),
-                        payload.get("role"),
-                        preferred_language,
+                        age_group,
+                        role,
                     ),
                 )
 
             conn.execute(
                 """
                 INSERT INTO learner_preferences (
-                    preference_id, learner_id, content_format, explanation_style, quiz_style,
-                    learning_pace, session_length, feedback_style, accessibility_notes
+                    preference_id, learner_id, explanation_style, quiz_style, feedback_style, accessibility_notes
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON CONFLICT(learner_id) DO UPDATE SET
-                    content_format = excluded.content_format,
                     explanation_style = excluded.explanation_style,
                     quiz_style = excluded.quiz_style,
-                    learning_pace = excluded.learning_pace,
-                    session_length = excluded.session_length,
                     feedback_style = excluded.feedback_style,
                     accessibility_notes = excluded.accessibility_notes,
                     updated_at = datetime('now')
@@ -1084,13 +1560,10 @@ class RequestHandler(BaseHTTPRequestHandler):
                 (
                     str(uuid.uuid4()),
                     learner_id,
-                    payload.get("content_format") or "mixed",
-                    payload.get("explanation_style") or "step_by_step",
-                    payload.get("quiz_style") or "mixed",
-                    payload.get("learning_pace") or "normal",
-                    payload.get("session_length") or "30_min",
-                    payload.get("feedback_style") or "immediate",
-                    payload.get("accessibility_notes"),
+                    explanation_style,
+                    normalize_quiz_style_value(payload.get("quiz_style")),
+                    feedback_style,
+                    accessibility_notes,
                 ),
             )
             conn.commit()
@@ -1441,6 +1914,58 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         if not summary:
             return json_response(self, 404, {"error": "learner not found"})
+
+        return json_response(self, 200, summary)
+
+    def get_roadmap_graph(self):
+        query = urlparse(self.path).query
+        params = parse_qs(query)
+        email = (params.get("email", [""])[0]).strip().lower()
+        selected_subject_id = (params.get("subject_id", [""])[0]).strip() or None
+        if not email:
+            return json_response(self, 400, {"error": "email is required"})
+
+        with get_connection() as conn:
+            summary = get_roadmap_graph_summary(conn, email, selected_subject_id=selected_subject_id)
+
+        if not summary:
+            return json_response(self, 404, {"error": "learner not found"})
+        if not summary.get("subject", {}).get("subject_id"):
+            return json_response(self, 404, {"error": "subject not found"})
+
+        return json_response(self, 200, summary)
+
+    def get_roadmap_graph_image(self):
+        query = urlparse(self.path).query
+        params = parse_qs(query)
+        email = (params.get("email", [""])[0]).strip().lower()
+        selected_subject_id = (params.get("subject_id", [""])[0]).strip() or None
+        if not email:
+            return json_response(self, 400, {"error": "email is required"})
+
+        with get_connection() as conn:
+            summary = get_roadmap_graph_summary(conn, email, selected_subject_id=selected_subject_id)
+
+        if not summary:
+            return json_response(self, 404, {"error": "learner not found"})
+        if not summary.get("subject", {}).get("subject_id"):
+            return json_response(self, 404, {"error": "subject not found"})
+
+        svg = render_preview_topic_graph_svg(summary)
+        return text_response(self, 200, svg, "image/svg+xml; charset=utf-8")
+
+    def get_quiz_summary(self):
+        query = urlparse(self.path).query
+        params = parse_qs(query)
+        attempt_id = (params.get("attempt_id", [""])[0]).strip()
+        if not attempt_id:
+            return json_response(self, 400, {"error": "attempt_id is required"})
+
+        with get_connection() as conn:
+            summary = get_quiz_attempt_summary(conn, attempt_id)
+
+        if not summary:
+            return json_response(self, 404, {"error": "quiz attempt not found"})
 
         return json_response(self, 200, summary)
 

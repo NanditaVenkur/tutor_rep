@@ -8,6 +8,11 @@ from typing import Iterable
 import re
 
 try:
+    import networkx as nx
+except ImportError:
+    nx = None
+
+try:
     from dotenv import load_dotenv
 except ImportError:
     def load_dotenv():
@@ -268,6 +273,149 @@ def _build_step_plan(
     )
 
 
+def _extract_json_array(text: str) -> list:
+    text = str(text or "").strip()
+    if not text:
+        return []
+    try:
+        parsed = json.loads(text)
+        return parsed if isinstance(parsed, list) else []
+    except json.JSONDecodeError:
+        match = re.search(r"\[.*\]", text, flags=re.DOTALL)
+        if not match:
+            return []
+        try:
+            parsed = json.loads(match.group(0))
+        except json.JSONDecodeError:
+            return []
+        return parsed if isinstance(parsed, list) else []
+
+
+def _step_node_prompt(topic: str, learner_level: str, score: float, weak_points: list[str]) -> str:
+    weak_line = weak_points[:4] if weak_points else []
+    return (
+        "You are generating a step-by-step learning roadmap for a topic.\n"
+        "Your job is to produce a clean sequence of learning steps for the topic.\n"
+        "Each step must represent a real concept or concept-group the learner should study.\n"
+        "The roadmap must follow prerequisite order.\n\n"
+        "Return valid JSON only in this exact format:\n"
+        "{\"steps\":[{\"id\":\"step_1\",\"title\":\"Concrete concept title\",\"description\":\"One short sentence describing what the learner studies in this step.\",\"prerequisites\":[]}]} \n\n"
+        "Rules:\n"
+        "- Generate 5 to 10 steps.\n"
+        "- Each step must be a meaningful learning stage.\n"
+        "- Titles must be concrete and domain-specific.\n"
+        "- Use real concept names, methods, structures, operations, formulas, or techniques.\n"
+        "- Descriptions must be short, clear, and learner-facing.\n"
+        "- The roadmap must be prerequisite-aware: early steps should support later ones.\n"
+        "- prerequisites must contain step ids from earlier steps only.\n"
+        "- Do not create cycles.\n"
+        "- Do not use generic titles such as Foundations, Basics, Key Concepts, Applications, Practice, Review, Summary, Overview, Step 1, or Step 2.\n"
+        "- Do not write quiz-like steps.\n"
+        "- Do not copy question wording.\n"
+        "- Do not add study advice like start here, build confidence, or quick recap.\n"
+        "- Do not return subtopics, bullets, markdown, or explanations outside the JSON.\n"
+        "- The output should read like a real curriculum.\n\n"
+        f"Topic: {topic}\n"
+        f"Learner level: {learner_level}\n"
+        f"Diagnostic score: {round(score, 3)}\n"
+        f"Weak areas: {json.dumps(weak_line, ensure_ascii=False)}\n\n"
+        "Important:\n"
+        "The learner context may affect pacing and emphasis, but it must not distort the core concept order.\n"
+        "The roadmap must stay academically correct for the topic."
+    )
+
+
+def _normalize_graph_steps(raw_steps: list, topic: str) -> list[dict]:
+    normalized = []
+    seen_ids = set()
+    fallback_steps = _build_roadmap_step_plan(topic, 0.0, [])
+
+    for index, item in enumerate(raw_steps or [], start=1):
+        if not isinstance(item, dict):
+            continue
+        step_id = _normalize_text(item.get("id") or f"step_{index}").replace(" ", "_").lower()
+        if not step_id or step_id in seen_ids:
+            step_id = f"step_{index}"
+        seen_ids.add(step_id)
+        title = _normalize_text(item.get("title") or "")
+        description = _normalize_text(item.get("description") or "")
+        prerequisites = [
+            _normalize_text(value).replace(" ", "_").lower()
+            for value in (item.get("prerequisites") or [])
+            if _normalize_text(value)
+        ]
+        if not title:
+            fallback = fallback_steps[min(index - 1, len(fallback_steps) - 1)]
+            title = fallback["title"]
+        if not description:
+            fallback = fallback_steps[min(index - 1, len(fallback_steps) - 1)]
+            description = fallback["description"]
+        normalized.append(
+            {
+                "id": step_id,
+                "title": title,
+                "description": description,
+                "prerequisites": prerequisites,
+                "minutes": int(item.get("minutes") or 15),
+            }
+        )
+
+    if normalized:
+        return normalized[:10]
+
+    fallback_generated = []
+    for index, step in enumerate(fallback_steps, start=1):
+        fallback_generated.append(
+            {
+                "id": f"step_{index}",
+                "title": step["title"],
+                "description": step["description"],
+                "prerequisites": [f"step_{index - 1}"] if index > 1 else [],
+                "minutes": int(step.get("minutes") or 15),
+            }
+        )
+    return fallback_generated
+
+
+def _generate_step_nodes(topic: str, learner_level: str, score: float, weak_points: list[str]) -> list[dict]:
+    prompt = _step_node_prompt(topic, learner_level, score, weak_points)
+    try:
+        response = _get_llm().invoke(prompt)
+        payload = _extract_json_object(getattr(response, "content", response))
+        raw_steps = payload.get("steps") if isinstance(payload, dict) else []
+        return _normalize_graph_steps(raw_steps if isinstance(raw_steps, list) else [], topic)
+    except Exception:
+        return _normalize_graph_steps([], topic)
+
+
+def _topologically_order_step_nodes(step_nodes: list[dict]) -> tuple[list[dict], bool]:
+    if not step_nodes:
+        return [], True
+
+    lookup = {step["id"]: {**step} for step in step_nodes if step.get("id")}
+    if not lookup:
+        return [], True
+
+    if nx is None:
+        ordered = list(lookup.values())
+        return ordered, False
+
+    graph = nx.DiGraph()
+    for node_id, step in lookup.items():
+        graph.add_node(node_id, **step)
+
+    for step in lookup.values():
+        for prerequisite_id in step.get("prerequisites") or []:
+            if prerequisite_id in lookup and prerequisite_id != step["id"]:
+                graph.add_edge(prerequisite_id, step["id"])
+
+    try:
+        ordered_ids = list(nx.topological_sort(graph))
+        return [dict(graph.nodes[node_id]) for node_id in ordered_ids], True
+    except nx.NetworkXUnfeasible:
+        return list(lookup.values()), False
+
+
 def _get_llm():
     global LLM
     if LLM is None:
@@ -516,10 +664,6 @@ def build_learning_path(
 
     score = float(diagnostic_result.get("score") or 0)
     weak_points = _extract_weak_points(diagnostic_result) if diagnostic_result else []
-    steps = _build_step_plan(topic, score, weak_points, mode, preferences)
-    estimated_total_minutes = sum(int(step.get("minutes", 0)) for step in steps)
-    content_depth = "concise" if mode == "quick_study" else "detailed"
-    focus_line = ", ".join(weak_points[:3]) if weak_points else f"{topic} fundamentals"
     learner_level = profile_snapshot.get("current_level") or "beginner"
     if mode == "roadmap":
         if score >= 0.8:
@@ -528,6 +672,15 @@ def build_learning_path(
             learner_level = "intermediate"
         else:
             learner_level = "beginner"
+    focus_line = ", ".join(weak_points[:3]) if weak_points else f"{topic} fundamentals"
+    if mode == "roadmap":
+        generated_nodes = _generate_step_nodes(topic, learner_level, score, weak_points)
+        steps, graph_valid = _topologically_order_step_nodes(generated_nodes)
+    else:
+        steps = _build_step_plan(topic, score, weak_points, mode, preferences)
+        graph_valid = True
+    estimated_total_minutes = sum(int(step.get("minutes", 0)) for step in steps)
+    content_depth = "concise" if mode == "quick_study" else "detailed"
     target_outcome = (
         "Complete a concise study sprint with the essentials"
         if mode == "quick_study"
@@ -579,60 +732,82 @@ def build_learning_path(
         ),
     )
 
-    prev_topic_id = root_topic_id
     step_rows = []
     preview_terms_by_step = build_path_preview_terms(topic, steps)
     step_titles = build_path_step_titles(topic, steps, preview_terms_by_step)
+    step_id_lookup = {}
+    topic_id_lookup = {}
     for order, step in enumerate(steps, start=1):
+        graph_step_id = step.get("id") or f"step_{order}"
         step_title = step_titles[order - 1] if order - 1 < len(step_titles) else step["title"]
-        preview_terms = preview_terms_by_step[order - 1] if order - 1 < len(preview_terms_by_step) else []
-        step_topic_id = _upsert_subject_topic(
+        step_id_lookup[graph_step_id] = str(uuid.uuid4())
+        topic_id_lookup[graph_step_id] = _upsert_subject_topic(
             conn,
             subject_id,
             step_title,
             description=step["description"],
-            prerequisite_topic_id=prev_topic_id,
+            prerequisite_topic_id=None,
             topic_order=order,
         )
-        step_id = str(uuid.uuid4())
+
+    for order, step in enumerate(steps, start=1):
+        graph_step_id = step.get("id") or f"step_{order}"
+        step_title = step_titles[order - 1] if order - 1 < len(step_titles) else step["title"]
+        preview_terms = preview_terms_by_step[order - 1] if order - 1 < len(preview_terms_by_step) else []
+        prerequisite_ids = [prereq for prereq in (step.get("prerequisites") or []) if prereq in step_id_lookup]
+        prerequisite_step_ids = [step_id_lookup[prereq] for prereq in prerequisite_ids]
+        primary_prereq_topic_id = topic_id_lookup.get(prerequisite_ids[0]) if prerequisite_ids else root_topic_id
+
+        conn.execute(
+            """
+            UPDATE topics
+            SET prerequisite_topic_id = ?,
+                topic_order = ?
+            WHERE topic_id = ?
+            """,
+            (primary_prereq_topic_id, order, topic_id_lookup[graph_step_id]),
+        )
+
         conn.execute(
             """
             INSERT INTO learning_path_steps (
                 step_id, path_id, topic_id, resource_id, chunk_id,
                 content_version, step_order, step_title, step_description, preview_terms,
-                step_status, estimated_minutes, actual_minutes,
+                prerequisite_step_ids, step_status, estimated_minutes, actual_minutes,
                 started_at, completed_at, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, 'not_started', ?, 0, NULL, NULL, datetime('now'), datetime('now'))
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, 'not_started', ?, 0, NULL, NULL, datetime('now'), datetime('now'))
             """,
             (
-                step_id,
+                step_id_lookup[graph_step_id],
                 path_id,
-                step_topic_id,
+                topic_id_lookup[graph_step_id],
                 None,
                 None,
                 order,
                 step_title,
                 step["description"],
                 json.dumps(preview_terms),
+                json.dumps(prerequisite_step_ids),
                 step["minutes"],
             ),
         )
         step_rows.append(
             {
+                "graph_step_id": graph_step_id,
                 "path_id": path_id,
-                "step_id": step_id,
+                "step_id": step_id_lookup[graph_step_id],
                 "step_order": order,
                 "step_title": step_title,
                 "step_description": step["description"],
                 "preview_terms": preview_terms,
+                "prerequisite_step_ids": prerequisite_step_ids,
                 "estimated_minutes": step["minutes"],
-                "topic_id": step_topic_id,
+                "topic_id": topic_id_lookup[graph_step_id],
                 "content_depth": content_depth,
                 "step_focus": weak_points[order - 1] if order - 1 < len(weak_points) else topic,
             }
         )
-        prev_topic_id = step_topic_id
 
     cached_views = save_path_views(
         conn,
@@ -723,6 +898,7 @@ def build_learning_path(
         "created_at": _now_iso(),
         "content_depth": content_depth,
         "target_outcome": target_outcome,
+        "prerequisite_graph_valid": graph_valid,
     })
     return {
         "path_id": path_id,
@@ -739,4 +915,5 @@ def build_learning_path(
         "created_at": _now_iso(),
         "content_depth": content_depth,
         "target_outcome": target_outcome,
+        "prerequisite_graph_valid": graph_valid,
     }

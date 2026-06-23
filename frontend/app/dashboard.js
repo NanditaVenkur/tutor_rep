@@ -17,6 +17,7 @@ const detailStepTitle = document.getElementById("detailStepTitle");
 const detailStepDescription = document.getElementById("detailStepDescription");
 const detailCurrentContent = document.getElementById("detailCurrentContent");
 const practiceStepButton = document.getElementById("practiceStepButton");
+const viewGraphButton = document.getElementById("viewGraphButton");
 const detailStepList = document.getElementById("detailStepList");
 const detailSessionList = document.getElementById("detailSessionList");
 
@@ -264,6 +265,7 @@ function renderQuizPanel(step, quizInfo, isCurrentStep) {
 
   const attempt = quizInfo.attempt;
   const responses = quizInfo.responses || [];
+  const reviewHref = `/frontend/quiz_summary.html?attempt_id=${encodeURIComponent(attempt.attempt_id)}`;
   return `
     <div class="step-section">
       <div class="step-section-head">
@@ -273,6 +275,9 @@ function renderQuizPanel(step, quizInfo, isCurrentStep) {
       <p class="step-section-text">
         ${isCurrentStep ? "Latest quiz for this step." : "Most recent quiz attempt for this step."}
       </p>
+      <div style="margin-bottom: 12px;">
+        <a class="btn secondary dashboard-link" href="${reviewHref}">Review summary</a>
+      </div>
       <ul class="step-response-list">
         ${responses.length ? responses.map((response) => `
           <li class="step-response-item ${response.is_correct ? "correct" : "incorrect"}">
@@ -550,6 +555,18 @@ function renderDashboard(data) {
   } else {
     practiceStepButton.classList.add("hidden");
     practiceStepButton.onclick = null;
+  }
+
+  if (active.subject_id) {
+    viewGraphButton?.classList.remove("hidden");
+    viewGraphButton.onclick = () => {
+      const email = encodeURIComponent(learner.email || localStorage.getItem("adaptiveTutorLearnerEmail") || "");
+      const subjectId = encodeURIComponent(active.subject_id);
+      window.location.href = `/frontend/roadmap_graph.html?email=${email}&subject_id=${subjectId}`;
+    };
+  } else if (viewGraphButton) {
+    viewGraphButton.classList.add("hidden");
+    viewGraphButton.onclick = null;
   }
 
   const stepCards = steps.length

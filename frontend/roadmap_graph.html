@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Tutor - Roadmap Graph</title>
+  <link rel="stylesheet" href="/frontend/app/styles.css" />
+</head>
+<body>
+  <main class="app-shell dashboard-shell">
+    <section class="app-card dashboard-card">
+      <header class="dashboard-hero">
+        <div>
+          <p class="eyebrow">Roadmap graph</p>
+          <h1 id="graphTitle">Inspecting roadmap structure</h1>
+          <p class="subtle" id="graphSubtitle">This shows the stored roadmap nodes, dependency edges, and the final order.</p>
+        </div>
+        <div class="dashboard-actions">
+          <a class="btn secondary" href="/frontend/dashboard.html">Back to dashboard</a>
+        </div>
+      </header>
+
+      <section class="detail-grid">
+        <article class="detail-panel detail-panel-wide">
+          <h3>Graph visualization</h3>
+          <div class="content-box" id="graphCanvasWrap">
+            <img id="graphImage" alt="Roadmap graph visualization" style="width: 100%; display: block; border-radius: 18px;" />
+          </div>
+        </article>
+
+        <article class="detail-panel">
+          <h3>Graph status</h3>
+          <div class="content-box" id="graphSummary">Loading graph...</div>
+        </article>
+
+        <article class="detail-panel">
+          <h3>Topological order</h3>
+          <ol class="simple-list" id="graphOrderList"></ol>
+        </article>
+
+        <article class="detail-panel detail-panel-wide">
+          <h3>Nodes</h3>
+          <div id="graphNodes"></div>
+        </article>
+
+        <article class="detail-panel detail-panel-wide">
+          <h3>Edges</h3>
+          <ul class="simple-list" id="graphEdges"></ul>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script src="/frontend/app/roadmap_graph.js?v=3"></script>
+</body>
+</html>

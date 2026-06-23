@@ -10,14 +10,6 @@ const submitBtn = document.getElementById("submitBtn");
 const reviewBox = document.getElementById("reviewBox");
 const API_BASE = "http://localhost:8001";
 
-const summary = {
-  sumFormat: document.getElementById("sumFormat"),
-  sumExplanation: document.getElementById("sumExplanation"),
-  sumQuiz: document.getElementById("sumQuiz"),
-  sumPace: document.getElementById("sumPace"),
-  sumSession: document.getElementById("sumSession")
-};
-
 const labels = [
   { title: "Basic details", hint: "Learner setup" },
   { title: "Preferences", hint: "Learning style" },
@@ -28,7 +20,18 @@ let currentStep = 0;
 
 function getFormValues() {
   const data = new FormData(form);
-  return Object.fromEntries(data.entries());
+  const values = {};
+  for (const [key, value] of data.entries()) {
+    if (key === "quiz_style") {
+      if (!Array.isArray(values[key])) {
+        values[key] = [];
+      }
+      values[key].push(value);
+      continue;
+    }
+    values[key] = value;
+  }
+  return values;
 }
 
 function friendly(value, fallback = "Not set") {
@@ -39,20 +42,18 @@ function friendly(value, fallback = "Not set") {
 }
 
 function renderSummary() {
+  if (!reviewBox) return;
   const values = getFormValues();
-  summary.sumFormat.textContent = friendly(values.content_format || "mixed");
-  summary.sumExplanation.textContent = friendly(values.explanation_style || "step_by_step");
-  summary.sumQuiz.textContent = friendly(values.quiz_style || "mixed");
-  summary.sumPace.textContent = friendly(values.learning_pace || "normal");
-  summary.sumSession.textContent = values.session_length || "Not set";
-
+  const quizStyles = Array.isArray(values.quiz_style) && values.quiz_style.length
+    ? values.quiz_style.map((item) => friendly(item)).join(", ")
+    : "MCQ";
   reviewBox.innerHTML = `
     <strong style="display:block; margin-bottom:8px; color:#1f2933;">Review before creating profile</strong>
-    <div>Format: ${friendly(values.content_format || "mixed")}</div>
+    <div>Name: ${values.full_name || "Not set"}</div>
+    <div>Email: ${values.email || "Not set"}</div>
     <div>Explanation: ${friendly(values.explanation_style || "step_by_step")}</div>
-    <div>Quiz: ${friendly(values.quiz_style || "mixed")}</div>
-    <div>Pace: ${friendly(values.learning_pace || "normal")}</div>
-    <div>Session: ${values.session_length || "Not set"}</div>
+    <div>Quiz: ${quizStyles}</div>
+    <div>Notes: ${values.accessibility_notes || "None"}</div>
   `;
 }
 
@@ -67,7 +68,6 @@ function showStep(index) {
   stepHint.textContent = labels[currentStep].hint;
   progressBar.style.width = `${((currentStep + 1) / steps.length) * 100}%`;
 
-  backBtn.disabled = currentStep === 0;
   nextBtn.classList.toggle("hidden", currentStep === steps.length - 1);
   skipBtn.classList.toggle("hidden", currentStep !== 2);
   submitBtn.classList.toggle("hidden", currentStep !== steps.length - 1);
@@ -79,11 +79,11 @@ function validateCurrentStep() {
   const values = getFormValues();
 
   if (currentStep === 0) {
-    if (!values.email || !values.full_name || !values.preferred_language) return false;
+    if (!values.email) return false;
   }
 
   if (currentStep === 1) {
-    if (!values.session_length) return false;
+    if (!Array.isArray(values.quiz_style) || !values.quiz_style.length) return false;
   }
 
   return true;
@@ -124,7 +124,6 @@ async function createProfile() {
   clearStudyStateForEmailChange(values.email);
   localStorage.setItem("adaptiveTutorLearnerId", String(data.learner_id));
   localStorage.setItem("adaptiveTutorLearnerEmail", values.email);
-  localStorage.setItem("adaptiveTutorPreferredLanguage", values.preferred_language || "English");
   return data;
 }
 
@@ -134,6 +133,10 @@ form.addEventListener("input", () => {
 });
 
 backBtn.addEventListener("click", () => {
+  if (currentStep === 0) {
+    window.location.href = "/frontend/index.html";
+    return;
+  }
   showStep(currentStep - 1);
 });
 
@@ -178,9 +181,15 @@ if (saved) {
       if (!field) return;
 
       if (field instanceof RadioNodeList) {
-        Array.from(field).forEach((input) => {
-          input.checked = input.value === value;
-        });
+        if (Array.isArray(value)) {
+          Array.from(field).forEach((input) => {
+            input.checked = value.includes(input.value);
+          });
+        } else {
+          Array.from(field).forEach((input) => {
+            input.checked = input.value === value;
+          });
+        }
       } else {
         field.value = value;
       }

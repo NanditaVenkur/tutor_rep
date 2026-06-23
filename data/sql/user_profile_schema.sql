@@ -17,11 +17,8 @@ CREATE TABLE IF NOT EXISTS learners (
 CREATE TABLE IF NOT EXISTS learner_preferences (
     preference_id TEXT PRIMARY KEY NOT NULL,
     learner_id TEXT NOT NULL UNIQUE,
-    content_format TEXT NOT NULL DEFAULT 'mixed',
     explanation_style TEXT NOT NULL DEFAULT 'step_by_step',
     quiz_style TEXT NOT NULL DEFAULT 'mixed',
-    learning_pace TEXT NOT NULL DEFAULT 'normal',
-    session_length TEXT NOT NULL DEFAULT '30_min',
     feedback_style TEXT NOT NULL DEFAULT 'immediate',
     accessibility_notes TEXT,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -111,6 +108,7 @@ CREATE TABLE IF NOT EXISTS learning_path_steps (
     step_title TEXT NOT NULL,
     step_description TEXT,
     preview_terms TEXT,
+    prerequisite_step_ids TEXT,
     step_status TEXT NOT NULL DEFAULT 'not_started',
     estimated_minutes INTEGER DEFAULT 0,
     actual_minutes INTEGER DEFAULT 0,
@@ -261,6 +259,7 @@ CREATE TABLE IF NOT EXISTS quiz_responses (
     question_difficulty TEXT,
     difficulty_after TEXT,
     explanation TEXT,
+    options_json TEXT,
     FOREIGN KEY (attempt_id) REFERENCES quiz_attempts(attempt_id) ON DELETE CASCADE
 );
 

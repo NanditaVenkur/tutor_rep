@@ -1,7 +1,5 @@
 const subjectForm = document.getElementById("subjectForm");
 const backToProfile = document.getElementById("backToProfile");
-const topicInput = subjectForm.querySelector('[name="topic"]');
-const topicSuggestions = document.getElementById("topicSuggestions");
 const API_BASE = "http://localhost:8001";
 
 function writeScopedJSON(key, value, learnerEmail) {
@@ -13,13 +11,6 @@ function writeScopedJSON(key, value, learnerEmail) {
 
 backToProfile.addEventListener("click", () => {
   window.location.href = "/frontend/dashboard.html";
-});
-
-topicSuggestions.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-topic]");
-  if (!button) return;
-  topicInput.value = button.dataset.topic;
-  topicInput.focus();
 });
 
 subjectForm.addEventListener("submit", (event) => {

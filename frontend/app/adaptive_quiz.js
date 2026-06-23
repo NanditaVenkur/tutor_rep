@@ -16,6 +16,10 @@ const exitButton = document.getElementById("adaptiveExit");
 let session = null;
 let questionStartedAt = Date.now();
 
+function isLastQuestion(answered = 0) {
+  return answered + 1 >= quizLength();
+}
+
 function readJSON(key) {
   try {
     return JSON.parse(localStorage.getItem(key) || "null");
@@ -61,6 +65,7 @@ function renderQuestion(question, answered = 0) {
   form.classList.remove("hidden");
   submitButton.classList.remove("hidden");
   submitButton.disabled = false;
+  submitButton.textContent = isLastQuestion(answered) ? "Submit" : "Next";
   subtitle.textContent = session.step_title || "Adaptive practice";
   renderMeta(question, answered);
   questionNode.textContent = question.question || "Question unavailable";
@@ -165,7 +170,7 @@ form.addEventListener("submit", async (event) => {
         <p><strong>Roadmap:</strong> ${roadmap.completed_steps || 0}/${roadmap.total_steps || "?"} steps complete.</p>
         ${nextStep ? `<p><strong>Next step:</strong> ${escapeHTML(nextStep.step_title || "Continue roadmap")}</p>` : "<p><strong>Roadmap complete.</strong></p>"}
       `;
-      continueButton.textContent = "Finish";
+      continueButton.textContent = "Submit";
       continueButton.onclick = () => {
         window.location.href = "/frontend/dashboard.html";
       };
@@ -182,7 +187,7 @@ form.addEventListener("submit", async (event) => {
       session.preview_terms = data.step.preview_terms || session.preview_terms;
     }
     saveSession();
-    continueButton.textContent = "Next question";
+    continueButton.textContent = isLastQuestion(session.questions_answered) ? "Submit" : "Next";
     continueButton.onclick = () => renderQuestion(session.question, session.questions_answered);
   } catch (error) {
     submitButton.classList.remove("hidden");
@@ -192,6 +197,10 @@ form.addEventListener("submit", async (event) => {
 });
 
 exitButton.addEventListener("click", () => {
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
+  }
   window.location.href = "/frontend/dashboard.html";
 });
 

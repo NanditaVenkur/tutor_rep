@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Tutor - Quiz Summary</title>
+  <link rel="stylesheet" href="/frontend/app/styles.css" />
+</head>
+<body>
+  <main class="quiz-summary-shell">
+    <aside class="quiz-summary-sidebar">
+      <div>
+        <p class="quiz-brand">Nexus Learning</p>
+        <h1>Quiz Summary</h1>
+        <p class="quiz-score" id="quizSidebarScore">Loading score...</p>
+      </div>
+
+      <div class="quiz-index-grid" id="quizIndexGrid"></div>
+
+      <div class="quiz-sidebar-footer">
+        <div class="quiz-legend">
+          <span><i class="correct"></i> Correct</span>
+          <span><i class="incorrect"></i> Incorrect</span>
+        </div>
+        <div class="quiz-tip-box" id="quizTipBox">Loading review tip...</div>
+        <div class="quiz-side-nav">
+          <button type="button" class="quiz-nav-button muted" id="quizPrevSidebar">Previous</button>
+          <button type="button" class="quiz-nav-button" id="quizNextSidebar">Next</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="quiz-summary-main">
+      <header class="quiz-summary-topbar">
+        <div></div>
+        <a class="quiz-close-link" href="/frontend/dashboard.html">Close Review</a>
+      </header>
+
+      <div class="quiz-summary-header">
+        <div>
+          <div class="quiz-summary-tags">
+            <span class="quiz-tag" id="quizTagSubject">Subject</span>
+            <span class="quiz-tag-muted" id="quizTagMeta">Quiz</span>
+          </div>
+          <h2 id="quizQuestionHeading">Question 1</h2>
+        </div>
+        <div class="quiz-status-pill" id="quizStatusPill">Reviewing response</div>
+      </div>
+
+      <article class="quiz-summary-card">
+        <section class="quiz-summary-question">
+          <p id="quizQuestionText">Loading question...</p>
+        </section>
+
+        <section class="quiz-summary-options" id="quizOptions"></section>
+
+        <section class="quiz-explanation-card hidden" id="quizExplanationCard">
+          <div class="quiz-explanation-head">
+            <h3>AI Explanation</h3>
+            <a class="quiz-return-link" href="/frontend/dashboard.html">Return to dashboard</a>
+          </div>
+          <div class="quiz-explanation-body" id="quizExplanationBody"></div>
+        </section>
+      </article>
+    </section>
+  </main>
+
+  <script src="/frontend/app/quiz_summary.js?v=1"></script>
+</body>
+</html>
