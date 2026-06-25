@@ -71,22 +71,47 @@ function renderDocuments(documents) {
   `).join("");
 }
 
+function confidenceBadge(confidence) {
+  if (confidence === undefined || confidence === null) return "";
+  const pct = Math.round(Number(confidence) * 100);
+  let cls = "confidence-high";
+  if (pct < 50) cls = "confidence-low";
+  else if (pct < 75) cls = "confidence-mid";
+  return `<span class="confidence-badge ${cls}" title="How well retrieved excerpts match the question">${pct}% confidence</span>`;
+}
+
 function renderMessage(message) {
   const role = message.role === "user" ? "user" : "assistant";
   const sources = Array.isArray(message.sources) ? message.sources : [];
   const followups = Array.isArray(message.followups) ? message.followups : [];
+  const confidence = message.confidence;
+
+  // Render answer text: convert newlines to <br> for basic formatting
+  const answerHtml = escapeHTML(message.message_text || "")
+    .replace(/\n/g, "<br>");
+
   return `
     <article class="quick-message ${role}">
-      <div class="quick-message-role">${role === "user" ? "You" : "Tutor"}</div>
-      <p>${escapeHTML(message.message_text || "")}</p>
+      <div class="quick-message-role">
+        ${role === "user" ? "You" : "Tutor"}
+        ${role === "assistant" ? confidenceBadge(confidence) : ""}
+      </div>
+      <p class="quick-answer-text">${answerHtml}</p>
       ${sources.length ? `
         <div class="quick-sources">
-          ${sources.map((source, index) => `
-            <details>
-              <summary>Source ${index + 1}: ${escapeHTML(source.file_name)}${source.page_number ? `, page ${escapeHTML(source.page_number)}` : ""}</summary>
-              <p>${escapeHTML(source.snippet || "")}</p>
-            </details>
-          `).join("")}
+          <span class="sources-label">Sources</span>
+          <div class="sources-chips">
+            ${sources.map((source, index) => `
+              <details class="source-chip">
+                <summary>
+                  <span class="source-num">S${index + 1}</span>
+                  <span class="source-name">${escapeHTML(source.file_name)}${source.page_number ? ` p.${escapeHTML(String(source.page_number))}` : ""}</span>
+                  <span class="source-score">${Math.round((source.score || 0) * 100)}%</span>
+                </summary>
+                <p class="source-snippet">${escapeHTML(source.snippet || "")}</p>
+              </details>
+            `).join("")}
+          </div>
         </div>
       ` : ""}
       ${followups.length ? `
@@ -196,6 +221,20 @@ chatForm.addEventListener("submit", async (event) => {
     alert("Create or choose a quick study session first.");
     return;
   }
+
+  // Optimistically show the user message
+  const tempUserHtml = `
+    <article class="quick-message user">
+      <div class="quick-message-role">You</div>
+      <p class="quick-answer-text">${escapeHTML(message)}</p>
+    </article>
+    <article class="quick-message assistant thinking">
+      <div class="quick-message-role">Tutor</div>
+      <p class="quick-answer-text thinking-dots">Thinking<span>.</span><span>.</span><span>.</span></p>
+    </article>
+  `;
+  chatHistory.insertAdjacentHTML("beforeend", tempUserHtml);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
 
   chatInput.value = "";
   chatInput.disabled = true;
