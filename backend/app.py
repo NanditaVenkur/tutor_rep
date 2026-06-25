@@ -4,9 +4,13 @@ import sqlite3
 import uuid
 import sys
 import re
+import cgi
+from html.parser import HTMLParser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.error import URLError
+from urllib.parse import parse_qs, urlencode, urlparse
+from urllib.request import Request, urlopen
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -20,6 +24,13 @@ from agents.learning_path import build_learning_path, build_path_preview_terms, 
 from agents.learning_path import build_learning_path
 from agents.adaptive_quiz import start_adaptive_quiz, submit_adaptive_answer
 from agents.mastery_tracking import update_mastery_after_quiz
+from agents.quick_study_chat import (
+    answer_quick_study_question,
+    create_quick_study_session,
+    index_pdf_document,
+    list_quick_study_sessions,
+    load_quick_study_session,
+)
 
 DB_PATH = BASE_DIR / "adaptive_tutor_v2.db"
 ROOT_SCHEMA_PATH = BASE_DIR.parent / "data" / "sql" / "user_profile_schema.sql"
@@ -69,6 +80,71 @@ def ensure_runtime_migrations(conn):
         conn.execute("ALTER TABLE learning_path_steps ADD COLUMN preview_terms TEXT")
     if "prerequisite_step_ids" not in columns:
         conn.execute("ALTER TABLE learning_path_steps ADD COLUMN prerequisite_step_ids TEXT")
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS quick_study_sessions (
+            session_id TEXT PRIMARY KEY NOT NULL,
+            learner_id TEXT NOT NULL,
+            subject_id TEXT,
+            topic TEXT NOT NULL,
+            title TEXT NOT NULL,
+            session_status TEXT NOT NULL DEFAULT 'active',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+            last_accessed_at TEXT,
+            FOREIGN KEY (learner_id) REFERENCES learners(learner_id) ON DELETE CASCADE,
+            FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE SET NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_quick_study_sessions_learner
+        ON quick_study_sessions (learner_id, updated_at);
+
+        CREATE TABLE IF NOT EXISTS quick_study_documents (
+            document_id TEXT PRIMARY KEY NOT NULL,
+            session_id TEXT NOT NULL,
+            file_name TEXT NOT NULL,
+            file_size INTEGER DEFAULT 0,
+            page_count INTEGER DEFAULT 0,
+            upload_status TEXT NOT NULL DEFAULT 'indexed',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (session_id) REFERENCES quick_study_sessions(session_id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_quick_study_documents_session
+        ON quick_study_documents (session_id);
+
+        CREATE TABLE IF NOT EXISTS quick_study_chunks (
+            chunk_id TEXT PRIMARY KEY NOT NULL,
+            session_id TEXT NOT NULL,
+            document_id TEXT NOT NULL,
+            chunk_order INTEGER NOT NULL,
+            page_number INTEGER,
+            chunk_text TEXT NOT NULL,
+            embedding_json TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (session_id) REFERENCES quick_study_sessions(session_id) ON DELETE CASCADE,
+            FOREIGN KEY (document_id) REFERENCES quick_study_documents(document_id) ON DELETE CASCADE,
+            UNIQUE (document_id, chunk_order)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_quick_study_chunks_session
+        ON quick_study_chunks (session_id, chunk_order);
+
+        CREATE TABLE IF NOT EXISTS quick_study_messages (
+            message_id TEXT PRIMARY KEY NOT NULL,
+            session_id TEXT NOT NULL,
+            role TEXT NOT NULL,
+            message_text TEXT NOT NULL,
+            sources_json TEXT,
+            followups_json TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (session_id) REFERENCES quick_study_sessions(session_id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_quick_study_messages_session
+        ON quick_study_messages (session_id, created_at);
+        """
+    )
 
 
 def json_response(handler, status_code, payload):
@@ -101,6 +177,34 @@ def read_json(handler):
     return json.loads(raw or "{}")
 
 
+def read_multipart(handler):
+    form = cgi.FieldStorage(
+        fp=handler.rfile,
+        headers=handler.headers,
+        environ={
+            "REQUEST_METHOD": "POST",
+            "CONTENT_TYPE": handler.headers.get("Content-Type"),
+        },
+    )
+    fields = {}
+    files = []
+    for key in form.keys():
+        item = form[key]
+        items = item if isinstance(item, list) else [item]
+        for part in items:
+            if part.filename:
+                files.append(
+                    {
+                        "field": key,
+                        "filename": os.path.basename(part.filename),
+                        "content": part.file.read(),
+                    }
+                )
+            else:
+                fields[key] = part.value
+    return fields, files
+
+
 def fetchone_dict(conn, query, params=()):
     row = conn.execute(query, params).fetchone()
     return dict(row) if row else None
@@ -108,6 +212,16 @@ def fetchone_dict(conn, query, params=()):
 
 def fetchall_dict(conn, query, params=()):
     return [dict(row) for row in conn.execute(query, params).fetchall()]
+
+
+def find_learner_by_email(conn, email):
+    email = normalize_text_value(email).lower()
+    if not email:
+        return None
+    return conn.execute(
+        "SELECT learner_id, email, full_name FROM learners WHERE email = ?",
+        (email,),
+    ).fetchone()
 
 
 def parse_json_list(value):
@@ -168,6 +282,245 @@ def canonicalize_text(value):
 
 def normalize_topic_text(value):
     return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9\s]+", " ", str(value or "").strip().lower())).strip()
+
+
+def _serpapi_key():
+    return (
+        os.environ.get("SERPAPI_API_KEY")
+        or os.environ.get("SERP_API_KEY")
+        or os.environ.get("SERPAPI_KEY")
+        or ""
+    ).strip()
+
+
+class _ReadableHTMLParser(HTMLParser):
+    BLOCK_TAGS = {"h1", "h2", "h3", "h4", "p", "li"}
+    SKIP_TAGS = {"script", "style", "noscript", "svg", "nav", "footer", "header"}
+
+    def __init__(self):
+        super().__init__()
+        self._skip_depth = 0
+        self._current_tag = None
+        self._current_parts = []
+        self.lines = []
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        if tag in self.SKIP_TAGS:
+            self._skip_depth += 1
+            return
+        if self._skip_depth:
+            return
+        if tag in self.BLOCK_TAGS:
+            self._flush()
+            self._current_tag = tag
+
+    def handle_endtag(self, tag):
+        tag = tag.lower()
+        if tag in self.SKIP_TAGS and self._skip_depth:
+            self._skip_depth -= 1
+            return
+        if self._skip_depth:
+            return
+        if tag == self._current_tag:
+            self._flush()
+
+    def handle_data(self, data):
+        if self._skip_depth or self._current_tag is None:
+            return
+        cleaned = normalize_text_value(data)
+        if cleaned:
+            self._current_parts.append(cleaned)
+
+    def _flush(self):
+        if not self._current_parts:
+            self._current_tag = None
+            return
+        text = normalize_text_value(" ".join(self._current_parts))
+        if len(text) >= 18:
+            self.lines.append(text)
+        self._current_parts = []
+        self._current_tag = None
+
+
+def _fetch_source_excerpt(link, max_chars=4500):
+    parsed = urlparse(link or "")
+    if parsed.scheme not in {"http", "https"} or parsed.path.lower().endswith(".pdf"):
+        return ""
+
+    request = Request(
+        link,
+        headers={
+            "User-Agent": "Mozilla/5.0 AdaptiveTutor/1.0; topic-grounding",
+            "Accept": "text/html,application/xhtml+xml",
+        },
+    )
+    try:
+        with urlopen(request, timeout=8) as response:
+            content_type = response.headers.get("Content-Type", "")
+            if "html" not in content_type.lower():
+                return ""
+            raw = response.read(300_000)
+    except (OSError, URLError, TimeoutError):
+        return ""
+
+    parser = _ReadableHTMLParser()
+    parser.feed(raw.decode("utf-8", errors="ignore"))
+    parser.close()
+
+    unique_lines = []
+    seen = set()
+    for line in parser.lines:
+        key = line.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_lines.append(line)
+        if sum(len(item) for item in unique_lines) >= max_chars:
+            break
+    return "\n".join(unique_lines)[:max_chars]
+
+
+def _fetch_serpapi_context(topic):
+    api_key = _serpapi_key()
+    if not api_key:
+        return [], "SERP API key is not configured."
+
+    normalized = normalize_topic_text(topic)
+    query = f"{topic} meaning tutorial learning topic"
+    if "mcp" in normalized.split() or normalized.startswith("mcp "):
+        query = (
+            "MCP servers Model Context Protocol AI tools resources prompts "
+            "JSON-RPC transport SSE initialization capability discovery"
+        )
+    if "graph rag" in normalized or "graphrag" in normalized:
+        query = (
+            "GraphRAG tutorial knowledge graph RAG vector search graph database "
+            "architecture retrieval Cypher LangChain Neo4j"
+        )
+    params = urlencode({"engine": "google", "q": query, "num": 10, "api_key": api_key})
+    url = f"https://serpapi.com/search.json?{params}"
+    try:
+        with urlopen(url, timeout=8) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (OSError, URLError, TimeoutError, json.JSONDecodeError) as error:
+        return [], f"SERP lookup failed: {error}"
+
+    sources = []
+    readable_count = 0
+    for item in payload.get("organic_results", [])[:10]:
+        title = normalize_text_value(item.get("title"))
+        snippet = normalize_text_value(item.get("snippet"))
+        link = normalize_text_value(item.get("link"))
+        if title or snippet:
+            source = {"title": title, "snippet": snippet, "link": link}
+            if readable_count < 3 and link:
+                excerpt = _fetch_source_excerpt(link)
+                if excerpt:
+                    source["content_excerpt"] = excerpt
+                    readable_count += 1
+            sources.append(source)
+    return sources, ""
+
+
+def _extract_grounding_hints(topic, evidence_text, sources=None):
+    normalized = normalize_topic_text(topic)
+    evidence_lower = evidence_text.lower()
+    hints = []
+    if "mcp" in normalized.split() or normalized.startswith("mcp ") or "model context protocol" in evidence_lower:
+        hints = [
+            "MCP purpose and AI context integration",
+            "Client-server architecture",
+            "Tools, resources, and prompts",
+            "JSON-RPC request and response lifecycle",
+            "Initialization and capability discovery",
+            "STDIO, HTTP, and SSE transports",
+            "Building tool, resource, and prompt servers",
+            "MCP server configuration",
+            "Security boundaries and permission design",
+            "Logging, monitoring, deployment, and multi-server orchestration",
+        ]
+    if "graph rag" in normalized or "graphrag" in normalized or "graphrag" in evidence_lower:
+        hints = [
+            "Basic RAG process: retrieval, augmentation, and generation",
+            "Core components of a RAG architecture",
+            "Knowledge graphs in retrieval",
+            "GraphRAG architecture overview",
+            "Why graph retrieval goes beyond vector-only RAG",
+            "Preparing and modeling the dataset",
+            "Neo4j environment setup",
+            "Vector indexes and embeddings",
+            "Graph Cypher search",
+            "LangChain integration",
+            "Best practices and common pitfalls",
+        ]
+    if hints:
+        return hints
+
+    phrases = []
+    source_text = "\n".join(
+        source.get("content_excerpt", "") for source in (sources or []) if isinstance(source, dict)
+    )
+    for line in source_text.splitlines():
+        cleaned = normalize_text_value(line)
+        if 8 <= len(cleaned) <= 90 and not cleaned.endswith("."):
+            phrases.append(cleaned)
+    for match in re.finditer(r"\b[A-Z][A-Za-z0-9+#.-]*(?:\s+[A-Z][A-Za-z0-9+#.-]*){0,3}\b", evidence_text):
+        phrase = normalize_text_value(match.group(0))
+        if phrase and phrase.lower() not in {"google", "youtube", "wikipedia"}:
+            phrases.append(phrase)
+    return list(dict.fromkeys(phrases))[:10]
+
+
+def ground_topic(topic):
+    raw_topic = normalize_text_value(topic)
+    if not raw_topic:
+        raise ValueError("topic is required")
+
+    sources, lookup_note = _fetch_serpapi_context(raw_topic)
+    evidence_text = " ".join(
+        f"{source.get('title', '')} {source.get('snippet', '')}" for source in sources
+    )
+    evidence_lower = evidence_text.lower()
+    normalized = normalize_topic_text(raw_topic)
+
+    canonical_topic = raw_topic
+    definition = f"Study material and quiz questions should focus directly on {raw_topic}."
+    confidence = 0.68
+
+    if "mcp" in normalized.split() or normalized.startswith("mcp "):
+        if "model context protocol" in evidence_lower or not sources:
+            canonical_topic = "Model Context Protocol servers"
+            definition = (
+                "MCP servers are Model Context Protocol servers that expose tools, data, "
+                "and resources so AI applications can use external context safely."
+            )
+            confidence = 0.88 if sources else 0.78
+        else:
+            confidence = 0.52
+            definition = (
+                "MCP can mean different things. Please confirm the intended meaning before "
+                "the diagnostic quiz is generated."
+            )
+    elif sources:
+        best = sources[0]
+        definition = best.get("snippet") or definition
+        confidence = 0.76
+        title = best.get("title", "")
+        if title and topic_similarity(raw_topic, title) > 0:
+            canonical_topic = raw_topic
+
+    return {
+        "raw_topic": raw_topic,
+        "canonical_topic": canonical_topic,
+        "definition": definition,
+        "confidence": confidence,
+        "needs_confirmation": True,
+        "used_serpapi": bool(sources),
+        "lookup_note": lookup_note,
+        "curriculum_hints": _extract_grounding_hints(raw_topic, evidence_text, sources),
+        "sources": sources,
+    }
 
 
 def tokenize_topic(value):
@@ -1026,6 +1379,32 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
         )
 
     mastery_breakdown = build_mastery_breakdown(path_steps, latest_quiz, latest_quiz_responses)
+    quick_study_sessions = fetchall_dict(
+        conn,
+        """
+        SELECT
+            qss.session_id,
+            qss.learner_id,
+            qss.subject_id,
+            qss.topic,
+            qss.title,
+            qss.session_status,
+            qss.created_at,
+            qss.updated_at,
+            qss.last_accessed_at,
+            COUNT(DISTINCT qsd.document_id) AS document_count,
+            COUNT(DISTINCT qsm.message_id) AS message_count,
+            COUNT(DISTINCT qsc.chunk_id) AS chunk_count
+        FROM quick_study_sessions qss
+        LEFT JOIN quick_study_documents qsd ON qsd.session_id = qss.session_id
+        LEFT JOIN quick_study_messages qsm ON qsm.session_id = qss.session_id
+        LEFT JOIN quick_study_chunks qsc ON qsc.session_id = qss.session_id
+        WHERE qss.learner_id = ? AND qss.subject_id = ?
+        GROUP BY qss.session_id
+        ORDER BY COALESCE(qss.last_accessed_at, qss.updated_at, qss.created_at) DESC
+        """,
+        (learner["learner_id"], active_subject["subject_id"]) if active_subject else (learner["learner_id"], None),
+    ) if active_subject else []
 
     active_subject = {
         **active_subject,
@@ -1039,6 +1418,8 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
         "current_view": current_view,
         "current_step_content": current_step_content,
         "current_step": current_step,
+        "quick_study_sessions": quick_study_sessions,
+        "latest_quick_study_session": quick_study_sessions[0] if quick_study_sessions else None,
     } if active_subject else None
 
     recent_sessions = fetchall_dict(
@@ -1469,10 +1850,17 @@ class RequestHandler(BaseHTTPRequestHandler):
             return self.get_roadmap_graph_image()
         if path == "/api/quiz-summary":
             return self.get_quiz_summary()
+        if path == "/api/quick-study/sessions":
+            return self.list_quick_study_sessions_request()
+        if path == "/api/quick-study/session":
+            return self.get_quick_study_session_request()
         return json_response(self, 404, {"error": "Not found"})
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if path == "/api/quick-study/upload":
+            return self.upload_quick_study_documents_request()
+
         try:
             payload = read_json(self)
         except json.JSONDecodeError:
@@ -1480,6 +1868,8 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         if path == "/api/onboarding":
             return self.create_learner(payload)
+        if path == "/api/topic/ground":
+            return self.ground_topic_request(payload)
         if path == "/api/topic":
             return self.create_study_request(payload)
         if path == "/api/diagnostic/submit":
@@ -1490,8 +1880,19 @@ class RequestHandler(BaseHTTPRequestHandler):
             return self.submit_adaptive_answer_request(payload)
         if path == "/api/mastery/update":
             return self.update_mastery_request(payload)
+        if path == "/api/quick-study/session":
+            return self.create_quick_study_session_request(payload)
+        if path == "/api/quick-study/chat":
+            return self.quick_study_chat_request(payload)
 
         return json_response(self, 404, {"error": "Not found"})
+
+    def ground_topic_request(self, payload):
+        try:
+            result = ground_topic(payload.get("topic"))
+        except ValueError as error:
+            return json_response(self, 400, {"error": str(error)})
+        return json_response(self, 200, {"grounding": result})
 
     def create_learner(self, payload):
         email = normalize_text_value(payload.get("email")).lower()
@@ -1679,9 +2080,140 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         return json_response(self, 200, result)
 
+    def list_quick_study_sessions_request(self):
+        query = urlparse(self.path).query
+        params = parse_qs(query)
+        email = (params.get("email", [""])[0]).strip().lower()
+        if not email:
+            return json_response(self, 400, {"error": "email is required"})
+
+        with get_connection() as conn:
+            learner = find_learner_by_email(conn, email)
+            if not learner:
+                return json_response(self, 404, {"error": "learner not found"})
+            sessions = list_quick_study_sessions(conn, learner["learner_id"])
+
+        return json_response(self, 200, {"sessions": sessions})
+
+    def get_quick_study_session_request(self):
+        query = urlparse(self.path).query
+        params = parse_qs(query)
+        email = (params.get("email", [""])[0]).strip().lower()
+        session_id = (params.get("session_id", [""])[0]).strip()
+        if not email:
+            return json_response(self, 400, {"error": "email is required"})
+        if not session_id:
+            return json_response(self, 400, {"error": "session_id is required"})
+
+        with get_connection() as conn:
+            learner = find_learner_by_email(conn, email)
+            if not learner:
+                return json_response(self, 404, {"error": "learner not found"})
+            detail = load_quick_study_session(conn, learner["learner_id"], session_id)
+            if not detail:
+                return json_response(self, 404, {"error": "quick study session not found"})
+            conn.commit()
+
+        return json_response(self, 200, detail)
+
+    def create_quick_study_session_request(self, payload):
+        email = (payload.get("email") or payload.get("learner_email") or "").strip().lower()
+        topic = normalize_text_value(payload.get("topic"), "Quick study")
+        title = normalize_text_value(payload.get("title")) or None
+        subject_id = normalize_text_value(payload.get("subject_id")) or None
+        if not email:
+            return json_response(self, 400, {"error": "email is required"})
+
+        with get_connection() as conn:
+            learner = find_learner_by_email(conn, email)
+            if not learner:
+                return json_response(self, 404, {"error": "learner not found"})
+            session = create_quick_study_session(
+                conn,
+                learner["learner_id"],
+                subject_id,
+                topic,
+                title,
+            )
+            conn.commit()
+
+        return json_response(self, 201, {"session": session})
+
+    def upload_quick_study_documents_request(self):
+        try:
+            fields, files = read_multipart(self)
+        except Exception as error:
+            return json_response(self, 400, {"error": f"Invalid upload: {error}"})
+
+        email = normalize_text_value(fields.get("email")).lower()
+        session_id = normalize_text_value(fields.get("session_id"))
+        if not email:
+            return json_response(self, 400, {"error": "email is required"})
+        if not session_id:
+            return json_response(self, 400, {"error": "session_id is required"})
+        pdfs = [file for file in files if file["filename"].lower().endswith(".pdf")]
+        if not pdfs:
+            return json_response(self, 400, {"error": "Upload at least one PDF"})
+
+        try:
+            with get_connection() as conn:
+                learner = find_learner_by_email(conn, email)
+                if not learner:
+                    return json_response(self, 404, {"error": "learner not found"})
+                documents = [
+                    index_pdf_document(
+                        conn,
+                        learner["learner_id"],
+                        session_id,
+                        file["filename"],
+                        file["content"],
+                    )
+                    for file in pdfs
+                ]
+                detail = load_quick_study_session(conn, learner["learner_id"], session_id)
+                conn.commit()
+        except ValueError as error:
+            return json_response(self, 400, {"error": str(error)})
+        except Exception as error:
+            return json_response(self, 500, {"error": f"Failed to index PDF: {error}"})
+
+        return json_response(self, 201, {"documents": documents, "session_detail": detail})
+
+    def quick_study_chat_request(self, payload):
+        email = (payload.get("email") or "").strip().lower()
+        session_id = normalize_text_value(payload.get("session_id"))
+        message = normalize_text_value(payload.get("message"))
+        if not email:
+            return json_response(self, 400, {"error": "email is required"})
+        if not session_id:
+            return json_response(self, 400, {"error": "session_id is required"})
+        if not message:
+            return json_response(self, 400, {"error": "message is required"})
+
+        try:
+            with get_connection() as conn:
+                learner = find_learner_by_email(conn, email)
+                if not learner:
+                    return json_response(self, 404, {"error": "learner not found"})
+                result = answer_quick_study_question(
+                    conn,
+                    learner["learner_id"],
+                    session_id,
+                    message,
+                )
+                detail = load_quick_study_session(conn, learner["learner_id"], session_id)
+                conn.commit()
+        except ValueError as error:
+            return json_response(self, 400, {"error": str(error)})
+        except Exception as error:
+            return json_response(self, 500, {"error": f"Quick study chat failed: {error}"})
+
+        return json_response(self, 200, {**result, "session_detail": detail})
+
 
     def create_study_request(self, payload):
-        topic = (payload.get("topic") or "").strip()
+        raw_topic = (payload.get("raw_topic") or payload.get("topic") or "").strip()
+        topic = (payload.get("canonical_topic") or payload.get("topic") or "").strip()
         if not topic:
             return json_response(self, 400, {"error": "topic is required"})
 
@@ -1691,6 +2223,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         level = familiarity_to_level(familiarity)
         learner_id = (payload.get("learner_id") or "").strip()
         learner_email = (payload.get("learner_email") or "").strip().lower()
+        topic_grounding = payload.get("topic_grounding")
 
         with get_connection() as conn:
             learner = None
@@ -1737,33 +2270,47 @@ class RequestHandler(BaseHTTPRequestHandler):
                     familiarity,
                 ),
             )
+            assessment_preview = None
+            learning_path = None
+            quick_study_session = None
+            if study_flow["assessment_required"]:
+                assessment_preview = build_assessment_preview(
+                    topic,
+                    level,
+                    familiarity,
+                    question_count=5,
+                    topic_context=topic_grounding,
+                )
+            elif study_mode in {"quick_study", "quiz"}:
+                if study_mode == "quick_study":
+                    quick_study_session = create_quick_study_session(
+                        conn,
+                        learner_id,
+                        subject_id,
+                        topic,
+                        f"Quick study: {topic}",
+                    )
+                    assessment_preview = {
+                        "topic": topic,
+                        "level": level,
+                        "mode": "quick_study",
+                        "context_source": "quick study document chat",
+                        "context": f"Upload PDFs to study {topic} with a persistent RAG chat.",
+                        "questions": [],
+                        "quick_study_session": quick_study_session,
+                    }
+                else:
+                    learning_path = build_learning_path(
+                        conn,
+                        learner_id,
+                        subject_id,
+                        topic,
+                        None,
+                        study_mode="roadmap",
+                        topic_context=topic_grounding,
+                    )
+
             conn.commit()
-
-        assessment_preview = None
-        learning_path = None
-        if study_flow["assessment_required"]:
-            assessment_preview = build_assessment_preview(topic, level, familiarity, question_count=5)
-        elif study_mode in {"quick_study", "quiz"}:
-            learning_path = build_learning_path(
-                conn,
-                learner_id,
-                subject_id,
-                topic,
-                None,
-                study_mode="quick_study" if study_mode == "quick_study" else "roadmap",
-            )
-            if study_mode == "quick_study":
-                assessment_preview = {
-                    "topic": topic,
-                    "level": level,
-                    "mode": "quick_study",
-                    "context_source": "learning_path quick study summary",
-                    "context": learning_path["summary"] if learning_path else retrieve_context(topic),
-                    "questions": [],
-                    "learning_path": learning_path,
-                }
-
-        conn.commit()
 
         return json_response(
             self,
@@ -1776,12 +2323,15 @@ class RequestHandler(BaseHTTPRequestHandler):
                 "subject": {
                     "subject_id": subject_id,
                     "subject_name": topic,
+                    "raw_topic": raw_topic,
                     "topic_id": topic_id,
                     "profile_id": profile_id,
                     "level": level,
                 },
+                "topic_grounding": topic_grounding,
                 "assessment_preview": assessment_preview,
                 "learning_path": learning_path,
+                "quick_study_session": quick_study_session,
             },
         )
 
@@ -1791,6 +2341,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         questions = payload.get("questions") or []
         answers = payload.get("answers") or []
         level = (payload.get("level") or "beginner").strip()
+        topic_grounding = payload.get("topic_grounding")
 
         if not email:
             return json_response(self, 400, {"error": "email is required"})
@@ -1839,10 +2390,11 @@ class RequestHandler(BaseHTTPRequestHandler):
                 topic,
                 result,
                 study_mode=payload.get("study_mode") or "roadmap",
+                topic_context=topic_grounding,
             )
             conn.commit()
 
-        preview = build_assessment_preview(topic, level, question_count=5)
+        preview = build_assessment_preview(topic, level, question_count=5, topic_context=topic_grounding)
         return json_response(
             self,
             200,

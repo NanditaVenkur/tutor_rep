@@ -406,16 +406,54 @@ def retrieve_context(topic: str) -> str:
     return ctx
 
 
+def _format_topic_context(topic_context) -> str:
+    if not topic_context:
+        return ""
+    if isinstance(topic_context, str):
+        return _normalize_text(topic_context)
+    if not isinstance(topic_context, dict):
+        return _normalize_text(str(topic_context))
+
+    parts = []
+    canonical = _normalize_text(topic_context.get("canonical_topic") or "")
+    definition = _normalize_text(topic_context.get("definition") or "")
+    learning_goal = _normalize_text(topic_context.get("learning_goal") or "")
+    hints = topic_context.get("curriculum_hints") or []
+    if canonical:
+        parts.append(f"Confirmed topic: {canonical}")
+    if learning_goal:
+        parts.append(f"Learner goal: {learning_goal}")
+    if definition:
+        parts.append(f"Definition: {definition}")
+    if isinstance(hints, list) and hints:
+        parts.append("Required topic coverage: " + ", ".join(_normalize_text(item) for item in hints if _normalize_text(item)))
+    for source in (topic_context.get("sources") or [])[:10]:
+        if not isinstance(source, dict):
+            continue
+        title = _normalize_text(source.get("title") or "")
+        snippet = _normalize_text(source.get("snippet") or "")
+        excerpt = _normalize_text(source.get("content_excerpt") or "")
+        if title or snippet:
+            parts.append(f"Source: {title}. {snippet}".strip())
+        if excerpt:
+            parts.append(f"Source content excerpt: {excerpt[:3500]}")
+    return "\n".join(parts)
+
+
 def build_assessment_preview(
     topic: str,
     level: str = "beginner",
     familiarity: str | None = None,
     question_count: int = 5,
+    topic_context=None,
 ) -> dict:
     """Build a non-interactive assessment preview for UI/backend callers."""
     SESSION.current_topic = topic
     SESSION.current_level = level
-    ctx = retrieve_context(topic)
+    base_context = retrieve_context(topic)
+    grounding_context = _format_topic_context(topic_context)
+    ctx = "\n\n".join(part for part in [grounding_context, base_context] if part)
+    SESSION.context = ctx
     quiz_raw = generate_diagnostic_questions(f"{topic}|{level}|{familiarity or ''}|{question_count}")
     quiz = json.loads(quiz_raw)
     if isinstance(quiz, dict):
@@ -427,7 +465,7 @@ def build_assessment_preview(
         "level": level,
         "familiarity": familiarity,
         "difficulty_plan": _difficulty_plan_from_familiarity(familiarity),
-        "context_source": "fallback_contexts in agents/knowledge_assessment.py",
+        "context_source": "topic grounding and fallback_contexts in agents/knowledge_assessment.py",
         "context": ctx,
         "questions": quiz,
     }
@@ -461,6 +499,9 @@ Context:
 
 Rules:
 - Every question must directly test the entered topic: {topic}
+- Use the confirmed grounding/context above as the source of truth when it includes specific concepts
+- If source content excerpts are present, derive questions from the concepts and section headings inside those excerpts
+- Prefer questions about the concrete terms named in the context instead of generic definitions
 - Do not use finance, accounting, or any unrelated subject unless the topic itself is about that subject
 - Keep the questions aligned to {level} difficulty
 - Set correct_answer to the key of the right option, not the full option text

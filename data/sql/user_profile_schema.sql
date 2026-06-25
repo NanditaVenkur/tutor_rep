@@ -223,6 +223,68 @@ CREATE TABLE IF NOT EXISTS study_sessions (
 CREATE INDEX IF NOT EXISTS idx_study_sessions_learner_subject
 ON study_sessions (learner_id, subject_id);
 
+CREATE TABLE IF NOT EXISTS quick_study_sessions (
+    session_id TEXT PRIMARY KEY NOT NULL,
+    learner_id TEXT NOT NULL,
+    subject_id TEXT,
+    topic TEXT NOT NULL,
+    title TEXT NOT NULL,
+    session_status TEXT NOT NULL DEFAULT 'active',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    last_accessed_at TEXT,
+    FOREIGN KEY (learner_id) REFERENCES learners(learner_id) ON DELETE CASCADE,
+    FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_quick_study_sessions_learner
+ON quick_study_sessions (learner_id, updated_at);
+
+CREATE TABLE IF NOT EXISTS quick_study_documents (
+    document_id TEXT PRIMARY KEY NOT NULL,
+    session_id TEXT NOT NULL,
+    file_name TEXT NOT NULL,
+    file_size INTEGER DEFAULT 0,
+    page_count INTEGER DEFAULT 0,
+    upload_status TEXT NOT NULL DEFAULT 'indexed',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (session_id) REFERENCES quick_study_sessions(session_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_quick_study_documents_session
+ON quick_study_documents (session_id);
+
+CREATE TABLE IF NOT EXISTS quick_study_chunks (
+    chunk_id TEXT PRIMARY KEY NOT NULL,
+    session_id TEXT NOT NULL,
+    document_id TEXT NOT NULL,
+    chunk_order INTEGER NOT NULL,
+    page_number INTEGER,
+    chunk_text TEXT NOT NULL,
+    embedding_json TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (session_id) REFERENCES quick_study_sessions(session_id) ON DELETE CASCADE,
+    FOREIGN KEY (document_id) REFERENCES quick_study_documents(document_id) ON DELETE CASCADE,
+    UNIQUE (document_id, chunk_order)
+);
+
+CREATE INDEX IF NOT EXISTS idx_quick_study_chunks_session
+ON quick_study_chunks (session_id, chunk_order);
+
+CREATE TABLE IF NOT EXISTS quick_study_messages (
+    message_id TEXT PRIMARY KEY NOT NULL,
+    session_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    message_text TEXT NOT NULL,
+    sources_json TEXT,
+    followups_json TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (session_id) REFERENCES quick_study_sessions(session_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_quick_study_messages_session
+ON quick_study_messages (session_id, created_at);
+
 CREATE TABLE IF NOT EXISTS quiz_attempts (
     attempt_id TEXT PRIMARY KEY NOT NULL,
     learner_id TEXT NOT NULL,

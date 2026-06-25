@@ -291,31 +291,81 @@ def _extract_json_array(text: str) -> list:
         return parsed if isinstance(parsed, list) else []
 
 
-def _step_node_prompt(topic: str, learner_level: str, score: float, weak_points: list[str]) -> str:
+def _format_topic_context(topic_context) -> str:
+    if not topic_context:
+        return ""
+    if isinstance(topic_context, str):
+        return _normalize_text(topic_context)
+    if not isinstance(topic_context, dict):
+        return _normalize_text(str(topic_context))
+
+    parts = []
+    canonical = _normalize_text(topic_context.get("canonical_topic") or "")
+    definition = _normalize_text(topic_context.get("definition") or "")
+    learning_goal = _normalize_text(topic_context.get("learning_goal") or "")
+    if canonical:
+        parts.append(f"Confirmed topic: {canonical}")
+    if learning_goal:
+        parts.append(f"Learner goal: {learning_goal}")
+    if definition:
+        parts.append(f"Definition: {definition}")
+    hints = topic_context.get("curriculum_hints") or []
+    if isinstance(hints, list) and hints:
+        parts.append("Required topic coverage: " + ", ".join(_normalize_text(item) for item in hints if _normalize_text(item)))
+    for source in (topic_context.get("sources") or [])[:10]:
+        if not isinstance(source, dict):
+            continue
+        title = _normalize_text(source.get("title") or "")
+        snippet = _normalize_text(source.get("snippet") or "")
+        excerpt = _normalize_text(source.get("content_excerpt") or "")
+        if title or snippet:
+            parts.append(f"Source: {title}. {snippet}".strip())
+        if excerpt:
+            parts.append(f"Source content excerpt: {excerpt[:3500]}")
+    return "\n".join(parts)
+
+
+def _step_node_prompt(
+    topic: str,
+    learner_level: str,
+    score: float,
+    weak_points: list[str],
+    topic_context=None,
+) -> str:
     weak_line = weak_points[:4] if weak_points else []
+    context_text = _format_topic_context(topic_context)
     return (
-        "You are generating a step-by-step learning roadmap for a topic.\n"
-        "Your job is to produce a clean sequence of learning steps for the topic.\n"
-        "Each step must represent a real concept or concept-group the learner should study.\n"
-        "The roadmap must follow prerequisite order.\n\n"
+        "You are generating a precise curriculum roadmap for the confirmed topic.\n"
+        "Your job is to produce the sequence a knowledgeable tutor would actually teach.\n"
+        "Each step must represent a real topic-specific concept group, not a generic learning activity.\n"
+        "The roadmap must follow prerequisite order and must be grounded in the confirmed topic meaning.\n\n"
         "Return valid JSON only in this exact format:\n"
         "{\"steps\":[{\"id\":\"step_1\",\"title\":\"Concrete concept title\",\"description\":\"One short sentence describing what the learner studies in this step.\",\"prerequisites\":[]}]} \n\n"
         "Rules:\n"
-        "- Generate 5 to 10 steps.\n"
-        "- Each step must be a meaningful learning stage.\n"
-        "- Titles must be concrete and domain-specific.\n"
-        "- Use real concept names, methods, structures, operations, formulas, or techniques.\n"
-        "- Descriptions must be short, clear, and learner-facing.\n"
-        "- The roadmap must be prerequisite-aware: early steps should support later ones.\n"
+        "- Generate 5 to 8 steps.\n"
+        "- Each step must be a meaningful curriculum stage for this exact topic.\n"
+        "- Titles must be concrete, domain-specific, and recognizable to someone who knows the topic.\n"
+        "- Use real concept names, primitives, methods, structures, operations, formulas, protocols, APIs, tools, or techniques.\n"
+        "- Descriptions must explain what the learner studies, not just say why the step matters.\n"
+        "- The roadmap must be prerequisite-aware: definitions and architecture before internals, internals before building, building before production.\n"
         "- prerequisites must contain step ids from earlier steps only.\n"
         "- Do not create cycles.\n"
         "- Do not use generic titles such as Foundations, Basics, Key Concepts, Applications, Practice, Review, Summary, Overview, Step 1, or Step 2.\n"
+        "- Do not create generic software/server/networking roadmaps unless those are the actual topic.\n"
+        "- Do not overemphasize deployment, networking, scaling, or system administration before the topic's core primitives are taught.\n"
+        "- If Required topic coverage is provided, the roadmap must include those ideas across the steps unless they are clearly irrelevant.\n"
+        "- If source content excerpts are provided, use the concepts and section headings inside those excerpts as the main curriculum evidence.\n"
         "- Do not write quiz-like steps.\n"
         "- Do not copy question wording.\n"
         "- Do not add study advice like start here, build confidence, or quick recap.\n"
         "- Do not return subtopics, bullets, markdown, or explanations outside the JSON.\n"
         "- The output should read like a real curriculum.\n\n"
+        "Quality target:\n"
+        "- For a protocol or framework, include its architecture, core primitives, request lifecycle, implementation workflow, reliability/security, and production design.\n"
+        "- For MCP / Model Context Protocol, a good roadmap would include concepts like clients, servers, tools, resources, prompts, JSON-RPC, transports, capability discovery, tool calls, and safe server design.\n"
+        "- Adapt this pattern to the actual topic instead of copying it blindly.\n\n"
         f"Topic: {topic}\n"
+        f"Confirmed grounding/context: {context_text or 'No external grounding was provided.'}\n"
         f"Learner level: {learner_level}\n"
         f"Diagnostic score: {round(score, 3)}\n"
         f"Weak areas: {json.dumps(weak_line, ensure_ascii=False)}\n\n"
@@ -377,8 +427,14 @@ def _normalize_graph_steps(raw_steps: list, topic: str) -> list[dict]:
     return fallback_generated
 
 
-def _generate_step_nodes(topic: str, learner_level: str, score: float, weak_points: list[str]) -> list[dict]:
-    prompt = _step_node_prompt(topic, learner_level, score, weak_points)
+def _generate_step_nodes(
+    topic: str,
+    learner_level: str,
+    score: float,
+    weak_points: list[str],
+    topic_context=None,
+) -> list[dict]:
+    prompt = _step_node_prompt(topic, learner_level, score, weak_points, topic_context)
     try:
         response = _get_llm().invoke(prompt)
         payload = _extract_json_object(getattr(response, "content", response))
@@ -466,7 +522,7 @@ def _fallback_preview_terms(topic: str, step: dict, order: int | None = None) ->
     return terms[:4]
 
 
-def build_path_preview_terms(topic: str, steps: list[dict]) -> list[list[str]]:
+def build_path_preview_terms(topic: str, steps: list[dict], topic_context=None) -> list[list[str]]:
     prompt_steps = []
     for index, step in enumerate(steps, start=1):
         prompt_steps.append(
@@ -476,7 +532,8 @@ def build_path_preview_terms(topic: str, steps: list[dict]) -> list[list[str]]:
                 "description": step.get("step_description") or step.get("description") or "",
             }
         )
-    cache_key = json.dumps([topic, prompt_steps], ensure_ascii=False, sort_keys=True)
+    context_text = _format_topic_context(topic_context)
+    cache_key = json.dumps([topic, prompt_steps, context_text], ensure_ascii=False, sort_keys=True)
     if cache_key in PREVIEW_TERMS_CACHE:
         return PREVIEW_TERMS_CACHE[cache_key]
 
@@ -485,9 +542,12 @@ def build_path_preview_terms(topic: str, steps: list[dict]) -> list[list[str]]:
         "Return only valid JSON with this shape: "
         "{\"steps\":[{\"order\":1,\"terms\":[\"term\",\"term\",\"term\",\"term\"]}]}.\n"
         "Rules: exactly 4 concise terms per step; terms must be specific to the topic and stage; "
+        "use the confirmed grounding/context as the source of truth when available; "
+        "if source content excerpts are present, choose terms from the concepts and section headings inside those excerpts; "
         "avoid generic words like basics, examples, practice, review unless they are part of a real concept; "
         "use title case for terms; do not include explanations.\n\n"
         f"Topic: {topic}\n"
+        f"Confirmed grounding/context: {context_text or 'No external grounding was provided.'}\n"
         f"Roadmap steps: {json.dumps(prompt_steps, ensure_ascii=False)}"
     )
 
@@ -655,6 +715,7 @@ def build_learning_path(
     topic: str,
     diagnostic_result: dict | None = None,
     study_mode: str = "roadmap",
+    topic_context=None,
 ) -> dict:
     topic = _normalize_text(topic)
     mode = _normalize_study_mode(study_mode)
@@ -674,7 +735,7 @@ def build_learning_path(
             learner_level = "beginner"
     focus_line = ", ".join(weak_points[:3]) if weak_points else f"{topic} fundamentals"
     if mode == "roadmap":
-        generated_nodes = _generate_step_nodes(topic, learner_level, score, weak_points)
+        generated_nodes = _generate_step_nodes(topic, learner_level, score, weak_points, topic_context)
         steps, graph_valid = _topologically_order_step_nodes(generated_nodes)
     else:
         steps = _build_step_plan(topic, score, weak_points, mode, preferences)
@@ -733,7 +794,7 @@ def build_learning_path(
     )
 
     step_rows = []
-    preview_terms_by_step = build_path_preview_terms(topic, steps)
+    preview_terms_by_step = build_path_preview_terms(topic, steps, topic_context=topic_context)
     step_titles = build_path_step_titles(topic, steps, preview_terms_by_step)
     step_id_lookup = {}
     topic_id_lookup = {}

@@ -49,9 +49,35 @@
             </select>
           </label>
 
+          <section class="topic-grounding-panel hidden" id="topicGroundingPanel" aria-live="polite">
+            <div class="summary-head">
+              <h3>Confirm topic meaning</h3>
+              <p id="topicGroundingDefinition">We will confirm the topic before creating the quiz.</p>
+            </div>
+            <div class="grounded-topic">
+              <span>Interpreted as</span>
+              <strong id="topicGroundingCanonical">Topic</strong>
+            </div>
+            <label class="field compact-field">
+              <span>Learning goal</span>
+              <select id="topicLearningGoal">
+                <option value="">General understanding</option>
+                <option value="build AI agents">Build AI agents</option>
+                <option value="build developer tools">Build developer tools</option>
+                <option value="get job-ready">Get job-ready</option>
+                <option value="research the protocol">Research the protocol</option>
+              </select>
+            </label>
+            <ul class="grounding-sources" id="topicGroundingSources"></ul>
+            <div class="subject-actions grounding-actions">
+              <button type="button" class="btn secondary" id="editGrounding">Edit topic</button>
+              <button type="button" class="btn primary" id="confirmGrounding">Use this topic</button>
+            </div>
+          </section>
+
           <div class="subject-actions">
             <button type="button" class="btn secondary" id="backToProfile">Back to profile</button>
-            <button type="submit" class="btn primary">Generate roadmap</button>
+            <button type="submit" class="btn primary" id="groundTopicButton">Generate roadmap</button>
           </div>
         </form>
 

@@ -443,6 +443,7 @@ function renderSubjectCards(subjectProfiles, activeSubjectId) {
   }
 
   subjectProfiles.forEach((profile) => {
+    const isQuickStudy = profile.goal_type === "quick_study";
     const button = document.createElement("button");
     button.type = "button";
     button.className = `subject-card${profile.subject_id === activeSubjectId ? " active" : ""}`;
@@ -452,12 +453,13 @@ function renderSubjectCards(subjectProfiles, activeSubjectId) {
           <p class="subject-card-label">Subject / topic</p>
           <h3>${escapeHtml(profile.subject_name || profile.subject_id)}</h3>
         </div>
-        <span class="subject-card-badge">${escapeHtml(profile.status || "active")}</span>
+        <span class="subject-card-badge">${escapeHtml(isQuickStudy ? "quick study" : profile.status || "active")}</span>
       </div>
       <div class="subject-card-meta">
         <span>Topic: ${escapeHtml(profile.current_topic_name || profile.current_topic_id || "Not set")}</span>
-        <span>Level: ${escapeHtml(profile.current_level || "Not set")}</span>
-        <span>Progress: ${escapeHtml(formatPercent(profile.path_completion_pct))}</span>
+        ${isQuickStudy
+          ? "<span>Mode: PDF chat</span><span>Progress: Not tracked</span>"
+          : `<span>Level: ${escapeHtml(profile.current_level || "Not set")}</span><span>Progress: ${escapeHtml(formatPercent(profile.path_completion_pct))}</span>`}
       </div>
     `;
     button.addEventListener("click", () => {
@@ -468,6 +470,13 @@ function renderSubjectCards(subjectProfiles, activeSubjectId) {
     });
     subjectList.appendChild(button);
   });
+}
+
+function openQuickStudySession(sessionId) {
+  if (sessionId) {
+    localStorage.setItem("adaptiveTutorQuickStudySessionId", sessionId);
+  }
+  window.location.href = "/frontend/quick_study.html";
 }
 
 function renderDashboard(data) {
@@ -485,6 +494,9 @@ function renderDashboard(data) {
   const currentView = active.current_view || null;
   const currentStepContent = active.current_step_content || null;
   const sessions = data.recent_sessions || [];
+  const isQuickStudy = active.goal_type === "quick_study";
+  const quickSessions = active.quick_study_sessions || [];
+  const latestQuickSession = active.latest_quick_study_session || quickSessions[0] || null;
 
   welcomeText.textContent = learner.full_name
     ? `Choose a subject below. We’ll keep you in the selected roadmap.`
@@ -496,11 +508,70 @@ function renderDashboard(data) {
   renderSubjectCards(data.subject_profiles || [], active.subject_id || data.selected_subject_id || "");
 
   selectedSubjectTitle.textContent = active.subject_name
-    ? `${active.subject_name} roadmap`
+    ? `${active.subject_name} ${isQuickStudy ? "quick study" : "roadmap"}`
     : "No subject selected";
   selectedSubjectTopic.textContent = active.subject_id
     ? `Current topic: ${text(active.current_topic_name || active.current_topic_id)}`
-    : "Pick a subject card above to view its roadmap.";
+    : "Pick a subject card above to view its details.";
+
+  if (isQuickStudy) {
+    selectedSubjectStats.innerHTML = [
+      renderStat("Mode", "PDF chat"),
+      renderStat("Sessions", String(quickSessions.length || 0)),
+      renderStat("PDFs", String(latestQuickSession?.document_count || 0)),
+      renderStat("Messages", String(latestQuickSession?.message_count || 0)),
+    ].join("");
+
+    detailRoadmapText.textContent = latestQuickSession
+      ? latestQuickSession.title || `Quick study: ${active.subject_name}`
+      : "No quick study session yet.";
+    detailRoadmapMeta.innerHTML = `
+      <p><strong>Mode:</strong> Persistent RAG chat over uploaded PDFs.</p>
+      <p><strong>Indexed chunks:</strong> ${escapeHtml(latestQuickSession?.chunk_count || 0)}</p>
+      <p><strong>Last opened:</strong> ${escapeHtml(latestQuickSession?.last_accessed_at || latestQuickSession?.updated_at || "Not opened yet")}</p>
+      <button class="btn primary" type="button" id="resumeQuickStudyButton">
+        ${latestQuickSession ? "Resume quick study" : "Open quick study"}
+      </button>
+    `;
+    document.getElementById("resumeQuickStudyButton")?.addEventListener("click", () => {
+      openQuickStudySession(latestQuickSession?.session_id || "");
+    });
+
+    detailStepTitle.textContent = "Document chat";
+    detailStepDescription.textContent = "Upload PDFs, ask questions, view cited snippets, and continue the same chat later.";
+    detailCurrentContent.innerHTML = `
+      <div class="rendered-content">
+        <p>Quick Study does not use roadmap steps, diagnostic quizzes, mastery, or adaptive step practice.</p>
+        <p>Your progress here is the persistent PDF collection and chat history.</p>
+      </div>
+    `;
+    practiceStepButton.classList.add("hidden");
+    practiceStepButton.onclick = null;
+    viewGraphButton?.classList.add("hidden");
+    if (viewGraphButton) viewGraphButton.onclick = null;
+
+    detailStepList.innerHTML = quickSessions.length
+      ? quickSessions.map((session) => `
+          <article class="quick-dashboard-session">
+            <div>
+              <strong>${escapeHtml(session.title || session.topic || "Quick study")}</strong>
+              <p>${escapeHtml(session.document_count || 0)} PDFs · ${escapeHtml(session.message_count || 0)} messages · ${escapeHtml(session.chunk_count || 0)} chunks</p>
+            </div>
+            <button class="btn secondary" type="button" data-quick-session="${escapeHtml(session.session_id)}">Resume</button>
+          </article>
+        `).join("")
+      : `<p class="empty-state">No quick study sessions yet.</p>`;
+    detailStepList.querySelectorAll("[data-quick-session]").forEach((button) => {
+      button.addEventListener("click", () => openQuickStudySession(button.dataset.quickSession));
+    });
+
+    detailSessionList.innerHTML = quickSessions.length
+      ? quickSessions.slice(0, 5).map((session) => `
+          <li>${escapeHtml(session.title || session.topic || "Quick study")} - ${escapeHtml(session.session_status || "active")}</li>
+        `).join("")
+      : "<li>No recent quick study sessions.</li>";
+    return;
+  }
 
   selectedSubjectStats.innerHTML = [
     renderStat("Roadmap", text(roadmap.path_title, "Not set")),

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Tutor - Quick Study</title>
+  <link rel="stylesheet" href="/frontend/app/styles.css" />
+</head>
+<body>
+  <main class="app-shell dashboard-shell">
+    <section class="app-card quick-study-card">
+      <header class="dashboard-hero">
+        <div>
+          <p class="eyebrow">Adaptive Tutor</p>
+          <h1>Quick study</h1>
+          <p class="subtle">Ask questions against your uploaded PDFs and keep the full session history.</p>
+        </div>
+        <div class="dashboard-actions">
+          <a class="btn secondary" href="/frontend/subject_topic_entry.html">New topic</a>
+          <a class="btn secondary" href="/frontend/dashboard.html">Dashboard</a>
+        </div>
+      </header>
+
+      <section class="quick-study-layout">
+        <aside class="quick-study-sidebar">
+          <div class="panel-head">
+            <div>
+              <h2>Sessions</h2>
+              <p>Return to earlier study chats.</p>
+            </div>
+            <button type="button" class="btn secondary" id="newSessionButton">New</button>
+          </div>
+          <div class="quick-session-list" id="sessionList"></div>
+        </aside>
+
+        <section class="quick-study-main">
+          <div class="quick-study-toolbar">
+            <div>
+              <h2 id="sessionTitle">Choose a session</h2>
+              <p id="sessionMeta">Upload PDFs to begin.</p>
+            </div>
+            <form id="uploadForm" class="upload-form">
+              <input id="pdfFiles" name="files" type="file" accept="application/pdf,.pdf" multiple />
+              <button type="submit" class="btn primary">Upload PDFs</button>
+            </form>
+          </div>
+
+          <div class="quick-documents" id="documentList"></div>
+
+          <div class="quick-chat-history" id="chatHistory">
+            <p class="empty-state">Your chat history will appear here.</p>
+          </div>
+
+          <form id="chatForm" class="quick-chat-form">
+            <input id="chatInput" type="text" placeholder="Ask about your PDFs..." autocomplete="off" />
+            <button type="submit" class="btn primary">Ask</button>
+          </form>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="/frontend/app/quick_study.js"></script>
+</body>
+</html>

@@ -112,6 +112,7 @@ const learnerEmail = localStorage.getItem("adaptiveTutorLearnerEmail");
 const preview = readScopedJSON("adaptiveTutorAssessmentPreview", learnerEmail);
 const subject = readScopedJSON("adaptiveTutorActiveSubject", learnerEmail);
 const studyFlow = readScopedJSON("adaptiveTutorStudyFlow", learnerEmail);
+const topicGrounding = readScopedJSON("adaptiveTutorTopicGrounding", learnerEmail);
 
 if (!preview) {
   window.location.href = "/frontend/subject_topic_entry.html";
@@ -141,6 +142,7 @@ diagnosticForm.addEventListener("submit", async (event) => {
         topic: preview.topic || subject?.subject_name || "",
         level: preview.level || "beginner",
         study_mode: studyFlow?.study_mode || "roadmap",
+        topic_grounding: topicGrounding || null,
         questions: preview.questions || [],
         answers: collectAnswers(preview)
       })
