@@ -643,17 +643,7 @@ def update_concept_mastery_after_response(conn, attempt, question, is_correct):
         bkt_guess = _clamp(row["bkt_guess"] if row["bkt_guess"] is not None else BKT_DEFAULT_GUESS)
         bkt_slip = _clamp(row["bkt_slip"] if row["bkt_slip"] is not None else BKT_DEFAULT_SLIP)
     else:
-        context = load_adaptive_quiz_context(
-            conn,
-            attempt["learner_id"],
-            attempt["subject_id"],
-            attempt["path_id"],
-            attempt["step_id"],
-        )
-        baseline = context.get("mastery_probability")
-        if baseline is None:
-            baseline = context.get("mastery_score")
-        prior = _clamp(baseline) if baseline is not None else BKT_DEFAULT_PRIOR
+        prior = BKT_DEFAULT_PRIOR
         mastery_id = str(uuid.uuid4())
         evidence_count = 0
         bkt_prior = prior
