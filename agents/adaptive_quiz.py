@@ -842,20 +842,33 @@ def start_adaptive_quiz(conn, learner_id, subject_id, path_id, step_id):
         (attempt_id, learner_id, subject_id, path_id, step_id, starting_difficulty, starting_difficulty),
     )
 
-    question = generate_adaptive_question(
-        topic=context["step_title"],
-        step_title=context["step_title"],
-        step_description=context["step_description"],
-        preview_terms=context.get("preview_terms") or [],
-        difficulty=starting_difficulty,
-        previous_questions=[],
-    )
-    if not question or not question.get("question"):
-        raise RuntimeError("Failed to generate the first adaptive question")
-    if not question.get("options") or not question.get("correct_answer"):
-        raise RuntimeError("Generated adaptive question is incomplete")
+    # question = generate_adaptive_question(
+    #     topic=context["step_title"],
+    #     step_title=context["step_title"],
+    #     step_description=context["step_description"],
+    #     preview_terms=context.get("preview_terms") or [],
+    #     difficulty=starting_difficulty,
+    #     previous_questions=[],
+    # )
+    # if not question or not question.get("question"):
+    #     raise RuntimeError("Failed to generate the first adaptive question")
+    # if not question.get("options") or not question.get("correct_answer"):
+    #     raise RuntimeError("Generated adaptive question is incomplete")
 
-    question_id = save_generated_question(conn, attempt_id, question, starting_difficulty)
+    # question_id = save_generated_question(conn, attempt_id, question, starting_difficulty)
+    # return {
+    #     "attempt_id": attempt_id,
+    #     "quiz_type": "adaptive",
+    #     "step": _step_payload(context),
+    #     "quiz_length": ADAPTIVE_QUIZ_LENGTH,
+    #     "starting_difficulty": starting_difficulty,
+    #     "questions_answered": 0,
+    #     "question": public_question_from_row(question),
+    # }
+    question = select_next_bank_question(conn, attempt_id, step_id, starting_difficulty)
+    if not question:
+        raise RuntimeError("No calibrated adaptive quiz questions are available for this step")
+
     return {
         "attempt_id": attempt_id,
         "quiz_type": "adaptive",
@@ -1028,20 +1041,23 @@ def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_
             (attempt_id,),
         ).fetchall()
     ]
-    next_question = generate_adaptive_question(
-        topic=context["step_title"],
-        step_title=context["step_title"],
-        step_description=context["step_description"],
-        preview_terms=context.get("preview_terms") or [],
-        difficulty=next_difficulty,
-        previous_questions=previous_questions,
-    )
-    if not next_question or not next_question.get("question"):
-        raise RuntimeError("Failed to generate the next adaptive question")
-    if not next_question.get("options") or not next_question.get("correct_answer"):
-        raise RuntimeError("Generated adaptive question is incomplete")
+    # next_question = generate_adaptive_question(
+    #     topic=context["step_title"],
+    #     step_title=context["step_title"],
+    #     step_description=context["step_description"],
+    #     preview_terms=context.get("preview_terms") or [],
+    #     difficulty=next_difficulty,
+    #     previous_questions=previous_questions,
+    # )
+    # if not next_question or not next_question.get("question"):
+    #     raise RuntimeError("Failed to generate the next adaptive question")
+    # if not next_question.get("options") or not next_question.get("correct_answer"):
+    #     raise RuntimeError("Generated adaptive question is incomplete")
 
-    next_question_id = save_generated_question(conn, attempt_id, next_question, next_difficulty)
+    next_question = select_next_bank_question(conn, attempt_id, attempt["step_id"], next_difficulty)
+    if not next_question:
+        raise RuntimeError("No unused calibrated adaptive quiz questions are available for this step")
+
     return {
         "attempt_id": attempt_id,
         "feedback": {
