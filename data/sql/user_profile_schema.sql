@@ -266,12 +266,24 @@ CREATE TABLE IF NOT EXISTS quiz_responses (
 
 CREATE TABLE IF NOT EXISTS quiz_questions (
     question_id TEXT PRIMARY KEY NOT NULL,
-    attempt_id TEXT NOT NULL,
+    attempt_id TEXT,
+    subject_id TEXT,
+    path_id TEXT,
+    step_id TEXT,
+    topic TEXT,
+    concept TEXT,
     question_text TEXT NOT NULL,
     options_json TEXT NOT NULL,
     correct_answer TEXT NOT NULL,
     explanation TEXT,
     difficulty_level TEXT NOT NULL,
+    bloom_level TEXT,
+    concept_count INTEGER,
+    reasoning_steps INTEGER,
+    difficulty_score REAL,
+    calibrated_difficulty TEXT,
+    question_source TEXT NOT NULL DEFAULT 'adaptive_bank',
+    is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (attempt_id)
         REFERENCES quiz_attempts(attempt_id)
@@ -289,6 +301,26 @@ ON quiz_attempts (learner_id, subject_id);
 
 CREATE INDEX IF NOT EXISTS idx_quiz_responses_attempt_id
 ON quiz_responses (attempt_id);
+
+CREATE TABLE IF NOT EXISTS concept_mastery (
+    mastery_id TEXT PRIMARY KEY NOT NULL,
+    learner_id TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    step_id TEXT NOT NULL,
+    concept TEXT NOT NULL,
+    mastery_probability REAL NOT NULL DEFAULT 0.5,
+    evidence_count INTEGER NOT NULL DEFAULT 0,
+    correct_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (learner_id, subject_id, step_id, concept),
+    FOREIGN KEY (learner_id) REFERENCES learners(learner_id) ON DELETE CASCADE,
+    FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
+    FOREIGN KEY (step_id) REFERENCES learning_path_steps(step_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_concept_mastery_learner_step
+ON concept_mastery (learner_id, subject_id, step_id);
 
 CREATE TABLE IF NOT EXISTS study_requests (
     request_id TEXT PRIMARY KEY NOT NULL,
