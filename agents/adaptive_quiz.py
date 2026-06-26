@@ -1050,7 +1050,7 @@ def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_
     #     previous_questions=previous_questions,
     # )
     # if not next_question or not next_question.get("question"):
-    #     raise RuntimeError("Failed to generate the next adaptive question")
+    #     raise RuntimeError("Failed to generate the next adaptive question")git chec
     # if not next_question.get("options") or not next_question.get("correct_answer"):
     #     raise RuntimeError("Generated adaptive question is incomplete")
 
