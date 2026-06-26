@@ -20,6 +20,10 @@ DIFFICULTIES = ["easy", "medium", "hard"]
 ADAPTIVE_QUIZ_LENGTH = 15
 QUESTIONS_PER_PREVIEW_TERM = 5
 PASS_THRESHOLD = 0.80
+BKT_DEFAULT_PRIOR = 0.25
+BKT_DEFAULT_TRANSIT = 0.12
+BKT_DEFAULT_GUESS = 0.20
+BKT_DEFAULT_SLIP = 0.10
 BLOOM_SCORES = {
     "remember": 1,
     "understand": 2,
@@ -70,6 +74,23 @@ def _safe_int(value, default=0):
 
 def _clamp(value, low=0.0, high=1.0):
     return max(low, min(high, float(value)))
+
+
+def _bkt_update(prior, is_correct, transit=BKT_DEFAULT_TRANSIT, guess=BKT_DEFAULT_GUESS, slip=BKT_DEFAULT_SLIP):
+    prior = _clamp(prior)
+    transit = _clamp(transit)
+    guess = _clamp(guess, 0.01, 0.99)
+    slip = _clamp(slip, 0.01, 0.99)
+
+    if is_correct:
+        numerator = prior * (1.0 - slip)
+        denominator = numerator + ((1.0 - prior) * guess)
+    else:
+        numerator = prior * slip
+        denominator = numerator + ((1.0 - prior) * (1.0 - guess))
+
+    posterior_given_response = numerator / denominator if denominator else prior
+    return _clamp(posterior_given_response + ((1.0 - posterior_given_response) * transit))
 
 
 def calculate_difficulty_score(bloom_level, concept_count, reasoning_steps):
@@ -605,7 +626,8 @@ def update_concept_mastery_after_response(conn, attempt, question, is_correct):
 
     row = conn.execute(
         """
-        SELECT mastery_id, mastery_probability, evidence_count
+        SELECT mastery_id, mastery_probability, evidence_count,
+               bkt_prior, bkt_transit, bkt_guess, bkt_slip
         FROM concept_mastery
         WHERE learner_id = ? AND subject_id = ? AND step_id = ? AND concept = ?
         LIMIT 1
@@ -616,6 +638,10 @@ def update_concept_mastery_after_response(conn, attempt, question, is_correct):
         prior = _clamp(row["mastery_probability"])
         mastery_id = row["mastery_id"]
         evidence_count = int(row["evidence_count"] or 0)
+        bkt_prior = _clamp(row["bkt_prior"] if row["bkt_prior"] is not None else BKT_DEFAULT_PRIOR)
+        bkt_transit = _clamp(row["bkt_transit"] if row["bkt_transit"] is not None else BKT_DEFAULT_TRANSIT)
+        bkt_guess = _clamp(row["bkt_guess"] if row["bkt_guess"] is not None else BKT_DEFAULT_GUESS)
+        bkt_slip = _clamp(row["bkt_slip"] if row["bkt_slip"] is not None else BKT_DEFAULT_SLIP)
     else:
         context = load_adaptive_quiz_context(
             conn,
@@ -627,23 +653,31 @@ def update_concept_mastery_after_response(conn, attempt, question, is_correct):
         baseline = context.get("mastery_probability")
         if baseline is None:
             baseline = context.get("mastery_score")
-        prior = _clamp(baseline) if baseline is not None else 0.5
+        prior = _clamp(baseline) if baseline is not None else BKT_DEFAULT_PRIOR
         mastery_id = str(uuid.uuid4())
         evidence_count = 0
+        bkt_prior = prior
+        bkt_transit = BKT_DEFAULT_TRANSIT
+        bkt_guess = BKT_DEFAULT_GUESS
+        bkt_slip = BKT_DEFAULT_SLIP
 
-    posterior = prior + (0.18 * (1.0 - prior)) if is_correct else prior - (0.22 * prior)
-    posterior = round(_clamp(posterior), 4)
+    posterior = round(_bkt_update(prior, is_correct, bkt_transit, bkt_guess, bkt_slip), 4)
     conn.execute(
         """
         INSERT INTO concept_mastery (
             mastery_id, learner_id, subject_id, step_id, concept,
-            mastery_probability, evidence_count, correct_count, updated_at
+            mastery_probability, evidence_count, correct_count,
+            bkt_prior, bkt_transit, bkt_guess, bkt_slip, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, 1, ?, datetime('now'))
+        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, datetime('now'))
         ON CONFLICT(learner_id, subject_id, step_id, concept) DO UPDATE SET
             mastery_probability = excluded.mastery_probability,
             evidence_count = concept_mastery.evidence_count + 1,
             correct_count = concept_mastery.correct_count + excluded.correct_count,
+            bkt_prior = excluded.bkt_prior,
+            bkt_transit = excluded.bkt_transit,
+            bkt_guess = excluded.bkt_guess,
+            bkt_slip = excluded.bkt_slip,
             updated_at = datetime('now')
         """,
         (
@@ -654,12 +688,23 @@ def update_concept_mastery_after_response(conn, attempt, question, is_correct):
             concept,
             posterior,
             int(is_correct),
+            bkt_prior,
+            bkt_transit,
+            bkt_guess,
+            bkt_slip,
         ),
     )
     return {
         "concept": concept,
+        "prior_mastery_probability": round(prior, 4),
         "mastery_probability": posterior,
         "evidence_count": evidence_count + 1,
+        "bkt_parameters": {
+            "prior": round(bkt_prior, 4),
+            "transit": round(bkt_transit, 4),
+            "guess": round(bkt_guess, 4),
+            "slip": round(bkt_slip, 4),
+        },
     }
 
 
@@ -808,7 +853,36 @@ def start_adaptive_quiz(conn, learner_id, subject_id, path_id, step_id):
         (learner_id, subject_id, path_id, step_id),
     ).fetchone()
     if existing_attempt:
-        raise ValueError("An adaptive quiz is already in progress for this step")
+        attempt_id = existing_attempt["attempt_id"]
+        attempt = conn.execute(
+            """
+            SELECT difficulty_level, total_questions
+            FROM quiz_attempts
+            WHERE attempt_id = ?
+            LIMIT 1
+            """,
+            (attempt_id,),
+        ).fetchone()
+        target_difficulty = _normalize_difficulty(
+            attempt["difficulty_level"] if attempt else None,
+            determine_starting_difficulty(
+                {"current_level": context.get("current_level")},
+                context.get("mastery_probability") if context.get("mastery_probability") is not None else context.get("mastery_score"),
+            ),
+        )
+        question = select_next_bank_question(conn, attempt_id, step_id, target_difficulty)
+        if not question:
+            raise RuntimeError("No unused calibrated adaptive quiz questions are available for this in-progress quiz")
+        return {
+            "attempt_id": attempt_id,
+            "quiz_type": "adaptive",
+            "step": _step_payload(context),
+            "quiz_length": ADAPTIVE_QUIZ_LENGTH,
+            "starting_difficulty": target_difficulty,
+            "questions_answered": int(attempt["total_questions"] or 0) if attempt else 0,
+            "question": public_question_from_row(question),
+            "resumed": True,
+        }
 
     ensure_calibrated_question_bank(conn, context)
 

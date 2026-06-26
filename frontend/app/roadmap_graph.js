@@ -3,12 +3,14 @@ const API_BASE = "http://localhost:8001";
 const graphTitle = document.getElementById("graphTitle");
 const graphSubtitle = document.getElementById("graphSubtitle");
 const graphSummary = document.getElementById("graphSummary");
+const mermaidGraph = document.getElementById("mermaidGraph");
 const graphImage = document.getElementById("graphImage");
 const graphOrderList = document.getElementById("graphOrderList");
 const graphNodes = document.getElementById("graphNodes");
 const graphEdges = document.getElementById("graphEdges");
 
 const TIER_LABELS = ["Foundational", "Core build", "Advanced application"];
+let mermaidInitialized = false;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -179,6 +181,98 @@ function buildTopicGraph(graph) {
   return { nodes, edges, orderedSteps };
 }
 
+function mermaidSafeId(value) {
+  return `node_${String(value || "unknown").replace(/[^a-zA-Z0-9_]/g, "_")}`;
+}
+
+function mermaidSafeLabel(value) {
+  return String(value || "")
+    .replaceAll('"', "&quot;")
+    .replaceAll("\n", " ")
+    .trim();
+}
+
+function buildMermaidDefinition(graph) {
+  const topicGraph = buildTopicGraph(graph);
+  if (!topicGraph.nodes.length) {
+    return 'flowchart LR\nempty["No graph nodes available"]';
+  }
+
+  const classByTier = {
+    0: "foundation",
+    1: "core",
+    2: "advanced",
+  };
+  const nodesByTier = new Map([[0, []], [1, []], [2, []]]);
+  topicGraph.nodes.forEach((node) => {
+    const tier = Number(node.tier || 0);
+    if (!nodesByTier.has(tier)) nodesByTier.set(tier, []);
+    nodesByTier.get(tier).push(node);
+  });
+
+  const lines = [
+    "flowchart LR",
+    "classDef foundation fill:#e7faf3,stroke:#9ad8bd,color:#16323b,stroke-width:2px;",
+    "classDef core fill:#eef2ff,stroke:#c7d2fe,color:#1f2a44,stroke-width:2px;",
+    "classDef advanced fill:#fff4ed,stroke:#fdba74,color:#4a2c18,stroke-width:2px;",
+  ];
+
+  [0, 1, 2].forEach((tier) => {
+    const tierNodes = nodesByTier.get(tier) || [];
+    if (!tierNodes.length) return;
+    lines.push(`subgraph tier_${tier}["${TIER_LABELS[tier]}"]`);
+    lines.push("direction TB");
+    tierNodes.forEach((node) => {
+      const nodeId = mermaidSafeId(node.id);
+      const label = `${mermaidSafeLabel(node.label)}<br/><span style='font-size:11px'>Step ${mermaidSafeLabel(node.stepOrder || "?")}</span>`;
+      lines.push(`${nodeId}["${label}"]`);
+    });
+    lines.push("end");
+  });
+
+  topicGraph.edges.forEach((edge) => {
+    lines.push(`${mermaidSafeId(edge.from)} --> ${mermaidSafeId(edge.to)}`);
+  });
+
+  topicGraph.nodes.forEach((node) => {
+    lines.push(`class ${mermaidSafeId(node.id)} ${classByTier[Number(node.tier || 0)] || "foundation"};`);
+  });
+
+  return lines.join("\n");
+}
+
+async function renderMermaidGraph(graph) {
+  if (!mermaidGraph) return false;
+  if (!window.mermaid || typeof window.mermaid.render !== "function") {
+    mermaidGraph.innerHTML = `<p class="empty-state">Mermaid could not be loaded, so the fallback graph image is shown instead.</p>`;
+    return false;
+  }
+
+  if (!mermaidInitialized) {
+    window.mermaid.initialize({
+      startOnLoad: false,
+      theme: "base",
+      securityLevel: "loose",
+      flowchart: {
+        htmlLabels: true,
+        useMaxWidth: true,
+        curve: "basis",
+      },
+    });
+    mermaidInitialized = true;
+  }
+
+  try {
+    const { svg } = await window.mermaid.render(`roadmap_mermaid_${Date.now()}`, buildMermaidDefinition(graph));
+    mermaidGraph.innerHTML = svg;
+    graphImage?.classList.add("hidden");
+    return true;
+  } catch (error) {
+    mermaidGraph.innerHTML = `<p class="empty-state">Mermaid graph could not be rendered.</p>`;
+    return false;
+  }
+}
+
 function renderVisualizationImage() {
   if (!graphImage) return;
   const { email, subjectId } = readParams();
@@ -190,6 +284,7 @@ function renderVisualizationImage() {
   const params = new URLSearchParams({ email, subject_id: subjectId });
   graphImage.src = `${API_BASE}/api/roadmap-graph-image?${params.toString()}`;
   graphImage.alt = "Python-generated roadmap graph";
+  graphImage.classList.remove("hidden");
 }
 
 function renderOrder(graph) {
@@ -273,7 +368,10 @@ async function loadGraph() {
   }
 
   renderSummary(data);
-  renderVisualizationImage();
+  const mermaidRendered = await renderMermaidGraph(data.graph || {});
+  if (!mermaidRendered) {
+    renderVisualizationImage();
+  }
   renderOrder(data.graph || {});
   renderNodes(data.graph || {});
   renderEdges(data.graph || {});
@@ -281,6 +379,9 @@ async function loadGraph() {
 
 loadGraph().catch((error) => {
   graphSummary.textContent = error.message;
+  if (mermaidGraph) {
+    mermaidGraph.innerHTML = `<p class="empty-state">Unable to load Mermaid graph.</p>`;
+  }
   if (graphImage) {
     graphImage.removeAttribute("src");
     graphImage.alt = "Unable to load graph visualization";

@@ -55,6 +55,25 @@ def _recommendation(mastery_probability, score):
     return "retry"
 
 
+def _step_concept_mastery_average(conn, learner_id, subject_id, step_id):
+    if not step_id:
+        return None
+    rows = conn.execute(
+        """
+        SELECT mastery_probability
+        FROM concept_mastery
+        WHERE learner_id = ?
+          AND subject_id = ?
+          AND step_id = ?
+        """,
+        (learner_id, subject_id, step_id),
+    ).fetchall()
+    probabilities = [_normalize_score(row["mastery_probability"]) for row in rows]
+    if not probabilities:
+        return None
+    return _clamp(sum(probabilities) / len(probabilities))
+
+
 def _load_attempt_bundle(conn, attempt_id):
     attempt = conn.execute(
         """
@@ -186,12 +205,21 @@ def update_mastery_after_quiz(conn, attempt_id):
         current_mastery = bundle.get("mastery_score")
     current_mastery = _normalize_score(current_mastery)
 
-    blended_score = (observed_score * 0.7) + (accuracy * 0.3)
-    updated_mastery = _clamp((current_mastery * 0.55) + (blended_score * 0.45))
-    if accuracy >= 0.9:
-        updated_mastery = _clamp(updated_mastery + 0.04)
-    elif accuracy < 0.6:
-        updated_mastery = _clamp(updated_mastery - 0.06)
+    concept_mastery_average = _step_concept_mastery_average(
+        conn,
+        bundle["learner_id"],
+        bundle["subject_id"],
+        bundle.get("step_id"),
+    )
+    if concept_mastery_average is not None:
+        updated_mastery = concept_mastery_average
+    else:
+        blended_score = (observed_score * 0.7) + (accuracy * 0.3)
+        updated_mastery = _clamp((current_mastery * 0.55) + (blended_score * 0.45))
+        if accuracy >= 0.9:
+            updated_mastery = _clamp(updated_mastery + 0.04)
+        elif accuracy < 0.6:
+            updated_mastery = _clamp(updated_mastery - 0.06)
 
     review_days = _review_window_days(updated_mastery, accuracy)
     review_due_at = _iso(_utc_now() + timedelta(days=review_days))

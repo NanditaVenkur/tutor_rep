@@ -1,10 +1,8 @@
 const API_BASE = "http://localhost:8001";
 const diagnosticForm = document.getElementById("diagnosticForm");
 const diagnosticQuestions = document.getElementById("diagnosticQuestions");
-const diagnosticContext = document.getElementById("diagnosticContext");
 const diagnosticMeta = document.getElementById("diagnosticMeta");
 const quizSubtitle = document.getElementById("quizSubtitle");
-const backToDashboard = document.getElementById("backToDashboard");
 
 function readJSON(key) {
   try {
@@ -51,10 +49,6 @@ function renderQuiz(preview) {
     <div><strong>Topic</strong><span>${escapeHTML(topic)}</span></div>
     <div><strong>Level</strong><span>${escapeHTML(level)}</span></div>
     <div><strong>Questions</strong><span>${questions.length}</span></div>
-  `;
-  diagnosticContext.innerHTML = `
-    <h2>Context</h2>
-    <p>${escapeHTML(preview?.context || "No context available.")}</p>
   `;
 
   if (!questions.length) {
@@ -120,10 +114,6 @@ if (!preview) {
 }
 
 renderQuiz(preview);
-
-backToDashboard.addEventListener("click", () => {
-  window.location.href = "/frontend/dashboard.html";
-});
 
 diagnosticForm.addEventListener("submit", async (event) => {
   event.preventDefault();

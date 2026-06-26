@@ -65,7 +65,7 @@ function renderQuestion(question, answered = 0) {
   form.classList.remove("hidden");
   submitButton.classList.remove("hidden");
   submitButton.disabled = false;
-  submitButton.textContent = isLastQuestion(answered) ? "Submit" : "Next";
+  submitButton.textContent = "Submit";
   subtitle.textContent = session.step_title || "Adaptive practice";
   renderMeta(question, answered);
   questionNode.textContent = question.question || "Question unavailable";
@@ -170,7 +170,7 @@ form.addEventListener("submit", async (event) => {
         <p><strong>Roadmap:</strong> ${roadmap.completed_steps || 0}/${roadmap.total_steps || "?"} steps complete.</p>
         ${nextStep ? `<p><strong>Next step:</strong> ${escapeHTML(nextStep.step_title || "Continue roadmap")}</p>` : "<p><strong>Roadmap complete.</strong></p>"}
       `;
-      continueButton.textContent = "Submit";
+      continueButton.textContent = "Finish";
       continueButton.onclick = () => {
         window.location.href = "/frontend/dashboard.html";
       };
@@ -187,7 +187,7 @@ form.addEventListener("submit", async (event) => {
       session.preview_terms = data.step.preview_terms || session.preview_terms;
     }
     saveSession();
-    continueButton.textContent = isLastQuestion(session.questions_answered) ? "Submit" : "Next";
+    continueButton.textContent = "Next";
     continueButton.onclick = () => renderQuestion(session.question, session.questions_answered);
   } catch (error) {
     submitButton.classList.remove("hidden");

@@ -202,6 +202,20 @@ def ensure_runtime_migrations(conn):
         conn.execute("ALTER TABLE learning_path_steps ADD COLUMN preview_terms TEXT")
     if "prerequisite_step_ids" not in columns:
         conn.execute("ALTER TABLE learning_path_steps ADD COLUMN prerequisite_step_ids TEXT")
+
+    concept_mastery_columns = {
+        row["name"]
+        for row in conn.execute("PRAGMA table_info(concept_mastery)").fetchall()
+    }
+    for column_name, column_type in (
+        ("bkt_prior", "REAL NOT NULL DEFAULT 0.25"),
+        ("bkt_transit", "REAL NOT NULL DEFAULT 0.12"),
+        ("bkt_guess", "REAL NOT NULL DEFAULT 0.2"),
+        ("bkt_slip", "REAL NOT NULL DEFAULT 0.1"),
+    ):
+        if column_name not in concept_mastery_columns:
+            conn.execute(f"ALTER TABLE concept_mastery ADD COLUMN {column_name} {column_type}")
+
     conn.executescript(
         """
         CREATE TABLE IF NOT EXISTS quick_study_sessions (

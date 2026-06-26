@@ -24,7 +24,8 @@
         <article class="detail-panel detail-panel-wide">
           <h3>Graph visualization</h3>
           <div class="content-box" id="graphCanvasWrap">
-            <img id="graphImage" alt="Roadmap graph visualization" style="width: 100%; display: block; border-radius: 18px;" />
+            <div class="mermaid-graph" id="mermaidGraph">Loading Mermaid graph...</div>
+            <img id="graphImage" class="hidden" alt="Roadmap graph visualization" style="width: 100%; display: block; border-radius: 18px;" />
           </div>
         </article>
 
@@ -51,6 +52,7 @@
     </section>
   </main>
 
-  <script src="/frontend/app/roadmap_graph.js?v=3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script src="/frontend/app/roadmap_graph.js?v=4"></script>
 </body>
 </html>

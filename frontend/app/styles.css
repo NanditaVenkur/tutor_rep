@@ -1513,6 +1513,18 @@ textarea:focus {
   grid-column: 1 / -1;
 }
 
+.mermaid-graph {
+  min-height: 320px;
+  overflow-x: auto;
+  padding: 8px;
+}
+
+.mermaid-graph svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .step-accordion {
   border: 1px solid var(--line);
   border-radius: 22px;

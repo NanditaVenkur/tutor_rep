@@ -258,13 +258,12 @@ function renderQuizPanel(step, quizInfo, isCurrentStep) {
           <span class="step-section-label">Quiz</span>
           <span class="step-section-chip">No quiz yet</span>
         </div>
-        <p class="step-section-text">This step has not been practiced yet.</p>
+        <p class="step-section-text">Take the quiz for this step to unlock the review summary.</p>
       </div>
     `;
   }
 
   const attempt = quizInfo.attempt;
-  const responses = quizInfo.responses || [];
   const reviewHref = `/frontend/quiz_summary.html?attempt_id=${encodeURIComponent(attempt.attempt_id)}`;
   return `
     <div class="step-section">
@@ -272,21 +271,9 @@ function renderQuizPanel(step, quizInfo, isCurrentStep) {
         <span class="step-section-label">Quiz</span>
         <span class="step-section-chip">${escapeHtml(formatQuizSummary(attempt))}</span>
       </div>
-      <p class="step-section-text">
-        ${isCurrentStep ? "Latest quiz for this step." : "Most recent quiz attempt for this step."}
-      </p>
-      <div style="margin-bottom: 12px;">
+      <div>
         <a class="btn secondary dashboard-link" href="${reviewHref}">Review summary</a>
       </div>
-      <ul class="step-response-list">
-        ${responses.length ? responses.map((response) => `
-          <li class="step-response-item ${response.is_correct ? "correct" : "incorrect"}">
-            <strong>${escapeHtml(response.is_correct ? "Correct" : "Incorrect")}</strong>
-            <span>${escapeHtml(response.question_text || "Question")}</span>
-            <span class="step-response-answer">${escapeHtml(response.selected_answer || "No answer")}</span>
-          </li>
-        `).join("") : "<li class=\"step-response-item muted\">No answer details available.</li>"}
-      </ul>
     </div>
   `;
 }
