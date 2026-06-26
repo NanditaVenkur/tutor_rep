@@ -300,27 +300,24 @@ def save_learner_preferences(input_str: str) -> str:
     if existing:
         conn.execute(
             """UPDATE learner_preferences
-               SET content_format = ?, explanation_style = ?, quiz_style = ?, learning_pace = ?, session_length = ?, feedback_style = ?, accessibility_notes = ?, updated_at = datetime('now')
+               SET explanation_style = ?, quiz_style = ?,  feedback_style = ?, accessibility_notes = ?, updated_at = datetime('now')
                WHERE learner_id = ?""",
-            (content_format, explanation_style, quiz_style, learning_pace, session_length, feedback_style, accessibility_notes, learner_id),
+            (explanation_style, quiz_style, feedback_style, accessibility_notes, learner_id),
         )
     else:
         conn.execute(
             """INSERT INTO learner_preferences
-               (preference_id, learner_id, content_format, explanation_style, quiz_style, learning_pace, session_length, feedback_style, accessibility_notes)
+               (preference_id, learner_id, explanation_style, quiz_style, feedback_style, accessibility_notes)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (str(uuid.uuid4()), learner_id, content_format, explanation_style, quiz_style, learning_pace, session_length, feedback_style, accessibility_notes),
+            (str(uuid.uuid4()), learner_id, explanation_style, quiz_style, feedback_style, accessibility_notes),
         )
 
     conn.commit()
     conn.close()
 
     SESSION.preferences = {
-        "content_format": content_format,
         "explanation_style": explanation_style,
         "quiz_style": quiz_style,
-        "learning_pace": learning_pace,
-        "session_length": session_length,
         "feedback_style": feedback_style,
         "accessibility_notes": accessibility_notes,
     }

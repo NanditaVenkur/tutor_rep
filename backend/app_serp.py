@@ -48,149 +48,27 @@ def init_db():
     with get_connection() as conn:
         conn.executescript(schema)
         ensure_runtime_migrations(conn)
+        existing_attempt_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(quiz_attempts)")
+        }
+        for column_name in ("starting_difficulty", "ending_difficulty"):
+            if column_name not in existing_attempt_columns:
+                conn.execute(f"ALTER TABLE quiz_attempts ADD COLUMN {column_name} TEXT")
+
+        existing_response_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(quiz_responses)")
+        }
+        for column_name, column_type in (
+            ("question_difficulty", "TEXT"),
+            ("difficulty_after", "TEXT"),
+            ("explanation", "TEXT"),
+            ("options_json", "TEXT"),
+        ):
+            if column_name not in existing_response_columns:
+                conn.execute(
+                    f"ALTER TABLE quiz_responses ADD COLUMN {column_name} {column_type}"
+                )
         conn.commit()
-
-
-def ensure_runtime_migrations(conn):
-    step_columns = {
-        row["name"]
-        for row in conn.execute("PRAGMA table_info(learning_path_steps)").fetchall()
-    }
-    if "preview_terms" not in step_columns:
-        conn.execute("ALTER TABLE learning_path_steps ADD COLUMN preview_terms TEXT")
-
-    existing_attempt_columns = {
-        row["name"] for row in conn.execute("PRAGMA table_info(quiz_attempts)")
-    }
-    for column_name in ("starting_difficulty", "ending_difficulty"):
-        if column_name not in existing_attempt_columns:
-            conn.execute(f"ALTER TABLE quiz_attempts ADD COLUMN {column_name} TEXT")
-
-    existing_response_columns = {
-        row["name"] for row in conn.execute("PRAGMA table_info(quiz_responses)")
-    }
-    for column_name, column_type in (
-        ("question_difficulty", "TEXT"),
-        ("difficulty_after", "TEXT"),
-        ("explanation", "TEXT"),
-    ):
-        if column_name not in existing_response_columns:
-            conn.execute(f"ALTER TABLE quiz_responses ADD COLUMN {column_name} {column_type}")
-
-    migrate_quiz_questions_table(conn)
-
-
-def migrate_quiz_questions_table(conn):
-    table_info = conn.execute("PRAGMA table_info(quiz_questions)").fetchall()
-    if not table_info:
-        return
-
-    columns = {row["name"] for row in table_info}
-    attempt_id_is_not_null = any(row["name"] == "attempt_id" and int(row["notnull"] or 0) == 1 for row in table_info)
-    required_columns = {
-        "subject_id": "TEXT",
-        "path_id": "TEXT",
-        "step_id": "TEXT",
-        "topic": "TEXT",
-        "concept": "TEXT",
-        "bloom_level": "TEXT",
-        "concept_count": "INTEGER",
-        "reasoning_steps": "INTEGER",
-        "difficulty_score": "REAL",
-        "calibrated_difficulty": "TEXT",
-        "question_source": "TEXT NOT NULL DEFAULT 'adaptive_bank'",
-        "is_active": "INTEGER NOT NULL DEFAULT 1",
-    }
-
-    if attempt_id_is_not_null:
-        conn.execute("PRAGMA foreign_keys = OFF")
-        conn.execute("ALTER TABLE quiz_questions RENAME TO quiz_questions_old")
-        conn.execute(
-            """
-            CREATE TABLE quiz_questions (
-                question_id TEXT PRIMARY KEY NOT NULL,
-                attempt_id TEXT,
-                subject_id TEXT,
-                path_id TEXT,
-                step_id TEXT,
-                topic TEXT,
-                concept TEXT,
-                question_text TEXT NOT NULL,
-                options_json TEXT NOT NULL,
-                correct_answer TEXT NOT NULL,
-                explanation TEXT,
-                difficulty_level TEXT NOT NULL,
-                bloom_level TEXT,
-                concept_count INTEGER,
-                reasoning_steps INTEGER,
-                difficulty_score REAL,
-                calibrated_difficulty TEXT,
-                question_source TEXT NOT NULL DEFAULT 'adaptive_bank',
-                is_active INTEGER NOT NULL DEFAULT 1,
-                created_at TEXT NOT NULL DEFAULT (datetime('now')),
-                FOREIGN KEY (attempt_id)
-                    REFERENCES quiz_attempts(attempt_id)
-                    ON DELETE CASCADE
-            )
-            """
-        )
-        old_columns = {row["name"] for row in conn.execute("PRAGMA table_info(quiz_questions_old)").fetchall()}
-        selectable_columns = [
-            "question_id",
-            "attempt_id",
-            "question_text",
-            "options_json",
-            "correct_answer",
-            "explanation",
-            "difficulty_level",
-            "created_at",
-        ]
-        insert_columns = [column for column in selectable_columns if column in old_columns]
-        conn.execute(
-            f"""
-            INSERT INTO quiz_questions ({', '.join(insert_columns)})
-            SELECT {', '.join(insert_columns)}
-            FROM quiz_questions_old
-            """
-        )
-        conn.execute(
-            """
-            UPDATE quiz_questions
-            SET calibrated_difficulty = COALESCE(calibrated_difficulty, difficulty_level),
-                question_source = COALESCE(question_source, 'attempt_generated'),
-                is_active = COALESCE(is_active, 1)
-            """
-        )
-        conn.execute("DROP TABLE quiz_questions_old")
-        conn.execute("PRAGMA foreign_keys = ON")
-        return
-
-    for column_name, column_type in required_columns.items():
-        if column_name not in columns:
-            conn.execute(f"ALTER TABLE quiz_questions ADD COLUMN {column_name} {column_type}")
-
-    conn.execute(
-        """
-        UPDATE quiz_questions
-        SET calibrated_difficulty = COALESCE(calibrated_difficulty, difficulty_level),
-            question_source = COALESCE(question_source, 'adaptive_bank'),
-            is_active = COALESCE(is_active, 1)
-        """
-    )
-    existing_response_columns = {
-        row["name"] for row in conn.execute("PRAGMA table_info(quiz_responses)")
-    }
-    for column_name, column_type in (
-        ("question_difficulty", "TEXT"),
-        ("difficulty_after", "TEXT"),
-        ("explanation", "TEXT"),
-        ("options_json", "TEXT"),
-    ):
-        if column_name not in existing_response_columns:
-            conn.execute(
-                f"ALTER TABLE quiz_responses ADD COLUMN {column_name} {column_type}"
-            )
-    conn.commit()
 
 
 def ensure_runtime_migrations(conn):
@@ -1143,8 +1021,11 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
         """
         SELECT
             learner_id,
+            content_format,
             explanation_style,
             quiz_style,
+            learning_pace,
+            session_length,
             feedback_style,
             accessibility_notes,
             updated_at
@@ -2546,8 +2427,11 @@ class RequestHandler(BaseHTTPRequestHandler):
                     l.age_group,
                     l.role,
                     l.preferred_language,
+                    p.content_format,
                     p.explanation_style,
                     p.quiz_style,
+                    p.learning_pace,
+                    p.session_length,
                     p.feedback_style,
                     p.accessibility_notes
                 FROM learners l

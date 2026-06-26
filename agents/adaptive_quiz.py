@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import random as _random
 import re
@@ -17,17 +18,31 @@ SCHEMA_PATH = PROJECT_ROOT / "data" / "sql" / "user_profile_schema.sql"
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 DIFFICULTIES = ["easy", "medium", "hard"]
 ADAPTIVE_QUIZ_LENGTH = 15
+QUESTIONS_PER_PREVIEW_TERM = 5
 PASS_THRESHOLD = 0.80
+BLOOM_SCORES = {
+    "remember": 1,
+    "understand": 2,
+    "apply": 3,
+    "analyze": 4,
+    "evaluate": 4,
+    "create": 4,
+}
+DIFFICULTY_SCORE_RANGES = {
+    "easy": 1.5,
+    "medium": 2.5,
+    "hard": 3.5,
+}
 
 LLM = None
 
 
 def _normalize_options(options):
     if isinstance(options, dict):
-        return options
+        return {str(key).strip().upper(): str(value).strip() for key, value in options.items() if str(value or "").strip()}
     if isinstance(options, list):
         letters = ["A", "B", "C", "D"]
-        return {letters[i] if i < len(letters) else chr(65 + i): str(opt) for i, opt in enumerate(options)}
+        return {letters[i] if i < len(letters) else chr(65 + i): str(opt).strip() for i, opt in enumerate(options) if str(opt or "").strip()}
     if isinstance(options, str):
         return {"A": options}
     return {}
@@ -39,6 +54,38 @@ def _canonicalize_text(value):
 
 def _normalize_text(value):
     return " ".join(str(value or "").strip().split())
+
+
+def _normalize_difficulty(value, default="medium"):
+    normalized = _normalize_text(value).lower()
+    return normalized if normalized in DIFFICULTIES else default
+
+
+def _safe_int(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _clamp(value, low=0.0, high=1.0):
+    return max(low, min(high, float(value)))
+
+
+def calculate_difficulty_score(bloom_level, concept_count, reasoning_steps):
+    bloom = BLOOM_SCORES.get(_normalize_text(bloom_level).lower(), 3)
+    concepts = max(1, min(_safe_int(concept_count, 1), 4))
+    reasoning = max(1, min(_safe_int(reasoning_steps, 1), 4))
+    return round((0.40 * bloom) + (0.25 * concepts) + (0.35 * reasoning), 3)
+
+
+def difficulty_label_from_score(score):
+    score = float(score)
+    if score <= 2.0:
+        return "easy"
+    if score <= 3.0:
+        return "medium"
+    return "hard"
 
 
 def _parse_preview_terms(value) -> list[str]:
@@ -53,6 +100,20 @@ def _parse_preview_terms(value) -> list[str]:
     if not isinstance(parsed, list):
         return []
     return [_normalize_text(item) for item in parsed if _normalize_text(item)]
+
+
+def _extract_json(raw):
+    raw = getattr(raw, "content", str(raw)).strip()
+    array_start = raw.find("[")
+    array_end = raw.rfind("]")
+    object_start = raw.find("{")
+    object_end = raw.rfind("}")
+
+    if array_start != -1 and array_end != -1 and (object_start == -1 or array_start < object_start):
+        return json.loads(raw[array_start:array_end + 1])
+    if object_start != -1 and object_end != -1:
+        return json.loads(raw[object_start:object_end + 1])
+    raise ValueError("LLM did not return JSON")
 
 
 def _extract_option_key(raw_value):
@@ -105,9 +166,14 @@ def _normalize_correct_answer(raw_correct_answer, options):
     return upper_correct
 
 
-def _normalize_quiz_question_item(item):
+def _normalize_quiz_question_item(item, topic=None):
+    item = dict(item or {})
+    question_text = item.get("question_text") or item.get("question") or item.get("prompt")
+    item["question"] = _normalize_text(question_text)
     item["options"] = _normalize_options(item.get("options", {}))
     item["correct_answer"] = _normalize_correct_answer(item.get("correct_answer", ""), item["options"])
+    item["explanation"] = _normalize_text(item.get("explanation") or "Explanation not available.")
+    item["concept"] = _normalize_text(item.get("concept") or item.get("concept_tag") or topic or "")
     return item
 
 
@@ -130,8 +196,8 @@ def init_db() -> None:
 
 
 def difficulty_to_index(difficulty):
-    normalized = str(difficulty or "medium").lower()
-    return DIFFICULTIES.index(normalized) if normalized in DIFFICULTIES else 1
+    normalized = _normalize_difficulty(difficulty)
+    return DIFFICULTIES.index(normalized)
 
 
 def adjust_difficulty(current_difficulty, is_correct):
@@ -153,6 +219,7 @@ def determine_starting_difficulty(profile, mastery=None):
     level = str(profile.get("current_level") or "").lower()
     return {
         "beginner": "easy",
+        "new": "easy",
         "intermediate": "medium",
         "advanced": "hard",
     }.get(level, "medium")
@@ -222,6 +289,9 @@ def load_adaptive_quiz_context(conn, learner_id, subject_id, path_id, step_id):
         raise ValueError("The learner, subject, path and step do not belong together")
 
     context = dict(row)
+    preview_terms = _parse_preview_terms(context.get("preview_terms"))
+    if not preview_terms:
+        preview_terms = [_normalize_text(context.get("step_title"))]
     return {
         "learner_id": context["learner_id"],
         "subject_id": context["subject_id"],
@@ -232,234 +302,380 @@ def load_adaptive_quiz_context(conn, learner_id, subject_id, path_id, step_id):
         "total_steps": context.get("total_steps"),
         "step_title": context["step_title"],
         "step_description": context.get("step_description") or "",
-        "preview_terms": _parse_preview_terms(context.get("preview_terms")),
+        "preview_terms": preview_terms,
         "step_status": context.get("step_status"),
         "path_status": context.get("path_status"),
         "current_level": context.get("current_level") or "beginner",
         "mastery_score": context.get("mastery_score"),
         "mastery_probability": context.get("mastery_probability"),
-        # Learner profile personalisation
-        "learner_profile": {
-            "full_name": context.get("full_name") or "",
-            "age_group": context.get("age_group") or "",
-            "role": context.get("role") or "",
-            "quiz_style": context.get("quiz_style") or "mixed",
-            "explanation_style": context.get("explanation_style") or "step_by_step",
-            "feedback_style": context.get("feedback_style") or "immediate",
-            "accessibility_notes": context.get("accessibility_notes") or "",
-        },
     }
 
 
-# ---------------------------------------------------------------------------
-# Quiz format type definitions
-# ---------------------------------------------------------------------------
-_QUIZ_FORMAT_INSTRUCTIONS = {
-    "mcq": {
-        "label": "Multiple Choice (MCQ)",
-        "prompt": (
-            "Generate a standard multiple-choice question with exactly 4 options (A, B, C, D). "
-            "One option must be definitively correct; the others should be plausible distractors. "
-            "Return 'options' as a JSON object with keys A, B, C, D. "
-            "Set 'correct_answer' to the single correct key letter (e.g. 'B')."
-        ),
-    },
-    "true_false": {
-        "label": "True or False",
-        "prompt": (
-            "Generate a True/False question. The question should be a clear declarative statement "
-            "that is either definitively true or definitively false. "
-            "Return 'options' as {\"A\": \"True\", \"B\": \"False\"}. "
-            "Set 'correct_answer' to 'A' if the statement is true, or 'B' if it is false."
-        ),
-    },
-    "statement_1_statement_2": {
-        "label": "Statement 1 / Statement 2",
-        "prompt": (
-            "Generate a Statement 1 / Statement 2 question. Write two numbered statements about the topic. "
-            "The question stem should be: 'Which of the following statements is/are correct?' "
-            "Return 'options' as: "
-            "{\"A\": \"Only Statement 1 is correct\", \"B\": \"Only Statement 2 is correct\", "
-            "\"C\": \"Both statements are correct\", \"D\": \"Neither statement is correct\"}. "
-            "Include both statements clearly in the question text. "
-            "Set 'correct_answer' to the key matching the correct option."
-        ),
-    },
-    "assertion_reasoning": {
-        "label": "Assertion and Reasoning",
-        "prompt": (
-            "Generate an Assertion-Reasoning question. Write one Assertion (A) and one Reason (R) about the topic. "
-            "The question stem should be: 'Consider the Assertion (A) and Reason (R) below.' "
-            "Return 'options' as: "
-            "{\"A\": \"Both A and R are true, and R is the correct explanation of A\", "
-            "\"B\": \"Both A and R are true, but R is not the correct explanation of A\", "
-            "\"C\": \"A is true but R is false\", "
-            "\"D\": \"A is false but R is true\"}. "
-            "Include the Assertion and Reason clearly in the question text. "
-            "Set 'correct_answer' to the key matching the correct option."
-        ),
-    },
-}
-
-
-def _parse_quiz_styles(raw_quiz_style):
-    """Return a list of enabled quiz style keys from the stored value.
-
-    The backend stores quiz_style as either:
-    - a JSON array string: '["mcq","true_false"]'
-    - a plain string: 'mcq'
-    """
-    if not raw_quiz_style:
-        return ["mcq"]
-    if isinstance(raw_quiz_style, list):
-        return [str(s).strip() for s in raw_quiz_style if str(s or "").strip()] or ["mcq"]
-    raw = str(raw_quiz_style).strip()
-    # Try to parse as JSON array
-    if raw.startswith("["):
-        try:
-            parsed = json.loads(raw)
-            if isinstance(parsed, list):
-                return [str(s).strip() for s in parsed if str(s or "").strip()] or ["mcq"]
-        except (json.JSONDecodeError, TypeError):
-            pass
-    return [raw] if raw else ["mcq"]
-
-
-def generate_adaptive_question(
-    topic,
-    step_title,
-    step_description,
-    preview_terms,
-    difficulty,
-    previous_questions=None,
-    learner_profile=None,
-):
-    preview_terms = preview_terms or []
-    preview_terms_text = ", ".join(preview_terms) if preview_terms else step_title
-    learner_profile = learner_profile or {}
-
-    # --- Learner profile fields ---
-    role = (learner_profile.get("role") or "").strip()
-    age_group = (learner_profile.get("age_group") or "").strip()
-    explanation_style = (learner_profile.get("explanation_style") or "step_by_step").strip()
-    accessibility_notes = (learner_profile.get("accessibility_notes") or "").strip()
-    raw_quiz_style = learner_profile.get("quiz_style")
-
-    # Parse quiz_style: stored as JSON array string or plain string
-    enabled_formats = _parse_quiz_styles(raw_quiz_style)
-
-    # Pick a random format from what the learner enabled this question
-    chosen_format_key = _random.choice(enabled_formats)
-    format_info = _QUIZ_FORMAT_INSTRUCTIONS.get(
-        chosen_format_key,
-        _QUIZ_FORMAT_INSTRUCTIONS["mcq"],
-    )
-    format_label = format_info["label"]
-    format_instructions = format_info["prompt"]
-
-    # --- Build learner context block ---
-    learner_context_lines = []
-    if role:
-        learner_context_lines.append(f"- Profession / role: {role}")
-    if age_group:
-        learner_context_lines.append(f"- Age group: {age_group}")
-    if explanation_style:
-        learner_context_lines.append(f"- Preferred explanation style: {explanation_style}")
-    if accessibility_notes:
-        learner_context_lines.append(f"- Special instruction from learner: {accessibility_notes}")
-
-    learner_context_section = (
-        "Learner profile (personalise the question to this learner):\n"
-        + ("\n".join(learner_context_lines) if learner_context_lines else "  (no additional profile information)")
-    )
-
+def generate_questions_for_subtopic(context, subtopic, question_count=QUESTIONS_PER_PREVIEW_TERM):
     prompt = f"""
-        Generate one question of type "{format_label}" for the supplied learning-path step.
+        Generate {question_count} diverse multiple-choice questions for this subtopic.
+        Cover different concepts.
+        Cover different Bloom levels.
+        Do NOT assign difficulty.
+        Return JSON only.
 
-        === FORMAT INSTRUCTIONS ===
-        {format_instructions}
+        Subject/step context:
+        Step title: {context['step_title']}
+        Step description: {context.get('step_description') or ''}
+        Subtopic: {subtopic}
 
-        === CONTENT CONTEXT ===
-        Difficulty: {difficulty}
-        Overall topic: {topic}
-        Current roadmap step: {step_title}
-        Step description: {step_description}
-        Required subtopics for this step: {preview_terms_text}
+        Return a JSON array. Each item must contain:
+        - question_text
+        - options as an object with A, B, C, D
+        - correct_answer as the option key only
+        - explanation
+        - concept
 
-        === LEARNER PROFILE ===
-        {learner_context_section}
+        Rules:
+        - Questions must be answerable from the step title, description, and subtopic.
+        - Do not include difficulty.
+        - Avoid unrelated domains unless they are part of the subtopic.
+    """
+    items = _extract_json(_get_llm().invoke(prompt))
+    if isinstance(items, dict):
+        items = items.get("questions", [])
+    if not isinstance(items, list):
+        raise ValueError("LLM did not return a question array")
 
-        === OUTPUT FORMAT ===
-        Return a single JSON object containing:
-        - id         (a short unique identifier string)
-        - question   (the full question text, including any statements/assertions as required by the format)
-        - options    (a JSON object with keys and values exactly as specified in the format instructions)
-        - correct_answer  (the key of the correct option, e.g. "B")
-        - explanation     (a concise explanation of why the correct answer is right)
-        - difficulty      (must be one of: easy, medium, hard)
-
-        === RULES ===
-        - The question must directly test the current roadmap step: {step_title}
-        - Base the question on one or more of these step subtopics: {preview_terms_text}
-        - Do not ask about preview terms from other roadmap steps
-        - Do not introduce unrelated subjects (e.g. finance, cooking) unless the topic itself covers them
-        - Keep difficulty aligned to: {difficulty}
-        - Set correct_answer to the option KEY only (not the full option text)
-        - The question must be answerable from the supplied step title, description, and subtopics
-        - If the learner has a known profession, make the context relatable to that profession where natural
-        - Adjust wording complexity to match the learner's age group if provided
-        - If the learner has a special instruction (e.g. "use rap references"), honour it in the question wording and explanation
-        - Do not repeat these questions: {previous_questions}
-        """
-
-    response = _get_llm().invoke(prompt)
-    raw = getattr(response, "content", str(response)).strip()
-    start = raw.find("{")
-    end = raw.rfind("}")
-
-    if start == -1 or end == -1:
-        raise ValueError("LLM did not return a JSON object")
-
-    raw = raw[start:end + 1]
-    question_item = json.loads(raw)
-
-    question_item["explanation"] = _normalize_text(
-        question_item.get("explanation") or "Explanation not available."
-    )
-    generated_difficulty = _normalize_text(question_item.get("difficulty")).lower()
-    question_item["difficulty"] = generated_difficulty if generated_difficulty in DIFFICULTIES else difficulty
-    return _normalize_quiz_question_item(question_item)
+    questions = []
+    for item in items[:question_count]:
+        question = _normalize_quiz_question_item(item, topic=subtopic)
+        if question.get("question") and question.get("options") and question.get("correct_answer"):
+            questions.append(question)
+    if not questions:
+        raise RuntimeError(f"Failed to generate adaptive quiz questions for {subtopic}")
+    return questions
 
 
-def save_generated_question(conn, attempt_id, question, difficulty):
+def calibrate_question_difficulty(context, subtopic, question):
+    prompt = f"""
+        Calibrate this multiple-choice question for an adaptive quiz.
+        Return JSON only in this exact shape:
+        {{
+          "bloom": "Apply",
+          "concepts": 2,
+          "reasoning_steps": 2
+        }}
+
+        Bloom must be one of Remember, Understand, Apply, Analyze, Evaluate, Create.
+        concepts is the number of distinct concepts required, from 1 to 4.
+        reasoning_steps is the number of reasoning steps required, from 1 to 4.
+        Do not assign a difficulty label; it is calculated deterministically.
+
+        Step title: {context['step_title']}
+        Subtopic: {subtopic}
+        Concept: {question.get('concept')}
+        Question: {question['question']}
+        Options: {json.dumps(question['options'])}
+        Correct answer: {question['correct_answer']}
+    """
+    try:
+        data = _extract_json(_get_llm().invoke(prompt))
+    except Exception:
+        data = {}
+    bloom_level = _normalize_text(data.get("bloom") if isinstance(data, dict) else "") or "Apply"
+    concept_count = max(1, min(_safe_int(data.get("concepts") if isinstance(data, dict) else None, 1), 4))
+    reasoning_steps = max(1, min(_safe_int(data.get("reasoning_steps") if isinstance(data, dict) else None, 1), 4))
+    difficulty_score = calculate_difficulty_score(bloom_level, concept_count, reasoning_steps)
+    return {
+        "bloom_level": bloom_level,
+        "concept_count": concept_count,
+        "reasoning_steps": reasoning_steps,
+        "difficulty_score": difficulty_score,
+        "difficulty": difficulty_label_from_score(difficulty_score),
+    }
+
+
+def save_bank_question(conn, context, topic, question, calibration):
     question_id = str(uuid.uuid4())
+    difficulty = calibration["difficulty"]
     conn.execute(
         """
         INSERT INTO quiz_questions (
-            question_id, attempt_id, question_text, options_json,
-            correct_answer, explanation, difficulty_level
+            question_id, attempt_id, subject_id, path_id, step_id, topic, concept,
+            question_text, options_json, correct_answer, explanation, difficulty_level,
+            bloom_level, concept_count, reasoning_steps, difficulty_score, calibrated_difficulty,
+            question_source, is_active
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'adaptive_bank', 1)
         """,
         (
             question_id,
-            attempt_id,
+            context["subject_id"],
+            context["path_id"],
+            context["step_id"],
+            topic,
+            question.get("concept") or topic,
             question["question"],
             json.dumps(question["options"]),
             question["correct_answer"],
             question.get("explanation"),
+            difficulty,
+            calibration.get("bloom_level"),
+            calibration.get("concept_count"),
+            calibration.get("reasoning_steps"),
+            calibration.get("difficulty_score"),
             difficulty,
         ),
     )
     return question_id
 
 
-def public_question(question_id, question, difficulty):
+def existing_bank_count(conn, step_id, topic=None):
+    if topic:
+        row = conn.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM quiz_questions
+            WHERE step_id = ?
+              AND topic = ?
+              AND question_source = 'adaptive_bank'
+              AND is_active = 1
+            """,
+            (step_id, topic),
+        ).fetchone()
+    else:
+        row = conn.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM quiz_questions
+            WHERE step_id = ?
+              AND question_source = 'adaptive_bank'
+              AND is_active = 1
+            """,
+            (step_id,),
+        ).fetchone()
+    return int(row["count"] or 0) if row else 0
+
+
+def ensure_calibrated_question_bank(conn, context):
+    topics = context.get("preview_terms") or [context["step_title"]]
+    questions_per_topic = max(
+        QUESTIONS_PER_PREVIEW_TERM,
+        math.ceil(ADAPTIVE_QUIZ_LENGTH / max(len(topics), 1)),
+    )
+    created = 0
+    for topic in topics:
+        existing = existing_bank_count(conn, context["step_id"], topic)
+        missing = max(0, questions_per_topic - existing)
+        if missing <= 0:
+            continue
+        questions = generate_questions_for_subtopic(context, topic, missing)
+        for question in questions[:missing]:
+            calibration = calibrate_question_difficulty(context, topic, question)
+            save_bank_question(conn, context, topic, question, calibration)
+            created += 1
+    return created
+
+
+def _difficulty_order_for(target_difficulty):
+    target_index = difficulty_to_index(target_difficulty)
+    return sorted(DIFFICULTIES, key=lambda difficulty: abs(difficulty_to_index(difficulty) - target_index))
+
+
+def _concept_key(row):
+    return _normalize_text(row.get("concept") or row.get("topic") or "").lower()
+
+
+def _load_attempt_concept_state(conn, attempt_id):
+    attempt = conn.execute(
+        """
+        SELECT qa.learner_id, qa.subject_id, qa.step_id,
+               COALESCE(tm.mastery_probability, lsp.mastery_score) AS baseline_mastery
+        FROM quiz_attempts qa
+        LEFT JOIN learning_path_steps lps ON lps.step_id = qa.step_id
+        LEFT JOIN topic_mastery tm
+          ON tm.learner_id = qa.learner_id
+         AND tm.subject_id = qa.subject_id
+         AND tm.topic_id = lps.topic_id
+        LEFT JOIN learner_subject_profiles lsp
+          ON lsp.learner_id = qa.learner_id
+         AND lsp.subject_id = qa.subject_id
+        WHERE qa.attempt_id = ?
+        LIMIT 1
+        """,
+        (attempt_id,),
+    ).fetchone()
+    if not attempt:
+        return {}, {}, 0.5
+
+    baseline = attempt["baseline_mastery"]
+    baseline = _clamp(baseline) if baseline is not None else 0.5
+    mastery = {}
+    for row in conn.execute(
+        """
+        SELECT concept, mastery_probability
+        FROM concept_mastery
+        WHERE learner_id = ? AND subject_id = ? AND step_id = ?
+        """,
+        (attempt["learner_id"], attempt["subject_id"], attempt["step_id"]),
+    ).fetchall():
+        mastery[_normalize_text(row["concept"]).lower()] = _clamp(row["mastery_probability"])
+
+    exposure = {}
+    for row in conn.execute(
+        """
+        SELECT qq.concept, qq.topic, COUNT(*) AS response_count
+        FROM quiz_responses qr
+        JOIN quiz_questions qq ON qq.question_id = qr.question_id
+        WHERE qr.attempt_id = ?
+        GROUP BY LOWER(COALESCE(qq.concept, qq.topic, ''))
+        """,
+        (attempt_id,),
+    ).fetchall():
+        key = _normalize_text(row["concept"] or row["topic"] or "").lower()
+        exposure[key] = int(row["response_count"] or 0)
+    return mastery, exposure, baseline
+
+
+def _question_information_score(row, target_difficulty, mastery, exposure, baseline):
+    key = _concept_key(row)
+    concept_mastery = mastery.get(key, baseline)
+    difficulty_score = row.get("difficulty_score")
+    if difficulty_score is None:
+        label = _normalize_difficulty(row.get("calibrated_difficulty") or row.get("difficulty_level"))
+        difficulty_score = DIFFICULTY_SCORE_RANGES[label]
+    difficulty_score = float(difficulty_score)
+
+    learner_ability = 1.0 + (3.0 * concept_mastery)
+    probability_correct = 1.0 / (1.0 + math.exp(-1.7 * (learner_ability - difficulty_score)))
+    response_information = 4.0 * probability_correct * (1.0 - probability_correct)
+    mastery_uncertainty = 4.0 * concept_mastery * (1.0 - concept_mastery)
+    weakness_priority = 1.0 - concept_mastery
+    coverage = 1.0 / (1.0 + exposure.get(key, 0))
+    target_score = DIFFICULTY_SCORE_RANGES[_normalize_difficulty(target_difficulty)]
+    difficulty_fit = max(0.0, 1.0 - (abs(difficulty_score - target_score) / 3.0))
+
+    return (
+        (0.45 * response_information)
+        + (0.25 * mastery_uncertainty)
+        + (0.15 * weakness_priority)
+        + (0.10 * coverage)
+        + (0.05 * difficulty_fit)
+    )
+
+
+def select_next_bank_question(conn, attempt_id, step_id, target_difficulty):
+    rows = conn.execute(
+        """
+        SELECT question_id, question_text, options_json, correct_answer, explanation,
+               difficulty_level, calibrated_difficulty, topic, concept, bloom_level,
+               concept_count, reasoning_steps, difficulty_score
+        FROM quiz_questions
+        WHERE step_id = ?
+          AND question_source = 'adaptive_bank'
+          AND is_active = 1
+          AND question_id NOT IN (
+              SELECT question_id
+              FROM quiz_responses
+              WHERE attempt_id = ? AND question_id IS NOT NULL
+          )
+        """,
+        (step_id, attempt_id),
+    ).fetchall()
+    if not rows:
+        return None
+
+    mastery, exposure, baseline = _load_attempt_concept_state(conn, attempt_id)
+    candidates = [dict(row) for row in rows]
+    return max(
+        candidates,
+        key=lambda row: (
+            _question_information_score(row, target_difficulty, mastery, exposure, baseline),
+            -abs(
+                float(row.get("difficulty_score") or DIFFICULTY_SCORE_RANGES[
+                    _normalize_difficulty(row.get("calibrated_difficulty") or row.get("difficulty_level"))
+                ])
+                - DIFFICULTY_SCORE_RANGES[_normalize_difficulty(target_difficulty)]
+            ),
+            row["question_id"],
+        ),
+    )
+
+
+def update_concept_mastery_after_response(conn, attempt, question, is_correct):
+    concept = _normalize_text(question.get("concept") or question.get("topic") or "")
+    if not concept:
+        return None
+
+    row = conn.execute(
+        """
+        SELECT mastery_id, mastery_probability, evidence_count
+        FROM concept_mastery
+        WHERE learner_id = ? AND subject_id = ? AND step_id = ? AND concept = ?
+        LIMIT 1
+        """,
+        (attempt["learner_id"], attempt["subject_id"], attempt["step_id"], concept),
+    ).fetchone()
+    if row:
+        prior = _clamp(row["mastery_probability"])
+        mastery_id = row["mastery_id"]
+        evidence_count = int(row["evidence_count"] or 0)
+    else:
+        context = load_adaptive_quiz_context(
+            conn,
+            attempt["learner_id"],
+            attempt["subject_id"],
+            attempt["path_id"],
+            attempt["step_id"],
+        )
+        baseline = context.get("mastery_probability")
+        if baseline is None:
+            baseline = context.get("mastery_score")
+        prior = _clamp(baseline) if baseline is not None else 0.5
+        mastery_id = str(uuid.uuid4())
+        evidence_count = 0
+
+    posterior = prior + (0.18 * (1.0 - prior)) if is_correct else prior - (0.22 * prior)
+    posterior = round(_clamp(posterior), 4)
+    conn.execute(
+        """
+        INSERT INTO concept_mastery (
+            mastery_id, learner_id, subject_id, step_id, concept,
+            mastery_probability, evidence_count, correct_count, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, 1, ?, datetime('now'))
+        ON CONFLICT(learner_id, subject_id, step_id, concept) DO UPDATE SET
+            mastery_probability = excluded.mastery_probability,
+            evidence_count = concept_mastery.evidence_count + 1,
+            correct_count = concept_mastery.correct_count + excluded.correct_count,
+            updated_at = datetime('now')
+        """,
+        (
+            mastery_id,
+            attempt["learner_id"],
+            attempt["subject_id"],
+            attempt["step_id"],
+            concept,
+            posterior,
+            int(is_correct),
+        ),
+    )
     return {
-        "question_id": question_id,
-        "question": question["question"],
-        "options": question["options"],
+        "concept": concept,
+        "mastery_probability": posterior,
+        "evidence_count": evidence_count + 1,
+    }
+
+
+def public_question_from_row(row):
+    options = _normalize_options(json.loads(row["options_json"]))
+    difficulty = _normalize_difficulty(row.get("calibrated_difficulty") or row.get("difficulty_level"))
+    return {
+        "question_id": row["question_id"],
+        "question": row["question_text"],
+        "question_text": row["question_text"],
+        "options": options,
         "difficulty": difficulty,
+        "topic": row.get("topic"),
+        "concept": row.get("concept"),
+        "bloom_level": row.get("bloom_level"),
+        "difficulty_score": row.get("difficulty_score"),
     }
 
 
@@ -594,6 +810,8 @@ def start_adaptive_quiz(conn, learner_id, subject_id, path_id, step_id):
     if existing_attempt:
         raise ValueError("An adaptive quiz is already in progress for this step")
 
+    ensure_calibrated_question_bank(conn, context)
+
     if context.get("step_status") == "not_started":
         conn.execute(
             """
@@ -631,7 +849,6 @@ def start_adaptive_quiz(conn, learner_id, subject_id, path_id, step_id):
         preview_terms=context.get("preview_terms") or [],
         difficulty=starting_difficulty,
         previous_questions=[],
-        learner_profile=context.get("learner_profile"),
     )
     if not question or not question.get("question"):
         raise RuntimeError("Failed to generate the first adaptive question")
@@ -646,7 +863,7 @@ def start_adaptive_quiz(conn, learner_id, subject_id, path_id, step_id):
         "quiz_length": ADAPTIVE_QUIZ_LENGTH,
         "starting_difficulty": starting_difficulty,
         "questions_answered": 0,
-        "question": public_question(question_id, question, starting_difficulty),
+        "question": public_question_from_row(question),
     }
 
 
@@ -671,15 +888,19 @@ def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_
 
     question = conn.execute(
         """
-        SELECT question_id, attempt_id, question_text, options_json,
-               correct_answer, explanation, difficulty_level
+        SELECT question_id, question_text, options_json, correct_answer, explanation,
+               difficulty_level, calibrated_difficulty, topic, concept, bloom_level,
+               concept_count, reasoning_steps, difficulty_score
         FROM quiz_questions
-        WHERE question_id = ? AND attempt_id = ?
+        WHERE question_id = ?
+          AND step_id = ?
+          AND question_source = 'adaptive_bank'
+          AND is_active = 1
         """,
-        (question_id, attempt_id),
+        (question_id, attempt["step_id"]),
     ).fetchone()
     if not question:
-        raise ValueError("Question does not belong to this adaptive attempt")
+        raise ValueError("Question does not belong to this adaptive step")
 
     duplicate = conn.execute(
         """
@@ -706,7 +927,7 @@ def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_
 
     correct = _normalize_correct_answer(question["correct_answer"], options)
     is_correct = selected == correct
-    current_difficulty = question.get("difficulty_level") or attempt.get("difficulty_level") or "medium"
+    current_difficulty = _normalize_difficulty(question.get("calibrated_difficulty") or question.get("difficulty_level") or attempt.get("difficulty_level"))
     next_difficulty = adjust_difficulty(current_difficulty, is_correct)
 
     total_questions = int(attempt.get("total_questions") or 0) + 1
@@ -738,6 +959,7 @@ def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_
             question.get("explanation"),
         ),
     )
+    concept_mastery = update_concept_mastery_after_response(conn, attempt, question, is_correct)
 
     if quiz_complete:
         roadmap = complete_step_and_advance(
@@ -765,6 +987,7 @@ def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_
                 "explanation": question.get("explanation"),
             },
             "difficulty_after": next_difficulty,
+            "concept_mastery": concept_mastery,
             "quiz_complete": True,
             "result": {
                 "score": score,
@@ -812,7 +1035,6 @@ def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_
         preview_terms=context.get("preview_terms") or [],
         difficulty=next_difficulty,
         previous_questions=previous_questions,
-        learner_profile=context.get("learner_profile"),
     )
     if not next_question or not next_question.get("question"):
         raise RuntimeError("Failed to generate the next adaptive question")
@@ -828,6 +1050,7 @@ def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_
             "explanation": question.get("explanation"),
         },
         "difficulty_after": next_difficulty,
+        "concept_mastery": concept_mastery,
         "quiz_complete": False,
         "progress": {
             "questions_answered": total_questions,
@@ -835,5 +1058,5 @@ def submit_adaptive_answer(conn, attempt_id, question_id, selected_answer, time_
             "quiz_length": ADAPTIVE_QUIZ_LENGTH,
         },
         "step": _step_payload(context),
-        "next_question": public_question(next_question_id, next_question, next_difficulty),
+        "next_question": public_question_from_row(next_question),
     }

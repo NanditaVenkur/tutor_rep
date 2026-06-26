@@ -95,11 +95,8 @@ def _load_learner_preferences(conn, learner_id: str) -> dict:
         """
         SELECT
             learner_id,
-            content_format,
             explanation_style,
             quiz_style,
-            learning_pace,
-            session_length,
             feedback_style,
             accessibility_notes
         FROM learner_preferences
