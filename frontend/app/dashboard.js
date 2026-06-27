@@ -17,7 +17,6 @@ const detailStepTitle = document.getElementById("detailStepTitle");
 const detailStepDescription = document.getElementById("detailStepDescription");
 const detailCurrentContent = document.getElementById("detailCurrentContent");
 const practiceStepButton = document.getElementById("practiceStepButton");
-const viewGraphButton = document.getElementById("viewGraphButton");
 const detailStepList = document.getElementById("detailStepList");
 const detailSessionList = document.getElementById("detailSessionList");
 
@@ -560,8 +559,6 @@ function renderDashboard(data) {
     `;
     practiceStepButton.classList.add("hidden");
     practiceStepButton.onclick = null;
-    viewGraphButton?.classList.add("hidden");
-    if (viewGraphButton) viewGraphButton.onclick = null;
 
     detailStepList.innerHTML = quickSessions.length
       ? quickSessions.map((session) => `
@@ -639,18 +636,6 @@ function renderDashboard(data) {
   } else {
     practiceStepButton.classList.add("hidden");
     practiceStepButton.onclick = null;
-  }
-
-  if (active.subject_id) {
-    viewGraphButton?.classList.remove("hidden");
-    viewGraphButton.onclick = () => {
-      const email = encodeURIComponent(learner.email || localStorage.getItem("adaptiveTutorLearnerEmail") || "");
-      const subjectId = encodeURIComponent(active.subject_id);
-      window.location.href = `/frontend/roadmap_graph.html?email=${email}&subject_id=${subjectId}`;
-    };
-  } else if (viewGraphButton) {
-    viewGraphButton.classList.add("hidden");
-    viewGraphButton.onclick = null;
   }
 
   const stepCards = steps.length
