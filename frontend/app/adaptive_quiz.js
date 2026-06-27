@@ -28,6 +28,14 @@ function readJSON(key) {
   }
 }
 
+async function readResponseJSON(response) {
+  try {
+    return await response.json();
+  } catch {
+    return {};
+  }
+}
+
 function escapeHTML(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -116,7 +124,7 @@ async function startQuiz() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(context),
   });
-  const data = await response.json();
+  const data = await readResponseJSON(response);
   if (!response.ok) throw new Error(data.error || "Failed to start adaptive quiz");
 
   storeStartedSession(context, data);
@@ -144,7 +152,7 @@ form.addEventListener("submit", async (event) => {
         time_taken_seconds: Math.round((Date.now() - questionStartedAt) / 1000),
       }),
     });
-    const data = await response.json();
+    const data = await readResponseJSON(response);
     if (!response.ok) throw new Error(data.error || "Failed to submit answer");
 
     form.classList.add("hidden");

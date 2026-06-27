@@ -36,6 +36,17 @@ DB_PATH = BASE_DIR / "adaptive_tutor_v2.db"
 ROOT_SCHEMA_PATH = BASE_DIR.parent / "data" / "sql" / "user_profile_schema.sql"
 
 
+def is_provider_rate_limit_error(error):
+    error_name = error.__class__.__name__.lower()
+    error_text = str(error).lower()
+    return (
+        "ratelimit" in error_name
+        or "rate limit" in error_text
+        or "rate_limit_exceeded" in error_text
+        or "error code: 429" in error_text
+    )
+
+
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -714,6 +725,13 @@ def _term_matches_text(term, text):
 
 
 def _assign_term_to_response(response, preview_terms, response_index):
+    response_topic = response.get("topic")
+    response_concept = response.get("concept")
+    for candidate in (response_topic, response_concept):
+        for term in preview_terms:
+            if _term_matches_text(term, candidate):
+                return term
+
     response_text = " ".join(
         str(part or "")
         for part in (
@@ -764,6 +782,27 @@ def _load_concept_mastery_by_step(conn, learner_id, subject_id, path_steps):
     return mastery_by_step
 
 
+def _concept_rows_for_term(term, term_stats, step_concepts):
+    concept_keys = term_stats.get(term, {}).get("concept_keys") or set()
+    rows = [
+        step_concepts[key]
+        for key in concept_keys
+        if key in step_concepts
+    ]
+    if rows:
+        return rows
+
+    term_key = canonicalize_text(term)
+    if term_key in step_concepts:
+        return [step_concepts[term_key]]
+
+    return [
+        row
+        for row in step_concepts.values()
+        if _term_matches_text(term, row.get("concept")) or _term_matches_text(row.get("concept"), term)
+    ]
+
+
 def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses):
     breakdown = []
     latest_step_id = (latest_quiz or {}).get("step_id")
@@ -797,7 +836,7 @@ def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses
         step_summary = step_map[latest_step_id]
         preview_terms = step_summary["preview_terms"]
         term_stats = {
-            term: {"answered": 0, "correct": 0}
+            term: {"answered": 0, "correct": 0, "concept_keys": set()}
             for term in preview_terms
         }
 
@@ -805,10 +844,13 @@ def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses
             assigned_term = _assign_term_to_response(response, preview_terms, index)
             if not assigned_term:
                 continue
-            bucket = term_stats.setdefault(assigned_term, {"answered": 0, "correct": 0})
+            bucket = term_stats.setdefault(assigned_term, {"answered": 0, "correct": 0, "concept_keys": set()})
             bucket["answered"] += 1
             if int(response.get("is_correct") or 0):
                 bucket["correct"] += 1
+            concept_key = canonicalize_text(response.get("concept"))
+            if concept_key:
+                bucket["concept_keys"].add(concept_key)
 
         answer_count = len(latest_quiz_responses or [])
         correct_count = sum(1 for response in latest_quiz_responses or [] if int(response.get("is_correct") or 0))
@@ -817,30 +859,19 @@ def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses
         subtopics = []
         mastery_values = []
         for term in preview_terms:
-            stats = term_stats.get(term, {"answered": 0, "correct": 0})
-            concept_row = None
+            stats = term_stats.get(term, {"answered": 0, "correct": 0, "concept_keys": set()})
             step_concepts = concept_mastery_by_step.get(latest_step_id, {})
-            term_key = canonicalize_text(term)
-            if term_key in step_concepts:
-                concept_row = step_concepts[term_key]
-            else:
-                concept_row = next(
-                    (
-                        row
-                        for key, row in step_concepts.items()
-                        if _term_matches_text(term, row.get("concept")) or _term_matches_text(row.get("concept"), term)
-                    ),
-                    None,
-                )
-
             answered = int(stats["answered"])
             correct = int(stats["correct"])
-            if concept_row:
-                answered = int(concept_row.get("evidence_count") or answered)
-                correct = int(concept_row.get("correct_count") or correct)
+            concept_rows = _concept_rows_for_term(term, term_stats, step_concepts)
             bkt_mastery = (
-                round(float(concept_row.get("mastery_probability") or 0) * 100, 1)
-                if concept_row and concept_row.get("mastery_probability") is not None
+                round(
+                    sum(float(row.get("mastery_probability") or 0) for row in concept_rows)
+                    / len(concept_rows)
+                    * 100,
+                    1,
+                )
+                if concept_rows
                 else None
             )
             term_accuracy = round((correct / answered) * 100, 1) if answered else None
@@ -1436,18 +1467,21 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
         conn,
         """
         SELECT
-            response_id,
-            attempt_id,
-            question_id,
-            question_text,
-            selected_answer,
-            correct_answer,
-            is_correct,
-            time_taken_seconds,
-            created_at
+            quiz_responses.response_id,
+            quiz_responses.attempt_id,
+            quiz_responses.question_id,
+            quiz_responses.question_text,
+            quiz_responses.selected_answer,
+            quiz_responses.correct_answer,
+            quiz_responses.is_correct,
+            quiz_responses.time_taken_seconds,
+            qq.topic,
+            qq.concept,
+            quiz_responses.created_at
         FROM quiz_responses
-        WHERE attempt_id = ?
-        ORDER BY created_at ASC
+        LEFT JOIN quiz_questions qq ON qq.question_id = quiz_responses.question_id
+        WHERE quiz_responses.attempt_id = ?
+        ORDER BY quiz_responses.created_at ASC
         """,
         (latest_quiz["attempt_id"],),
     ) if latest_quiz else []
@@ -1490,18 +1524,21 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
             conn,
             """
             SELECT
-                response_id,
-                attempt_id,
-                question_id,
-                question_text,
-                selected_answer,
-                correct_answer,
-                is_correct,
-                time_taken_seconds,
-                created_at
+                quiz_responses.response_id,
+                quiz_responses.attempt_id,
+                quiz_responses.question_id,
+                quiz_responses.question_text,
+                quiz_responses.selected_answer,
+                quiz_responses.correct_answer,
+                quiz_responses.is_correct,
+                quiz_responses.time_taken_seconds,
+                qq.topic,
+                qq.concept,
+                quiz_responses.created_at
             FROM quiz_responses
-            WHERE attempt_id = ?
-            ORDER BY created_at ASC
+            LEFT JOIN quiz_questions qq ON qq.question_id = quiz_responses.question_id
+            WHERE quiz_responses.attempt_id = ?
+            ORDER BY quiz_responses.created_at ASC
             """,
             (attempt["attempt_id"],),
         )
@@ -2246,6 +2283,24 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self,
                 500,
                 {"error": str(error)},
+            )
+
+        except Exception as error:
+            if is_provider_rate_limit_error(error):
+                return json_response(
+                    self,
+                    429,
+                    {
+                        "error": (
+                            "The quiz generator hit the Groq rate limit. "
+                            "Please wait a minute and try again, or switch to a model/API key with more quota."
+                        )
+                    },
+                )
+            return json_response(
+                self,
+                500,
+                {"error": f"Failed to start adaptive quiz: {error}"},
             )
 
         return json_response(self, 201, result)
