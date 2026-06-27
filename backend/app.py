@@ -1352,15 +1352,18 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
         step["prerequisite_step_ids"] = stored_prereqs_by_step[index] if index < len(stored_prereqs_by_step) else []
         if not terms and index < len(generated_terms_by_step):
             terms = generated_terms_by_step[index]
-            conn.execute(
-                """
-                UPDATE learning_path_steps
-                SET preview_terms = ?,
-                    updated_at = datetime('now')
-                WHERE step_id = ?
-                """,
-                (dump_json_list(terms), step["step_id"]),
-            )
+            try:
+                conn.execute(
+                    """
+                    UPDATE learning_path_steps
+                    SET preview_terms = ?,
+                        updated_at = datetime('now')
+                    WHERE step_id = ?
+                    """,
+                    (dump_json_list(terms), step["step_id"]),
+                )
+            except sqlite3.Error:
+                pass
         step["preview_terms"] = terms
         preview_terms_by_step.append(terms)
 
@@ -1368,15 +1371,18 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
     for index, step in enumerate(path_steps):
         refined_title = display_titles[index] if index < len(display_titles) else step["step_title"]
         if refined_title and refined_title != step["step_title"]:
-            conn.execute(
-                """
-                UPDATE learning_path_steps
-                SET step_title = ?,
-                    updated_at = datetime('now')
-                WHERE step_id = ?
-                """,
-                (refined_title, step["step_id"]),
-            )
+            try:
+                conn.execute(
+                    """
+                    UPDATE learning_path_steps
+                    SET step_title = ?,
+                        updated_at = datetime('now')
+                    WHERE step_id = ?
+                    """,
+                    (refined_title, step["step_id"]),
+                )
+            except sqlite3.Error:
+                pass
             step["step_title"] = refined_title
 
     current_step = None
