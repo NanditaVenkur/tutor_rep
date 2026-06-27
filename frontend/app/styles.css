@@ -624,6 +624,14 @@ textarea:focus {
   display: none;
 }
 
+.adaptive-card .hidden {
+  display: none !important;
+}
+
+.adaptive-card .diagnostic-meta:empty {
+  display: none;
+}
+
 .review-box {
   background: #fff;
   border: 1px solid var(--line);

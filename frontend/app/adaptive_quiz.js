@@ -16,6 +16,16 @@ const exitButton = document.getElementById("adaptiveExit");
 let session = null;
 let questionStartedAt = Date.now();
 
+function showLoadingState() {
+  form.classList.add("hidden");
+  feedbackNode.classList.add("hidden");
+  continueWrap.classList.add("hidden");
+  submitButton.classList.add("hidden");
+  statusBox.classList.remove("hidden", "error");
+  statusBox.classList.add("adaptive-loading");
+  meta.innerHTML = "";
+}
+
 function isLastQuestion(answered = 0) {
   return answered + 1 >= quizLength();
 }
@@ -106,6 +116,7 @@ function storeStartedSession(context, data) {
 }
 
 async function startQuiz() {
+  showLoadingState();
   const context = readJSON("adaptiveTutorAdaptiveQuizContext");
   const saved = readJSON("adaptiveTutorAdaptiveQuizSession");
   if (!context) {
