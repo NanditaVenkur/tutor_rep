@@ -36,6 +36,7 @@
         <section class="diagnostic-question">
           <h3 id="adaptiveQuestion"></h3>
           <div class="diagnostic-options" id="adaptiveOptions"></div>
+          <section class="adaptive-feedback hidden" id="adaptiveFeedback" aria-live="polite"></section>
         </section>
         <div class="subject-actions">
           <button type="button" class="btn secondary" id="adaptiveExit">Previous</button>
@@ -43,13 +44,12 @@
         </div>
       </form>
 
-      <section class="adaptive-feedback hidden" id="adaptiveFeedback" aria-live="polite"></section>
       <div class="subject-actions hidden" id="adaptiveContinueWrap">
         <button type="button" class="btn primary" id="adaptiveContinue">Next</button>
       </div>
     </section>
   </main>
 
-  <script src="/frontend/app/adaptive_quiz.js?v=6"></script>
+  <script src="/frontend/app/adaptive_quiz.js?v=7"></script>
 </body>
 </html>

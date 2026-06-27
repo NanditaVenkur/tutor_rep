@@ -2154,6 +2154,48 @@ textarea:focus {
   background: var(--primary);
 }
 
+.diagnostic-option.selected-correct,
+.diagnostic-option.correct-answer {
+  border-color: rgba(34, 197, 94, 0.55);
+  background: #f0fdf4;
+}
+
+.diagnostic-option.selected-wrong {
+  border-color: rgba(220, 38, 38, 0.45);
+  background: #fef2f2;
+}
+
+.diagnostic-option.correct-answer .diagnostic-option-key,
+.diagnostic-option.selected-correct .diagnostic-option-key {
+  color: #15803d;
+}
+
+.diagnostic-option.selected-wrong .diagnostic-option-key {
+  color: #b91c1c;
+}
+
+.diagnostic-option.correct-answer .diagnostic-option-box,
+.diagnostic-option.selected-correct .diagnostic-option-box {
+  border-color: #22c55e;
+}
+
+.diagnostic-option.selected-wrong .diagnostic-option-box {
+  border-color: #dc2626;
+}
+
+.diagnostic-option.correct-answer .diagnostic-option-box::after,
+.diagnostic-option.selected-correct .diagnostic-option-box::after {
+  background: #22c55e;
+}
+
+.diagnostic-option.selected-wrong .diagnostic-option-box::after {
+  background: #dc2626;
+}
+
+.diagnostic-option:has(input:disabled) {
+  cursor: default;
+}
+
 @media (max-width: 960px) {
   .subject-layout,
   .dashboard-grid,

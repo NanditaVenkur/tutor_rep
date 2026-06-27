@@ -89,7 +89,7 @@ function renderQuestion(question, answered = 0) {
   renderMeta(question, answered);
   questionNode.textContent = question.question || "Question unavailable";
   optionsNode.innerHTML = Object.entries(question.options || {}).map(([key, value]) => `
-    <label class="diagnostic-option">
+    <label class="diagnostic-option" data-option-key="${escapeHTML(key)}">
       <input type="radio" name="adaptive_answer" value="${escapeHTML(key)}" />
       <span class="diagnostic-option-box" aria-hidden="true"></span>
       <span class="diagnostic-option-content">
@@ -98,6 +98,35 @@ function renderQuestion(question, answered = 0) {
       </span>
     </label>
   `).join("");
+}
+
+function showInlineFeedback(feedback, selectedAnswer, result = null, roadmap = null) {
+  const correctAnswer = String(feedback?.correct_answer || "").trim();
+  const isCorrect = Boolean(feedback?.is_correct);
+
+  optionsNode.querySelectorAll(".diagnostic-option").forEach((option) => {
+    const optionKey = option.getAttribute("data-option-key");
+    const input = option.querySelector("input");
+    if (input) input.disabled = true;
+    option.classList.toggle("selected-correct", optionKey === selectedAnswer && isCorrect);
+    option.classList.toggle("selected-wrong", optionKey === selectedAnswer && !isCorrect);
+    option.classList.toggle("correct-answer", optionKey === correctAnswer);
+  });
+
+  feedbackNode.classList.remove("hidden");
+  feedbackNode.classList.toggle("correct", isCorrect);
+  feedbackNode.classList.toggle("incorrect", !isCorrect);
+  feedbackNode.innerHTML = `
+    <h2>${isCorrect ? "Correct" : "Not quite"}</h2>
+    <p><strong>Correct answer:</strong> ${escapeHTML(correctAnswer || "")}</p>
+    <p>${escapeHTML(feedback?.explanation || "No explanation available.")}</p>
+    ${result ? `
+      <p><strong>Result:</strong> ${result.correct_answers || 0}/${result.total_questions || quizLength()}
+      (${Math.round(Number(result.score || 0) * 100)}%)</p>
+      <p><strong>Roadmap:</strong> ${roadmap?.completed_steps || 0}/${roadmap?.total_steps || "?"} steps complete.</p>
+      ${roadmap?.next_step ? `<p><strong>Next step:</strong> ${escapeHTML(roadmap.next_step.step_title || "Continue roadmap")}</p>` : "<p><strong>Roadmap complete.</strong></p>"}
+    ` : ""}
+  `;
 }
 
 function storeStartedSession(context, data) {
@@ -167,15 +196,6 @@ form.addEventListener("submit", async (event) => {
     const data = await readResponseJSON(response);
     if (!response.ok) throw new Error(data.error || "Failed to submit answer");
 
-    form.classList.add("hidden");
-    feedbackNode.classList.remove("hidden");
-    feedbackNode.classList.toggle("correct", Boolean(data.feedback?.is_correct));
-    feedbackNode.classList.toggle("incorrect", !data.feedback?.is_correct);
-    feedbackNode.innerHTML = `
-      <h2>${data.feedback?.is_correct ? "Correct" : "Not quite"}</h2>
-      <p><strong>Correct answer:</strong> ${escapeHTML(data.feedback?.correct_answer || "")}</p>
-      <p>${escapeHTML(data.feedback?.explanation || "No explanation available.")}</p>
-    `;
     continueWrap.classList.remove("hidden");
 
     if (data.quiz_complete) {
@@ -183,13 +203,7 @@ form.addEventListener("submit", async (event) => {
       localStorage.removeItem("adaptiveTutorAdaptiveQuizContext");
       const result = data.result || {};
       const roadmap = data.roadmap || {};
-      const nextStep = roadmap.next_step;
-      feedbackNode.innerHTML += `
-        <p><strong>Result:</strong> ${result.correct_answers || 0}/${result.total_questions || quizLength()}
-        (${Math.round(Number(result.score || 0) * 100)}%)</p>
-        <p><strong>Roadmap:</strong> ${roadmap.completed_steps || 0}/${roadmap.total_steps || "?"} steps complete.</p>
-        ${nextStep ? `<p><strong>Next step:</strong> ${escapeHTML(nextStep.step_title || "Continue roadmap")}</p>` : "<p><strong>Roadmap complete.</strong></p>"}
-      `;
+      showInlineFeedback(data.feedback, selected.value, result, roadmap);
       continueButton.textContent = "Finish";
       continueButton.onclick = () => {
         window.location.href = "/frontend/dashboard.html";
@@ -197,6 +211,7 @@ form.addEventListener("submit", async (event) => {
       return;
     }
 
+    showInlineFeedback(data.feedback, selected.value);
     session.question = data.next_question;
     session.questions_answered = data.progress?.questions_answered || session.questions_answered + 1;
     session.quiz_length = data.progress?.quiz_length || session.quiz_length;
