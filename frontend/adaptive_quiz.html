@@ -18,7 +18,19 @@
         <div class="diagnostic-meta" id="adaptiveMeta"></div>
       </header>
 
-      <div class="adaptive-status" id="adaptiveStatus">Starting quiz...</div>
+      <div class="adaptive-status adaptive-loading" id="adaptiveStatus" aria-live="polite">
+        <div class="adaptive-spinner" aria-hidden="true"></div>
+        <div>
+          <p class="adaptive-loading-label">Preparing adaptive quiz</p>
+          <h2>Building your first question</h2>
+          <p>The tutor is checking this roadmap step, generating calibrated MCQ questions, and choosing the best starting difficulty.</p>
+          <div class="adaptive-loading-steps">
+            <span>Step context</span>
+            <span>Question bank</span>
+            <span>Difficulty fit</span>
+          </div>
+        </div>
+      </div>
 
       <form id="adaptiveForm" class="diagnostic-form hidden">
         <section class="diagnostic-question">
@@ -38,6 +50,6 @@
     </section>
   </main>
 
-  <script src="/frontend/app/adaptive_quiz.js?v=3"></script>
+  <script src="/frontend/app/adaptive_quiz.js?v=4"></script>
 </body>
 </html>

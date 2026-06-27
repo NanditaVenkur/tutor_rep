@@ -214,5 +214,6 @@ exitButton.addEventListener("click", () => {
 
 startQuiz().catch((error) => {
   statusBox.textContent = error.message;
+  statusBox.classList.remove("adaptive-loading");
   statusBox.classList.add("error");
 });
