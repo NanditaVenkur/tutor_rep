@@ -3,6 +3,8 @@ const diagnosticForm = document.getElementById("diagnosticForm");
 const diagnosticQuestions = document.getElementById("diagnosticQuestions");
 const diagnosticMeta = document.getElementById("diagnosticMeta");
 const quizSubtitle = document.getElementById("quizSubtitle");
+const submitButton = diagnosticForm?.querySelector('button[type="submit"]');
+let isSubmitting = false;
 
 function readJSON(key) {
   try {
@@ -93,8 +95,8 @@ function collectAnswers(preview) {
 
 function validateAnswers(preview) {
   const questions = Array.isArray(preview?.questions) ? preview.questions : [];
-  for (const question of questions) {
-    const name = `question_${question.id}`;
+  for (const [index, question] of questions.entries()) {
+    const name = `question_${question.id ?? index}`;
     if (!diagnosticForm.querySelector(`input[name="${CSS.escape(name)}"]:checked`)) {
       return false;
     }
@@ -118,9 +120,19 @@ renderQuiz(preview);
 diagnosticForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  if (isSubmitting) {
+    return;
+  }
+
   if (!validateAnswers(preview)) {
     alert("Please answer all questions before submitting.");
     return;
+  }
+
+  isSubmitting = true;
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Building roadmap...";
   }
 
   try {
@@ -151,5 +163,10 @@ diagnosticForm.addEventListener("submit", async (event) => {
     window.location.href = "/frontend/dashboard.html";
   } catch (error) {
     alert(error.message);
+    isSubmitting = false;
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = "Submit quiz";
+    }
   }
 });

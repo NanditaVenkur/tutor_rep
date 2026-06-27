@@ -941,23 +941,6 @@ def build_learning_path(
             ),
         )
 
-    print({
-        "path_id": path_id,
-        "path_title": path_title,
-        "mode": mode,
-        "root_topic_id": root_topic_id,
-        "total_steps": len(step_rows),
-        "estimated_total_minutes": estimated_total_minutes,
-        "summary": summary,
-        "score": score,
-        "weak_points": weak_points,
-        "steps": step_rows,
-        "cached_views": cached_views,
-        "created_at": _now_iso(),
-        "content_depth": content_depth,
-        "target_outcome": target_outcome,
-        "prerequisite_graph_valid": graph_valid,
-    })
     return {
         "path_id": path_id,
         "path_title": path_title,
