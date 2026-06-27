@@ -1875,6 +1875,43 @@ textarea:focus {
   background: #fff;
 }
 
+.mastery-timeline {
+  margin-top: 10px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.mastery-timeline-head,
+.mastery-timeline-row {
+  display: grid;
+  grid-template-columns: 0.7fr 1.4fr 1fr 1fr;
+  gap: 6px;
+  align-items: center;
+  padding: 7px 9px;
+  font-size: 0.78rem;
+}
+
+.mastery-timeline-head {
+  color: var(--muted);
+  font-weight: 700;
+  background: rgba(241, 245, 249, 0.9);
+}
+
+.mastery-timeline-row {
+  border-top: 1px solid rgba(226, 232, 240, 0.78);
+  color: var(--ink);
+}
+
+.mastery-timeline-row.correct {
+  background: rgba(220, 252, 231, 0.38);
+}
+
+.mastery-timeline-row.incorrect {
+  background: rgba(254, 226, 226, 0.34);
+}
+
 .empty-state {
   margin: 0;
   color: var(--muted);

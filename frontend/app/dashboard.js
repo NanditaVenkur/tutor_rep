@@ -298,6 +298,27 @@ function renderMasteryPanel(step, masterySummary) {
   const review = masterySummary.topics_to_review || [];
   const practice = masterySummary.topics_to_practice || [];
   const subtopics = masterySummary.subtopics || [];
+  const renderTimeline = (timeline = []) => {
+    if (!timeline.length) return "";
+    return `
+      <div class="mastery-timeline">
+        <div class="mastery-timeline-head">
+          <span>Q</span>
+          <span>Result</span>
+          <span>Prior</span>
+          <span>After</span>
+        </div>
+        ${timeline.map((item) => `
+          <div class="mastery-timeline-row ${item.is_correct ? "correct" : "incorrect"}">
+            <span>${escapeHtml(item.question_number ?? "—")}</span>
+            <span>${item.is_correct ? "Correct" : "Wrong"}</span>
+            <span>${Number(item.prior ?? 0).toFixed(1)}%</span>
+            <span>${Number(item.after ?? 0).toFixed(1)}%</span>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  };
   return `
     <div class="step-section">
       <div class="step-section-head">
@@ -305,7 +326,7 @@ function renderMasteryPanel(step, masterySummary) {
         <span class="step-section-chip">${escapeHtml(masterySummary.summary || "Step summary")}</span>
       </div>
       <p class="step-section-text">
-        ${escapeHtml((step.preview_terms || []).length ? "Subtopic mastery uses BKT from concept_mastery; answer counts are shown as evidence." : "Mastery details for this step.")}
+        ${escapeHtml((step.preview_terms || []).length ? "Preview-term mastery replays BKT over the quiz response sequence; answer counts are shown as evidence." : "Mastery details for this step.")}
       </p>
       <div class="mastery-pill-group strong">${strong.map((item) => `<span class="mastery-pill">${escapeHtml(item)}</span>`).join("")}</div>
       <div class="mastery-pill-group review">${review.map((item) => `<span class="mastery-pill">${escapeHtml(item)}</span>`).join("")}</div>
@@ -321,6 +342,7 @@ function renderMasteryPanel(step, masterySummary) {
                 <span>${topic.mastery === null || topic.mastery === undefined ? "No mastery yet" : `${topic.mastery.toFixed(1)}% BKT`}</span>
                 <span>${topic.accuracy === null || topic.accuracy === undefined ? "No accuracy yet" : `${topic.accuracy.toFixed(1)}% accuracy`}</span>
               </div>
+              ${renderTimeline(topic.mastery_timeline || [])}
             </div>
           `).join("")}
         </div>

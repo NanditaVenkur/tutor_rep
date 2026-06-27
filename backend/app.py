@@ -748,71 +748,42 @@ def _assign_term_to_response(response, preview_terms, response_index):
     return None
 
 
-def _load_concept_mastery_by_step(conn, learner_id, subject_id, path_steps):
-    step_ids = [step.get("step_id") for step in path_steps or [] if step.get("step_id")]
-    if not learner_id or not subject_id or not step_ids:
-        return {}
-
-    placeholders = ",".join("?" for _ in step_ids)
-    rows = fetchall_dict(
-        conn,
-        f"""
-        SELECT
-            step_id,
-            concept,
-            mastery_probability,
-            evidence_count,
-            correct_count,
-            updated_at
-        FROM concept_mastery
-        WHERE learner_id = ?
-          AND subject_id = ?
-          AND step_id IN ({placeholders})
-        ORDER BY updated_at DESC
-        """,
-        (learner_id, subject_id, *step_ids),
-    )
-
-    mastery_by_step = {}
-    for row in rows:
-        step_bucket = mastery_by_step.setdefault(row.get("step_id"), {})
-        concept_key = canonicalize_text(row.get("concept"))
-        if concept_key and concept_key not in step_bucket:
-            step_bucket[concept_key] = row
-    return mastery_by_step
+def _clamp_probability(value, low=0.0, high=1.0):
+    return max(low, min(high, float(value)))
 
 
-def _concept_rows_for_term(term, term_stats, step_concepts):
-    concept_keys = term_stats.get(term, {}).get("concept_keys") or set()
-    rows = [
-        step_concepts[key]
-        for key in concept_keys
-        if key in step_concepts
-    ]
-    if rows:
-        return rows
+def _bkt_preview_update(prior, is_correct, transit=0.12, guess=0.20, slip=0.10):
+    prior = _clamp_probability(prior)
+    transit = _clamp_probability(transit)
+    guess = _clamp_probability(guess, 0.01, 0.99)
+    slip = _clamp_probability(slip, 0.01, 0.99)
 
-    term_key = canonicalize_text(term)
-    if term_key in step_concepts:
-        return [step_concepts[term_key]]
+    if is_correct:
+        numerator = prior * (1.0 - slip)
+        denominator = numerator + ((1.0 - prior) * guess)
+    else:
+        numerator = prior * slip
+        denominator = numerator + ((1.0 - prior) * (1.0 - guess))
 
-    return [
-        row
-        for row in step_concepts.values()
-        if _term_matches_text(term, row.get("concept")) or _term_matches_text(row.get("concept"), term)
-    ]
+    posterior = numerator / denominator if denominator else prior
+    return _clamp_probability(posterior + ((1.0 - posterior) * transit))
+
+
+def _timeline_point(index, response, prior, posterior):
+    return {
+        "question_number": index + 1,
+        "question_text": response.get("question_text"),
+        "concept": response.get("concept"),
+        "is_correct": bool(int(response.get("is_correct") or 0)),
+        "prior": round(prior * 100, 1),
+        "after": round(posterior * 100, 1),
+    }
 
 
 def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses):
     breakdown = []
     latest_step_id = (latest_quiz or {}).get("step_id")
     step_map = {}
-    concept_mastery_by_step = _load_concept_mastery_by_step(
-        conn,
-        (latest_quiz or {}).get("learner_id"),
-        (latest_quiz or {}).get("subject_id"),
-        path_steps,
-    )
 
     for step in path_steps or []:
         preview_terms = parse_json_list(step.get("preview_terms"))
@@ -836,7 +807,7 @@ def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses
         step_summary = step_map[latest_step_id]
         preview_terms = step_summary["preview_terms"]
         term_stats = {
-            term: {"answered": 0, "correct": 0, "concept_keys": set()}
+            term: {"answered": 0, "correct": 0, "mastery": 0.25, "timeline": []}
             for term in preview_terms
         }
 
@@ -844,13 +815,14 @@ def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses
             assigned_term = _assign_term_to_response(response, preview_terms, index)
             if not assigned_term:
                 continue
-            bucket = term_stats.setdefault(assigned_term, {"answered": 0, "correct": 0, "concept_keys": set()})
+            bucket = term_stats.setdefault(assigned_term, {"answered": 0, "correct": 0, "mastery": 0.25, "timeline": []})
+            prior = bucket["mastery"]
+            posterior = _bkt_preview_update(prior, int(response.get("is_correct") or 0) == 1)
             bucket["answered"] += 1
             if int(response.get("is_correct") or 0):
                 bucket["correct"] += 1
-            concept_key = canonicalize_text(response.get("concept"))
-            if concept_key:
-                bucket["concept_keys"].add(concept_key)
+            bucket["mastery"] = posterior
+            bucket["timeline"].append(_timeline_point(index, response, prior, posterior))
 
         answer_count = len(latest_quiz_responses or [])
         correct_count = sum(1 for response in latest_quiz_responses or [] if int(response.get("is_correct") or 0))
@@ -859,21 +831,10 @@ def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses
         subtopics = []
         mastery_values = []
         for term in preview_terms:
-            stats = term_stats.get(term, {"answered": 0, "correct": 0, "concept_keys": set()})
-            step_concepts = concept_mastery_by_step.get(latest_step_id, {})
+            stats = term_stats.get(term, {"answered": 0, "correct": 0, "mastery": 0.25, "timeline": []})
             answered = int(stats["answered"])
             correct = int(stats["correct"])
-            concept_rows = _concept_rows_for_term(term, term_stats, step_concepts)
-            bkt_mastery = (
-                round(
-                    sum(float(row.get("mastery_probability") or 0) for row in concept_rows)
-                    / len(concept_rows)
-                    * 100,
-                    1,
-                )
-                if concept_rows
-                else None
-            )
+            bkt_mastery = round(float(stats["mastery"]) * 100, 1) if answered else None
             term_accuracy = round((correct / answered) * 100, 1) if answered else None
             display_mastery = bkt_mastery if bkt_mastery is not None else term_accuracy
             if display_mastery is not None:
@@ -893,7 +854,8 @@ def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses
                 "correct": correct,
                 "accuracy": term_accuracy,
                 "mastery": bkt_mastery,
-                "mastery_source": "bkt" if bkt_mastery is not None else "accuracy",
+                "mastery_source": "preview_term_bkt" if bkt_mastery is not None else "accuracy",
+                "mastery_timeline": stats["timeline"],
                 "bucket": bucket,
             })
 
