@@ -730,10 +730,50 @@ def _assign_term_to_response(response, preview_terms, response_index):
     return None
 
 
-def build_mastery_breakdown(path_steps, latest_quiz, latest_quiz_responses):
+def _load_concept_mastery_by_step(conn, learner_id, subject_id, path_steps):
+    step_ids = [step.get("step_id") for step in path_steps or [] if step.get("step_id")]
+    if not learner_id or not subject_id or not step_ids:
+        return {}
+
+    placeholders = ",".join("?" for _ in step_ids)
+    rows = fetchall_dict(
+        conn,
+        f"""
+        SELECT
+            step_id,
+            concept,
+            mastery_probability,
+            evidence_count,
+            correct_count,
+            updated_at
+        FROM concept_mastery
+        WHERE learner_id = ?
+          AND subject_id = ?
+          AND step_id IN ({placeholders})
+        ORDER BY updated_at DESC
+        """,
+        (learner_id, subject_id, *step_ids),
+    )
+
+    mastery_by_step = {}
+    for row in rows:
+        step_bucket = mastery_by_step.setdefault(row.get("step_id"), {})
+        concept_key = canonicalize_text(row.get("concept"))
+        if concept_key and concept_key not in step_bucket:
+            step_bucket[concept_key] = row
+    return mastery_by_step
+
+
+def build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses):
     breakdown = []
     latest_step_id = (latest_quiz or {}).get("step_id")
     step_map = {}
+    concept_mastery_by_step = _load_concept_mastery_by_step(
+        conn,
+        (latest_quiz or {}).get("learner_id"),
+        (latest_quiz or {}).get("subject_id"),
+        path_steps,
+    )
 
     for step in path_steps or []:
         preview_terms = parse_json_list(step.get("preview_terms"))
@@ -775,16 +815,44 @@ def build_mastery_breakdown(path_steps, latest_quiz, latest_quiz_responses):
         accuracy = round((correct_count / answer_count) * 100, 1) if answer_count else None
 
         subtopics = []
+        mastery_values = []
         for term in preview_terms:
             stats = term_stats.get(term, {"answered": 0, "correct": 0})
+            concept_row = None
+            step_concepts = concept_mastery_by_step.get(latest_step_id, {})
+            term_key = canonicalize_text(term)
+            if term_key in step_concepts:
+                concept_row = step_concepts[term_key]
+            else:
+                concept_row = next(
+                    (
+                        row
+                        for key, row in step_concepts.items()
+                        if _term_matches_text(term, row.get("concept")) or _term_matches_text(row.get("concept"), term)
+                    ),
+                    None,
+                )
+
             answered = int(stats["answered"])
             correct = int(stats["correct"])
+            if concept_row:
+                answered = int(concept_row.get("evidence_count") or answered)
+                correct = int(concept_row.get("correct_count") or correct)
+            bkt_mastery = (
+                round(float(concept_row.get("mastery_probability") or 0) * 100, 1)
+                if concept_row and concept_row.get("mastery_probability") is not None
+                else None
+            )
             term_accuracy = round((correct / answered) * 100, 1) if answered else None
-            if answered and term_accuracy >= 75:
+            display_mastery = bkt_mastery if bkt_mastery is not None else term_accuracy
+            if display_mastery is not None:
+                mastery_values.append(display_mastery)
+
+            if display_mastery is not None and display_mastery >= 75:
                 bucket = "strong"
-            elif answered and term_accuracy < 60:
+            elif display_mastery is not None and display_mastery < 60:
                 bucket = "review"
-            elif answered:
+            elif display_mastery is not None:
                 bucket = "practice"
             else:
                 bucket = "untried"
@@ -793,19 +861,30 @@ def build_mastery_breakdown(path_steps, latest_quiz, latest_quiz_responses):
                 "answered": answered,
                 "correct": correct,
                 "accuracy": term_accuracy,
+                "mastery": bkt_mastery,
+                "mastery_source": "bkt" if bkt_mastery is not None else "accuracy",
                 "bucket": bucket,
             })
 
+        step_mastery = round(sum(mastery_values) / len(mastery_values), 1) if mastery_values else None
         step_summary["subtopics"] = subtopics
         step_summary["answered_questions"] = answer_count
         step_summary["correct_answers"] = correct_count
         step_summary["accuracy"] = accuracy
+        step_summary["mastery"] = step_mastery
+        step_summary["mastery_source"] = "bkt" if any(item.get("mastery") is not None for item in subtopics) else "accuracy"
         step_summary["topics_strong"] = [item["topic"] for item in subtopics if item["bucket"] == "strong"]
         step_summary["topics_to_review"] = [item["topic"] for item in subtopics if item["bucket"] == "review"]
         step_summary["topics_to_practice"] = [item["topic"] for item in subtopics if item["bucket"] == "practice"]
 
-        if accuracy is None:
+        if step_mastery is None and accuracy is None:
             step_summary["summary"] = "No answered questions yet."
+        elif step_mastery is not None and step_mastery >= 75:
+            step_summary["summary"] = "Strong BKT mastery on this step."
+        elif step_mastery is not None and step_mastery >= 60:
+            step_summary["summary"] = "Mixed BKT mastery. Some subtopics need another pass."
+        elif step_mastery is not None:
+            step_summary["summary"] = "Needs review. Focus on the low-mastery subtopics."
         elif accuracy >= 75:
             step_summary["summary"] = "Strong overall on this step."
         elif accuracy >= 60:
@@ -1511,7 +1590,7 @@ def get_dashboard_summary(conn, email, selected_subject_id=None):
             (current_step["step_id"],),
         )
 
-    mastery_breakdown = build_mastery_breakdown(path_steps, latest_quiz, latest_quiz_responses)
+    mastery_breakdown = build_mastery_breakdown(conn, path_steps, latest_quiz, latest_quiz_responses)
     quick_study_sessions = fetchall_dict(
         conn,
         """

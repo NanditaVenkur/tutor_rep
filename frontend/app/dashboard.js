@@ -207,6 +207,7 @@ function renderMasteryStepCard(step) {
   const practice = step.topics_to_practice || [];
   const subtopics = step.subtopics || [];
   const accuracy = step.accuracy === null || step.accuracy === undefined ? "Not set" : `${step.accuracy.toFixed(1)}%`;
+  const mastery = step.mastery === null || step.mastery === undefined ? "Not set" : `${step.mastery.toFixed(1)}%`;
   const answered = Number(step.answered_questions || 0);
   const correct = Number(step.correct_answers || 0);
   const hasAnySignals = strong.length || review.length || practice.length;
@@ -224,6 +225,7 @@ function renderMasteryStepCard(step) {
       <div class="mastery-step-metrics">
         <span>${answered} answered</span>
         <span>${correct} correct</span>
+        <span>${mastery} BKT mastery</span>
         <span>${accuracy} accuracy</span>
       </div>
       ${renderTopicPills(strong, "strong")}
@@ -242,7 +244,8 @@ function renderMasteryStepCard(step) {
             <div class="mastery-subtopic-meta">
               <span>${topic.answered ? `${topic.answered} answer${topic.answered === 1 ? "" : "s"}` : "Not practiced"}</span>
               <span>${topic.correct ? `${topic.correct} correct` : "0 correct"}</span>
-              <span>${topic.accuracy === null || topic.accuracy === undefined ? "No score yet" : `${topic.accuracy.toFixed(1)}%`}</span>
+              <span>${topic.mastery === null || topic.mastery === undefined ? "No mastery yet" : `${topic.mastery.toFixed(1)}% BKT`}</span>
+              <span>${topic.accuracy === null || topic.accuracy === undefined ? "No accuracy yet" : `${topic.accuracy.toFixed(1)}% accuracy`}</span>
             </div>
           </div>
         `).join("")}
@@ -302,7 +305,7 @@ function renderMasteryPanel(step, masterySummary) {
         <span class="step-section-chip">${escapeHtml(masterySummary.summary || "Step summary")}</span>
       </div>
       <p class="step-section-text">
-        ${escapeHtml((step.preview_terms || []).length ? "Subtopic-level mastery based on the latest quiz answers." : "Mastery details for this step.")}
+        ${escapeHtml((step.preview_terms || []).length ? "Subtopic mastery uses BKT from concept_mastery; answer counts are shown as evidence." : "Mastery details for this step.")}
       </p>
       <div class="mastery-pill-group strong">${strong.map((item) => `<span class="mastery-pill">${escapeHtml(item)}</span>`).join("")}</div>
       <div class="mastery-pill-group review">${review.map((item) => `<span class="mastery-pill">${escapeHtml(item)}</span>`).join("")}</div>
@@ -315,7 +318,8 @@ function renderMasteryPanel(step, masterySummary) {
               <div class="mastery-subtopic-meta">
                 <span>${topic.answered ? `${topic.answered} answer${topic.answered === 1 ? "" : "s"}` : "Not practiced"}</span>
                 <span>${topic.correct ? `${topic.correct} correct` : "0 correct"}</span>
-                <span>${topic.accuracy === null || topic.accuracy === undefined ? "No score yet" : `${topic.accuracy.toFixed(1)}%`}</span>
+                <span>${topic.mastery === null || topic.mastery === undefined ? "No mastery yet" : `${topic.mastery.toFixed(1)}% BKT`}</span>
+                <span>${topic.accuracy === null || topic.accuracy === undefined ? "No accuracy yet" : `${topic.accuracy.toFixed(1)}% accuracy`}</span>
               </div>
             </div>
           `).join("")}
