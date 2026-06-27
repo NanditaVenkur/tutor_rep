@@ -350,6 +350,43 @@ function renderMasteryPanel(step, masterySummary) {
   `;
 }
 
+function canPracticeStep(step, active) {
+  return Boolean(active?.subject_id && active?.active_path?.path_id && step?.step_id);
+}
+
+function practiceButtonLabel(step, isCurrentStep) {
+  if (step?.step_status === "needs_review") return "Retake quiz";
+  return isCurrentStep ? "Practice this step" : "Take quiz";
+}
+
+function launchAdaptiveQuizForStep(learner, active, roadmap, step) {
+  if (!learner?.learner_id || !active?.subject_id || !roadmap?.path_id || !step?.step_id) {
+    return;
+  }
+
+  const launchContext = {
+    learner_id: learner.learner_id,
+    subject_id: active.subject_id,
+    path_id: roadmap.path_id,
+    step_id: step.step_id,
+    step_title: step.step_title,
+  };
+  const savedSession = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("adaptiveTutorAdaptiveQuizSession") || "null");
+    } catch {
+      return null;
+    }
+  })();
+
+  if (savedSession?.step_id !== step.step_id) {
+    localStorage.removeItem("adaptiveTutorAdaptiveQuizSession");
+  }
+
+  localStorage.setItem("adaptiveTutorAdaptiveQuizContext", JSON.stringify(launchContext));
+  window.location.href = "/frontend/adaptive_quiz.html";
+}
+
 function renderStepAccordion(step, active, quizInfo, masterySummary) {
   const isCurrentStep = active?.current_step?.step_id === step.step_id;
   const isCompleted = step.step_status === "completed";
@@ -394,8 +431,8 @@ function renderStepAccordion(step, active, quizInfo, masterySummary) {
                 <div style="margin-top:8px;">${escapeHtml(active.current_step_content.chunk_text || active.current_step_content.step_description || "No content available.")}</div>
               </div>
             ` : ""}
-            ${isCurrentStep && active?.subject_id && active?.active_path?.path_id ? `
-              <button class="btn primary step-practice-btn" type="button" data-practice-step="${escapeHtml(step.step_id)}">Practice this step</button>
+            ${canPracticeStep(step, active) && (isCurrentStep || isReview) ? `
+              <button class="btn primary step-practice-btn" type="button" data-practice-step="${escapeHtml(step.step_id)}">${escapeHtml(practiceButtonLabel(step, isCurrentStep))}</button>
             ` : ""}
           </div>
           ${renderQuizPanel(step, quizInfo, isCurrentStep)}
@@ -612,26 +649,9 @@ function renderDashboard(data) {
 
   if (currentStep && learner.learner_id && active.subject_id && roadmap.path_id) {
     practiceStepButton.classList.remove("hidden");
+    practiceStepButton.textContent = practiceButtonLabel(currentStep, true);
     practiceStepButton.onclick = () => {
-      const launchContext = {
-        learner_id: learner.learner_id,
-        subject_id: active.subject_id,
-        path_id: roadmap.path_id,
-        step_id: currentStep.step_id,
-        step_title: currentStep.step_title,
-      };
-      const savedSession = (() => {
-        try {
-          return JSON.parse(localStorage.getItem("adaptiveTutorAdaptiveQuizSession") || "null");
-        } catch {
-          return null;
-        }
-      })();
-      if (savedSession?.step_id !== currentStep.step_id) {
-        localStorage.removeItem("adaptiveTutorAdaptiveQuizSession");
-      }
-      localStorage.setItem("adaptiveTutorAdaptiveQuizContext", JSON.stringify(launchContext));
-      window.location.href = "/frontend/adaptive_quiz.html";
+      launchAdaptiveQuizForStep(learner, active, roadmap, currentStep);
     };
   } else {
     practiceStepButton.classList.add("hidden");
@@ -649,10 +669,9 @@ function renderDashboard(data) {
 
   detailStepList.querySelectorAll("[data-practice-step]").forEach((button) => {
     button.addEventListener("click", () => {
-      if (!currentStep || button.getAttribute("data-practice-step") !== currentStep.step_id) {
-        return;
-      }
-      practiceStepButton.click();
+      const stepId = button.getAttribute("data-practice-step");
+      const selectedStep = steps.find((step) => step.step_id === stepId);
+      launchAdaptiveQuizForStep(learner, active, roadmap, selectedStep);
     });
   });
 
