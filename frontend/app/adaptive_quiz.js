@@ -78,6 +78,7 @@ function renderMeta(question, answered = 0) {
 function renderQuestion(question, answered = 0) {
   questionStartedAt = Date.now();
   statusBox.classList.add("hidden");
+  statusBox.classList.remove("adaptive-loading", "error");
   feedbackNode.classList.add("hidden");
   continueWrap.classList.add("hidden");
   form.classList.remove("hidden");
