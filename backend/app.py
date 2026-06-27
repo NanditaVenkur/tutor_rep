@@ -402,11 +402,7 @@ def parse_json_object(value):
 
 
 def normalize_quiz_style_value(value):
-    if isinstance(value, list):
-        cleaned = [str(item).strip() for item in value if str(item or "").strip()]
-        return json.dumps(cleaned) if cleaned else "mcq"
-    cleaned = str(value or "").strip()
-    return cleaned or "mcq"
+    return "mcq"
 
 
 def normalize_text_value(value, fallback=""):

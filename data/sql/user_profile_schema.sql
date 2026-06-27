@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS learner_preferences (
     preference_id TEXT PRIMARY KEY NOT NULL,
     learner_id TEXT NOT NULL UNIQUE,
     explanation_style TEXT NOT NULL DEFAULT 'step_by_step',
-    quiz_style TEXT NOT NULL DEFAULT 'mixed',
+    quiz_style TEXT NOT NULL DEFAULT 'mcq',
     feedback_style TEXT NOT NULL DEFAULT 'immediate',
     accessibility_notes TEXT,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),

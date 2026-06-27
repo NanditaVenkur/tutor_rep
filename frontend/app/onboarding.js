@@ -22,15 +22,9 @@ function getFormValues() {
   const data = new FormData(form);
   const values = {};
   for (const [key, value] of data.entries()) {
-    if (key === "quiz_style") {
-      if (!Array.isArray(values[key])) {
-        values[key] = [];
-      }
-      values[key].push(value);
-      continue;
-    }
     values[key] = value;
   }
+  values.quiz_style = "mcq";
   return values;
 }
 
@@ -44,15 +38,12 @@ function friendly(value, fallback = "Not set") {
 function renderSummary() {
   if (!reviewBox) return;
   const values = getFormValues();
-  const quizStyles = Array.isArray(values.quiz_style) && values.quiz_style.length
-    ? values.quiz_style.map((item) => friendly(item)).join(", ")
-    : "MCQ";
   reviewBox.innerHTML = `
     <strong style="display:block; margin-bottom:8px; color:#1f2933;">Review before creating profile</strong>
     <div>Name: ${values.full_name || "Not set"}</div>
     <div>Email: ${values.email || "Not set"}</div>
     <div>Explanation: ${friendly(values.explanation_style || "step_by_step")}</div>
-    <div>Quiz: ${quizStyles}</div>
+    <div>Quiz: MCQ</div>
     <div>Notes: ${values.accessibility_notes || "None"}</div>
   `;
 }
@@ -80,10 +71,6 @@ function validateCurrentStep() {
 
   if (currentStep === 0) {
     if (!values.email) return false;
-  }
-
-  if (currentStep === 1) {
-    if (!Array.isArray(values.quiz_style) || !values.quiz_style.length) return false;
   }
 
   return true;

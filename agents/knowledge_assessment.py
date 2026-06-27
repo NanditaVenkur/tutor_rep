@@ -285,7 +285,7 @@ def save_learner_preferences(input_str: str) -> str:
     learner_id = parts[0]
     content_format = parts[1] if len(parts) > 1 else "mixed"
     explanation_style = parts[2] if len(parts) > 2 else "step_by_step"
-    quiz_style = parts[3] if len(parts) > 3 else "mixed"
+    quiz_style = "mcq"
     learning_pace = parts[4] if len(parts) > 4 else "normal"
     session_length = parts[5] if len(parts) > 5 else "30_min"
     feedback_style = parts[6] if len(parts) > 6 else "immediate"
