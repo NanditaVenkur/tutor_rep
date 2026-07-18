@@ -1,0 +1,55 @@
+const API_BASE = "http://localhost:8001";
+const entryForm = document.getElementById("entryForm");
+
+function clearStudyStateForEmailChange(nextEmail) {
+  const currentEmail = localStorage.getItem("adaptiveTutorLearnerEmail");
+  if (!currentEmail || currentEmail === nextEmail) return;
+
+  [
+    "adaptiveTutorSelectedTopic",
+    "adaptiveTutorStudyFlow",
+    "adaptiveTutorAssessmentPreview",
+    "adaptiveTutorLearningPathPreview",
+    "adaptiveTutorActiveSubject",
+    "adaptiveTutorLatestDiagnosticResult",
+    "adaptiveTutorActiveSubjectId"
+  ].forEach((key) => localStorage.removeItem(key));
+}
+
+entryForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const values = Object.fromEntries(new FormData(entryForm).entries());
+  const email = (values.email || "").trim().toLowerCase();
+
+  if (!email) {
+    alert("Please enter your email address.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/learner?email=${encodeURIComponent(email)}`);
+    const data = await response.json();
+
+    localStorage.setItem("adaptiveTutorPendingEmail", email);
+
+    if (response.ok && data.exists) {
+      clearStudyStateForEmailChange(data.learner.email);
+      localStorage.setItem("adaptiveTutorLearnerId", String(data.learner.learner_id));
+      localStorage.setItem("adaptiveTutorLearnerEmail", data.learner.email);
+      localStorage.setItem("adaptiveTutorLearnerName", data.learner.full_name || "");
+      localStorage.setItem("adaptiveTutorPreferredLanguage", data.learner.preferred_language || "English");
+      window.location.href = "/frontend/dashboard.html";
+      return;
+    }
+
+    if (response.status === 404 || (response.ok && !data.exists)) {
+      window.location.href = "/frontend/onboarding_profile_form.html";
+      return;
+    }
+
+    throw new Error(data.error || "Unable to verify email");
+  } catch (error) {
+    alert(error.message);
+  }
+});

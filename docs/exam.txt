@@ -1,0 +1,22 @@
+to be grounded to the content we have giben to the user 
+biology ----> retrieve chunks --- lets provide the chunk id to the model and ask to generate quiz question from these 70 30 more creative
+sciq dataset -> chunk in vector db 
+agent - serachs the chunk for the relavnt topic . fetch some chunk ---> lets validate  
+
+tools 
+1- search chunks
+2) rank  score these chunk
+3 if score > something lets stick this content and provide the content to user 
+4) if not use external tools like google/ wiki / any 
+
+
+
+1) 
+
+
+
+
+python3 backend/app.py
+http://localhost:8001
+python3 -m http.server 8000
+http://localhost:8000/index.html

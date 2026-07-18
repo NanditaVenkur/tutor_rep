@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Tutor - Dashboard</title>
+  <link rel="stylesheet" href="/frontend/app/styles.css" />
+</head>
+<body>
+  <main class="app-shell dashboard-shell">
+    <section class="app-card dashboard-card">
+      <header class="dashboard-hero">
+        <div>
+          <p class="eyebrow">Adaptive Tutor</p>
+          <h1>What subject or topic do you want to work on?</h1>
+          <p class="subtle" id="welcomeText">Choose a subject below to see its roadmap or reopen a quick study chat.</p>
+        </div>
+        <div class="dashboard-actions">
+          <button class="menu-button" type="button" id="userMenuButton" aria-expanded="false" aria-controls="userMenuPanel">
+            <span class="menu-icon" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span class="menu-button-label">Profile</span>
+          </button>
+          <div class="user-menu hidden" id="userMenuPanel">
+            <div class="user-menu-head">
+              <strong>Account</strong>
+              <span>Quick details</span>
+            </div>
+            <div class="user-menu-body">
+              <div><span>Name</span><strong id="dashName">Not set</strong></div>
+              <div><span>Email</span><strong id="dashEmail">Not set</strong></div>
+              <div><span>Language</span><strong id="dashLanguage">Not set</strong></div>
+            </div>
+            <div class="user-menu-actions">
+              <a class="btn secondary" href="/frontend/index.html">Change email</a>
+              <a class="btn secondary" href="/frontend/onboarding_profile_form.html">Edit onboarding</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="dashboard-explorer">
+        <aside class="dashboard-panel dashboard-sidebar">
+          <div class="panel-head">
+            <div>
+              <h2>Your current subjects and topics</h2>
+              <p class="subtle">Click any subject to open its roadmap or quick study sessions.</p>
+            </div>
+            <a class="btn secondary" href="/frontend/subject_topic_entry.html">Add a new subject</a>
+          </div>
+          <div class="subject-list" id="subjectList"></div>
+        </aside>
+
+        <section class="dashboard-detail" id="selectedSubjectDetail">
+          <div class="detail-hero">
+            <div>
+              <p class="eyebrow">Selected subject</p>
+              <h2 id="selectedSubjectTitle">No subject selected</h2>
+              <p class="subtle" id="selectedSubjectTopic">Pick a subject card above to view its details.</p>
+            </div>
+            <div>
+              <div class="detail-stats" id="selectedSubjectStats"></div>
+            </div>
+          </div>
+
+          <div class="detail-grid">
+            <article class="detail-panel">
+              <h3>Roadmap</h3>
+              <p id="detailRoadmapText">No roadmap selected.</p>
+              <div class="content-box" id="detailRoadmapMeta">Roadmap details will appear here.</div>
+            </article>
+
+            <article class="detail-panel">
+              <h3>Next step</h3>
+              <p id="detailStepTitle">No active step.</p>
+              <p id="detailStepDescription">Choose a subject to see the next step.</p>
+              <div class="content-box" id="detailCurrentContent">Content will appear here.</div>
+              <button class="btn primary hidden" type="button" id="practiceStepButton">
+                Practice this step
+              </button>
+            </article>
+
+            <article class="detail-panel detail-panel-wide">
+              <div class="panel-head">
+                <div>
+                  <h3>Roadmap steps</h3>
+                  <p class="subtle">Each step keeps its quiz, mastery, and subtopics together.</p>
+                </div>
+              </div>
+              <div id="detailStepList"></div>
+            </article>
+
+            <article class="detail-panel">
+              <h3>Recent sessions</h3>
+              <ul class="simple-list" id="detailSessionList"></ul>
+            </article>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="/frontend/app/dashboard.js?v=4"></script>
+</body>
+</html>

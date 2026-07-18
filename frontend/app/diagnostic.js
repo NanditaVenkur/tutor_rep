@@ -1,0 +1,172 @@
+const API_BASE = "http://localhost:8001";
+const diagnosticForm = document.getElementById("diagnosticForm");
+const diagnosticQuestions = document.getElementById("diagnosticQuestions");
+const diagnosticMeta = document.getElementById("diagnosticMeta");
+const quizSubtitle = document.getElementById("quizSubtitle");
+const submitButton = diagnosticForm?.querySelector('button[type="submit"]');
+let isSubmitting = false;
+
+function readJSON(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function readScopedJSON(key, learnerEmail) {
+  const parsed = readJSON(key);
+  if (!parsed) return null;
+
+  if (Object.prototype.hasOwnProperty.call(parsed, "ownerEmail")) {
+    return parsed.ownerEmail === learnerEmail ? parsed.value : null;
+  }
+
+  return null;
+}
+
+function writeScopedJSON(key, value, learnerEmail) {
+  localStorage.setItem(key, JSON.stringify({
+    ownerEmail: learnerEmail || "",
+    value
+  }));
+}
+
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function renderQuiz(preview) {
+  const questions = Array.isArray(preview?.questions) ? preview.questions : [];
+  const topic = preview?.topic || "your topic";
+  const level = preview?.level || "beginner";
+
+  quizSubtitle.textContent = `Diagnostic quiz for ${topic}`;
+  diagnosticMeta.innerHTML = `
+    <div><strong>Topic</strong><span>${escapeHTML(topic)}</span></div>
+    <div><strong>Level</strong><span>${escapeHTML(level)}</span></div>
+    <div><strong>Questions</strong><span>${questions.length}</span></div>
+  `;
+
+  if (!questions.length) {
+    diagnosticQuestions.innerHTML = "<p>No diagnostic questions available.</p>";
+    return;
+  }
+
+  diagnosticQuestions.innerHTML = questions.map((question, index) => {
+    const options = question.options || {};
+    const optionEntries = Object.entries(options);
+    return `
+      <section class="diagnostic-question">
+        <h3>Q${index + 1}. ${escapeHTML(question.question || "")}</h3>
+        <div class="diagnostic-options">
+          ${optionEntries.map(([key, value]) => `
+            <label class="diagnostic-option">
+              <input type="radio" name="question_${escapeHTML(String(question.id || index))}" value="${escapeHTML(key)}" />
+              <span class="diagnostic-option-box" aria-hidden="true"></span>
+              <span class="diagnostic-option-content">
+                <strong class="diagnostic-option-key">${escapeHTML(key)}</strong>
+                <span class="diagnostic-option-text">${escapeHTML(value)}</span>
+              </span>
+            </label>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  }).join("");
+}
+
+function collectAnswers(preview) {
+  const questions = Array.isArray(preview?.questions) ? preview.questions : [];
+  return questions.map((question, index) => {
+    const name = `question_${question.id ?? index}`;
+    const checked = diagnosticForm.querySelector(`input[name="${CSS.escape(name)}"]:checked`);
+    return {
+      question_id: String(question.id ?? index),
+      answer: checked ? checked.value : ""
+    };
+  });
+}
+
+function validateAnswers(preview) {
+  const questions = Array.isArray(preview?.questions) ? preview.questions : [];
+  for (const [index, question] of questions.entries()) {
+    const name = `question_${question.id ?? index}`;
+    if (!diagnosticForm.querySelector(`input[name="${CSS.escape(name)}"]:checked`)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+const learnerEmail = localStorage.getItem("adaptiveTutorLearnerEmail");
+const preview = readScopedJSON("adaptiveTutorAssessmentPreview", learnerEmail);
+const subject = readScopedJSON("adaptiveTutorActiveSubject", learnerEmail);
+const studyFlow = readScopedJSON("adaptiveTutorStudyFlow", learnerEmail);
+const topicGrounding = readScopedJSON("adaptiveTutorTopicGrounding", learnerEmail);
+
+if (!preview) {
+  window.location.href = "/frontend/subject_topic_entry.html";
+  throw new Error("Diagnostic preview is missing");
+}
+
+renderQuiz(preview);
+
+diagnosticForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  if (isSubmitting) {
+    return;
+  }
+
+  if (!validateAnswers(preview)) {
+    alert("Please answer all questions before submitting.");
+    return;
+  }
+
+  isSubmitting = true;
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Building roadmap...";
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/diagnostic/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: learnerEmail,
+        topic: preview.topic || subject?.subject_name || "",
+        level: preview.level || "beginner",
+        study_mode: studyFlow?.study_mode || "roadmap",
+        topic_grounding: topicGrounding || null,
+        questions: preview.questions || [],
+        answers: collectAnswers(preview)
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to submit diagnostic quiz");
+    }
+
+    writeScopedJSON("adaptiveTutorLatestDiagnosticResult", data.result || {}, learnerEmail);
+    if (data.subject_id) {
+      localStorage.setItem("adaptiveTutorActiveSubjectId", data.subject_id);
+      localStorage.setItem("adaptiveTutorSelectedSubjectId", data.subject_id);
+    }
+    window.location.href = "/frontend/dashboard.html";
+  } catch (error) {
+    alert(error.message);
+    isSubmitting = false;
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = "Submit quiz";
+    }
+  }
+});
