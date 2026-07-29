@@ -1,4 +1,4 @@
-# Adaptive Tutor
+# 📚 Adaptive Tutor
 
 Adaptive Tutor is a local learning app with two study modes:
 
